@@ -21,7 +21,16 @@ func (m Model) View() string {
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(borderColor))
 
-	// First row: Text input
+	// Top row: current working directory (no border, just a single line)
+	cwdStyle := lipgloss.NewStyle().
+		Width(m.width)
+	cwdText := m.currentDir
+	if cwdText == "" {
+		cwdText = "."
+	}
+	cwdView := cwdStyle.Render(cwdText)
+
+	// Second row: Text input
 	// Create a bordered container for the text input
 	// To change the height, modify the Height() value below (e.g., Height(3) for taller)
 	// Keep top, left, right borders; remove bottom border so it connects with viewports
@@ -34,15 +43,17 @@ func (m Model) View() string {
 		m.textInput.View(),
 	)
 
-	// Second row: Two viewports side by side
+	// Third row: Two viewports side by side
 	// Calculate viewport width (half of available width, accounting for borders)
 	viewportWidth := m.width / 2
 
 	// Calculate viewport style height (content height + borders)
+	// CWD row: 1 content line
 	// Text input row: Height(1) with borders = 3 total lines (1 content + 2 border)
-	// Viewport style height = total height - text input row height
+	// Viewport style height = total height - (cwd row + text input row)
+	cwdRowHeight := 1
 	textInputRowHeight := 3 // 1 content line + 2 border lines
-	viewportStyleHeight := m.height - textInputRowHeight
+	viewportStyleHeight := m.height - (cwdRowHeight + textInputRowHeight)
 	if viewportStyleHeight < 3 {
 		viewportStyleHeight = 3 // Minimum height (1 content + 2 borders)
 	}
@@ -80,10 +91,12 @@ func (m Model) View() string {
 	)
 
 	// Combine all rows vertically without spacing (borders will connect)
-	// First row: text input
-	// Second row: two viewports
+	// First row: current working directory
+	// Second row: text input
+	// Third row: two viewports
 	layout := lipgloss.JoinVertical(
 		lipgloss.Left,
+		cwdView,
 		textInputView,
 		secondRow, // No spacing string - borders will connect
 	)

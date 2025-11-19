@@ -5,7 +5,7 @@
 # - Combined styles: 'blue+bold', '#0000FF+bold', 'dim', etc.
 
 
-
+[Theme]
 # File type colors
 directory = "#0000FF+bold"   # Blue + Bold
 symlink = "#00FFFF"          # Cyan
@@ -19,6 +19,11 @@ regular = ""                 # No color (empty)
 full = "#00FF00"       # Green (full access)
 partial = "#FFFF00"    # Yellow (partial access)
 none = "dim"           # Dim (no access)
+
+# Per-bit permission colors (used for r/w/x characters)
+perm_read  = "#00FF00"  # Green
+perm_write = "#FFFF00"  # Yellow
+perm_exec  = "#FF5F00"  # Orange/Red
 
 # Field colors
 nlink = "dim"
@@ -39,19 +44,15 @@ help_text = "#888888"           # Help text color at bottom
 foreground = "#FFFDF5"          # Foreground color
 background = "#212121"          # Background color
 
-# shortcuts
+[Keybindings]
 help_model="?"                 # open help modal
 quit_app="ctrl+c"              # quit
-quit_app="ctrl+q"              # quit
 resize_left="ctl+h"             # resize panel left
 resize_right="ctl+l"           # resize panel right
-resize_left="ctl+left"         # resize panel left
-resize_right="ctl+right"       # resize panel right
-up_a_parent_directory="up"     # go up a parent directory
-down_a_child_directory="down"  # go down a child directory
-previous_directory="left"      # go to previous directory
-next_directory="right"         # go to next directory
-home_directory="home"          # go to home directory
-root_directory="end"           # go to root directory
+up_a_parent_directory="ctrl+k"     # go up a parent directory
+down_a_child_directory="ctrl+j"  # go down a child directory
+previous_directory="ctrl+h"      # go to previous directory
+next_directory="ctrl+l"         # go to next directory
+home_directory="ctrl+a"          # go to home directory
+root_directory="ctrl+e"           # go to root directory
 open="enter"                   # opens file or directory
-open="space"                   # opens file or directory

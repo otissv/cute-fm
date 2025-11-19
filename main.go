@@ -10,8 +10,16 @@ import (
 )
 
 func main() {
+	// Determine starting directory: if a positional argument is provided,
+	// use it as the initial directory; otherwise fall back to the current
+	// working directory (handled inside InitialModel).
+	startDir := ""
+	if len(os.Args) > 1 {
+		startDir = os.Args[1]
+	}
+
 	// Create the initial model
-	m := tui.InitialModel()
+	m := tui.InitialModel(startDir)
 
 	// Create a new Bubble Tea program
 	p := tea.NewProgram(

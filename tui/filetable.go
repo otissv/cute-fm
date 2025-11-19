@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -11,40 +10,43 @@ import (
 )
 
 // renderFileTable builds a simple eza-like table for the left viewport using
-// the provided theme and directory listing.
+// the provided theme and directory listing. selectedIndex is the 0-based row
+// index that should be highlighted; pass -1 for "no selection".
 //
 // Columns:
 //
 //	Permissions Size User  Group Date Modified  Name
-func renderFileTable(theme theming.Theme, files []filesystem.FileInfo) string {
+func renderFileTable(theme theming.Theme, files []filesystem.FileInfo, selectedIndex int) string {
 	var b strings.Builder
-
-	// Header
-	header := fmt.Sprintf(
-		"%-11s %-6s %-8s %-8s %-14s %s",
-		"Permissions",
-		"Size",
-		"User",
-		"Group",
-		"Date Modified",
-		"Name",
+	const (
+		colPerms = 11
+		colSize  = 6
+		colUser  = 8
+		colGroup = 8
+		colDate  = 14
 	)
+
+	// Header (unstyled for simplicity, then bolded as a whole).
+	headerCols := []string{
+		padCell("Permissions", colPerms),
+		padCell("Size", colSize),
+		padCell("User", colUser),
+		padCell("Group", colGroup),
+		padCell("Date Modified", colDate),
+		"Name",
+	}
+	headerLine := strings.Join(headerCols, " ")
 	headerStyle := lipgloss.NewStyle().Bold(true)
-	b.WriteString(headerStyle.Render(header))
+	b.WriteString(headerStyle.Render(headerLine))
 	b.WriteRune('\n')
 
 	// Rows
-	for _, fi := range files {
-		perm := fi.Permissions
+	for i, fi := range files {
 		size := fi.Size
 		user := fi.User
 		group := fi.Group
 		date := fi.DateModified
 		name := fi.Name
-
-		// Permission color (rough heuristic based on rwx count).
-		permStyle := colorForPermissions(theme, perm)
-		permText := permStyle.Render(perm)
 
 		// Field colors.
 		userStyle := theming.StyleFromSpec(theme.FieldColors["user"])
@@ -52,26 +54,46 @@ func renderFileTable(theme theming.Theme, files []filesystem.FileInfo) string {
 		sizeStyle := theming.StyleFromSpec(theme.FieldColors["size"])
 		timeStyle := theming.StyleFromSpec(theme.FieldColors["time"])
 
-		userText := userStyle.Render(user)
-		groupText := groupStyle.Render(group)
-		sizeText := sizeStyle.Render(size)
-		timeText := timeStyle.Render(date)
+		// If this row is selected, apply only the selected background to every
+		// column so the entire row is highlighted while preserving the
+		// foreground colors coming from file-type and permission-level specs.
+		bgColor := ""
+		if selectedIndex >= 0 && i == selectedIndex && theme.SelectedBackground != "" {
+			bgColor = theme.SelectedBackground
+			bg := lipgloss.Color(bgColor)
+			userStyle = userStyle.Background(bg)
+			groupStyle = groupStyle.Background(bg)
+			sizeStyle = sizeStyle.Background(bg)
+			timeStyle = timeStyle.Background(bg)
+		}
+
+		// Render permission string with per-character coloring.
+		permTextRaw := renderPermissions(theme, fi, bgColor)
+		permText := padCell(permTextRaw, colPerms)
+
+		userText := padCell(userStyle.Render(user), colUser)
+		groupText := padCell(groupStyle.Render(group), colGroup)
+		sizeText := padCell(sizeStyle.Render(size), colSize)
+		timeText := padCell(timeStyle.Render(date), colDate)
 
 		// File name color based on file type.
 		nameColorSpec := theme.FileTypeColors[fi.Type]
 		nameStyle := theming.StyleFromSpec(nameColorSpec)
+		if bgColor != "" {
+			nameStyle = nameStyle.Background(lipgloss.Color(bgColor))
+		}
 		nameText := nameStyle.Render(name)
 
-		line := fmt.Sprintf(
-			"%-11s %-6s %-8s %-8s %-14s %s",
+		lineCols := []string{
 			permText,
 			sizeText,
 			userText,
 			groupText,
 			timeText,
 			nameText,
-		)
+		}
 
+		line := strings.Join(lineCols, " ")
 		b.WriteString(line)
 		b.WriteRune('\n')
 	}
@@ -81,30 +103,63 @@ func renderFileTable(theme theming.Theme, files []filesystem.FileInfo) string {
 
 // colorForPermissions selects a permission style based on how permissive the
 // rwx bits are, using the "full", "partial", and "none" colors from the theme.
-func colorForPermissions(theme theming.Theme, perm string) lipgloss.Style {
-	// Drop the leading type character ('d' or '.') if present.
-	if len(perm) > 0 {
-		perm = perm[1:]
+func renderPermissions(theme theming.Theme, fi filesystem.FileInfo, bgColor string) string {
+	perm := fi.Permissions
+	if perm == "" {
+		return ""
 	}
 
-	fullSpec := theme.PermissionColors["full"]
-	partialSpec := theme.PermissionColors["partial"]
-	noneSpec := theme.PermissionColors["none"]
+	var b strings.Builder
 
-	// Count non-dash characters – a simple proxy for access level.
-	count := 0
-	for _, r := range perm {
-		if r != '-' {
-			count++
+	// Optional background for selected rows.
+	var bg lipgloss.Color
+	hasBG := false
+	if bgColor != "" {
+		bg = lipgloss.Color(bgColor)
+		hasBG = true
+	}
+
+	// First character: type indicator ('d', '.', 'l', etc.) colored by file type.
+	typeSpec := theme.FileTypeColors[fi.Type]
+	typeStyle := theming.StyleFromSpec(typeSpec)
+	if hasBG {
+		typeStyle = typeStyle.Background(bg)
+	}
+	b.WriteString(typeStyle.Render(string(perm[0])))
+
+	// Remaining permission bits: color each character separately.
+	for _, r := range perm[1:] {
+		ch := string(r)
+
+		var spec string
+		switch ch {
+		case "r":
+			spec = theme.PermRead
+		case "w":
+			spec = theme.PermWrite
+		case "x":
+			spec = theme.PermExec
+		default:
+			spec = theme.PermissionColors["none"]
 		}
+
+		style := theming.StyleFromSpec(spec)
+		if hasBG {
+			style = style.Background(bg)
+		}
+
+		b.WriteString(style.Render(ch))
 	}
 
-	switch {
-	case count >= 9:
-		return theming.StyleFromSpec(fullSpec)
-	case count == 0:
-		return theming.StyleFromSpec(noneSpec)
-	default:
-		return theming.StyleFromSpec(partialSpec)
+	return b.String()
+}
+
+// padCell right-pads the given content with spaces so that its visible width
+// (taking into account ANSI escape sequences used by lipgloss) is at least w.
+func padCell(content string, w int) string {
+	width := lipgloss.Width(content)
+	if width >= w {
+		return content
 	}
+	return content + strings.Repeat(" ", w-width)
 }

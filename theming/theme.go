@@ -22,6 +22,12 @@ type Theme struct {
 	// PermissionColors maps keys like "full", "partial", "none".
 	PermissionColors map[string]string
 
+	// Permission bit colors for individual permission characters.
+	// These are used to color the "rwx" bits in the permissions column.
+	PermRead  string
+	PermWrite string
+	PermExec  string
+
 	// Interface colors.
 	BorderColor          string
 	SelectedForeground   string
@@ -60,6 +66,9 @@ func DefaultTheme() Theme {
 			"partial": "#FFFF00",
 			"none":    "dim",
 		},
+		PermRead:           "#00FF00", // green
+		PermWrite:          "#FFFF00", // yellow
+		PermExec:           "#FF5F00", // orange/red
 		BorderColor:        "#874BFD",
 		SelectedForeground: "#FFFDF5",
 		SelectedBackground: "#25A065",
@@ -130,6 +139,14 @@ func LoadTheme(path string) Theme {
 				theme.PermissionColors = map[string]string{}
 			}
 			theme.PermissionColors[k] = v
+
+		// Permission bit colors
+		case "perm_read":
+			theme.PermRead = v
+		case "perm_write":
+			theme.PermWrite = v
+		case "perm_exec":
+			theme.PermExec = v
 
 		// Interface colors
 		case "border":
