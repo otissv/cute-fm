@@ -1,0 +1,57 @@
+# Setting configuration file for file manager
+# Colors can be specified as:
+# - Hex colors: '#RRGGBB' (e.g., '#0000FF' for blue)
+# - ANSI color names: 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'white'
+# - Combined styles: 'blue+bold', '#0000FF+bold', 'dim', etc.
+
+
+
+# File type colors
+directory = "#0000FF+bold"   # Blue + Bold
+symlink = "#00FFFF"          # Cyan
+socket = "#FFFF00"           # Yellow
+pipe = "#FF00FF"             # Magenta
+device = "#FFFF00+bold"      # Yellow + Bold
+executable = "#00FF00"       # Green
+regular = ""                 # No color (empty)
+
+# Permission level colors
+full = "#00FF00"       # Green (full access)
+partial = "#FFFF00"    # Yellow (partial access)
+none = "dim"           # Dim (no access)
+
+# Field colors
+nlink = "dim"
+user = "#00FFFF"       # Cyan
+group = "#00FFFF"      # Cyan
+size = "#FFFF00"       # Yellow
+time = "dim"
+
+
+# TUI interface colors
+title_foreground = "#FFFDF5"    # Title text color
+title_background = "#25A065"    # Title background color
+border = "#874BFD"              # Border color for panels
+selected_foreground = "#FFFDF5" # Selected item text color
+selected_background = "#25A065" # Selected item background color
+search_placeholder = "#888888"  # Search placeholder text color
+help_text = "#888888"           # Help text color at bottom
+foreground = "#FFFDF5"          # Foreground color
+background = "#212121"          # Background color
+
+# shortcuts
+help_model="?"                 # open help modal
+quit_app="ctrl+c"              # quit
+quit_app="ctrl+q"              # quit
+resize_left="ctl+h"             # resize panel left
+resize_right="ctl+l"           # resize panel right
+resize_left="ctl+left"         # resize panel left
+resize_right="ctl+right"       # resize panel right
+up_a_parent_directory="up"     # go up a parent directory
+down_a_child_directory="down"  # go down a child directory
+previous_directory="left"      # go to previous directory
+next_directory="right"         # go to next directory
+home_directory="home"          # go to home directory
+root_directory="end"           # go to root directory
+open="enter"                   # opens file or directory
+open="space"                   # opens file or directory

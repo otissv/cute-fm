@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"lfm/tui"
+	"lsfm/tui"
 
 	tea "github.com/charmbracelet/bubbletea"
 )

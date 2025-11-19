@@ -10,12 +10,16 @@ func (m Model) View() string {
 		return "Initializing..."
 	}
 
-	// Define styles for the layout
-	// To change border color, modify the BorderForeground() value below
-	// Options: color names ("blue", "red"), hex colors ("#874BFD"), or ANSI codes ("62")
+	// Define styles for the layout.
+	// Border color is driven by the theme loaded from lsfm.toml.
+	borderColor := "#636363"
+	if m.theme.BorderColor != "" {
+		borderColor = m.theme.BorderColor
+	}
+
 	borderStyle := lipgloss.NewStyle().
 		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#636363")) // Current: purple/blue (ANSI code 62)
+		BorderForeground(lipgloss.Color(borderColor))
 
 	// First row: Text input
 	// Create a bordered container for the text input

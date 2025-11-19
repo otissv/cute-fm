@@ -1,10 +1,15 @@
 package tui
 
 import (
+	"os"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+
+	"lsfm/filesystem"
+	"lsfm/theming"
 )
 
 // Model represents the main application state
@@ -15,6 +20,13 @@ type Model struct {
 	// Second row: Two viewports side by side
 	leftViewport  viewport.Model // Left panel viewport
 	rightViewport viewport.Model // Right panel viewport
+
+	// Data backing the left viewport (directory listing).
+	files      []filesystem.FileInfo
+	currentDir string
+
+	// Theme configuration loaded from lsfm.toml.
+	theme theming.Theme
 
 	// Layout dimensions
 	width  int
@@ -32,16 +44,36 @@ func InitialModel() Model {
 
 	// Initialize left viewport for the second row
 	leftVp := viewport.New(0, 0)
-	leftVp.SetContent("Left Panel\n\nThis is the left viewport.\nIt will display file listings.")
 
 	// Initialize right viewport for the second row
 	rightVp := viewport.New(0, 0)
 	rightVp.SetContent("Right Panel\n\nThis is the right viewport.\nIt will display file previews.")
 
+	// Load theme configuration.
+	theme := theming.LoadTheme("lsfm.toml")
+
+	// Determine current working directory and load its contents.
+	wd, err := os.Getwd()
+	if err != nil {
+		wd = "."
+	}
+
+	files, err := filesystem.ListDirectory(wd)
+	if err != nil {
+		// If we can't list the directory, show a simple error message.
+		leftVp.SetContent("Error reading directory:\n" + err.Error())
+	} else {
+		// Fill the left viewport with a table of directory contents.
+		leftVp.SetContent(renderFileTable(theme, files))
+	}
+
 	return Model{
 		textInput:     ti,
 		leftViewport:  leftVp,
 		rightViewport: rightVp,
+		files:         files,
+		currentDir:    wd,
+		theme:         theme,
 	}
 }
 
