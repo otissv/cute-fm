@@ -12,11 +12,14 @@ import (
 // renderFileTable builds a simple eza-like table for the left viewport using
 // the provided theme and directory listing. selectedIndex is the 0-based row
 // index that should be highlighted; pass -1 for "no selection".
+// totalWidth is the target width (in terminal cells) of each rendered row;
+// when greater than zero, the last column is padded so that the row's
+// background color extends all the way to the viewport edge.
 //
 // Columns:
 //
 //	Permissions Size User  Group Date Modified  Name
-func renderFileTable(theme theming.Theme, files []filesystem.FileInfo, selectedIndex int) string {
+func renderFileTable(theme theming.Theme, files []filesystem.FileInfo, selectedIndex int, totalWidth int) string {
 	var b strings.Builder
 	const (
 		colPerms = 11
@@ -35,6 +38,23 @@ func renderFileTable(theme theming.Theme, files []filesystem.FileInfo, selectedI
 		padCell("Date Modified", colDate),
 		"Name",
 	}
+
+	// When we know the total target width, pad the "Name" header so that its
+	// cell lines up with the last column and visually spans the remaining
+	// viewport width.
+	if totalWidth > 0 {
+		const numSeps = 5 // spaces between the 6 header columns
+		fixedCols := colPerms + colSize + colUser + colGroup + colDate
+		baseWidth := fixedCols + numSeps
+		if totalWidth > baseWidth {
+			nameColWidth := totalWidth - baseWidth
+			if nameColWidth < lipgloss.Width("Name") {
+				nameColWidth = lipgloss.Width("Name")
+			}
+			headerCols[len(headerCols)-1] = padCell("Name", nameColWidth)
+		}
+	}
+
 	headerLine := strings.Join(headerCols, " ")
 	headerStyle := lipgloss.NewStyle().Bold(true)
 	b.WriteString(headerStyle.Render(headerLine))
@@ -65,16 +85,23 @@ func renderFileTable(theme theming.Theme, files []filesystem.FileInfo, selectedI
 			groupStyle = groupStyle.Background(bg)
 			sizeStyle = sizeStyle.Background(bg)
 			timeStyle = timeStyle.Background(bg)
+		} else {
+			bgColor = theme.FileList.Background
+			bg := lipgloss.Color(bgColor)
+			userStyle = userStyle.Background(bg)
+			groupStyle = groupStyle.Background(bg)
+			sizeStyle = sizeStyle.Background(bg)
+			timeStyle = timeStyle.Background(bg)
 		}
 
 		// Render permission string with per-character coloring.
 		permTextRaw := renderPermissions(theme, fi, bgColor)
-		permText := padCell(permTextRaw, colPerms)
+		permText := padCellWithBG(permTextRaw, colPerms, bgColor)
 
-		userText := padCell(userStyle.Render(user), colUser)
-		groupText := padCell(groupStyle.Render(group), colGroup)
-		sizeText := padCell(sizeStyle.Render(size), colSize)
-		timeText := padCell(timeStyle.Render(date), colDate)
+		userText := padCellWithBG(userStyle.Render(user), colUser, bgColor)
+		groupText := padCellWithBG(groupStyle.Render(group), colGroup, bgColor)
+		sizeText := padCellWithBG(sizeStyle.Render(size), colSize, bgColor)
+		timeText := padCellWithBG(timeStyle.Render(date), colDate, bgColor)
 
 		// File name color based on file type.
 		nameColorSpec := theme.FileTypeColors[fi.Type]
@@ -93,7 +120,32 @@ func renderFileTable(theme theming.Theme, files []filesystem.FileInfo, selectedI
 			nameText,
 		}
 
-		line := strings.Join(lineCols, " ")
+		sep := " "
+		if bgColor != "" {
+			sep = lipgloss.NewStyle().Background(lipgloss.Color(bgColor)).Render(" ")
+		}
+
+		line := strings.Join(lineCols, sep)
+
+		// If we know the viewport width, pad the end of the line so that the
+		// row's background extends all the way to the edge. This is especially
+		// important for the selected row highlight on the "Name" column.
+		if totalWidth > 0 && bgColor != "" {
+			lineWidth := lipgloss.Width(line)
+			if lineWidth < totalWidth {
+				missing := totalWidth - lineWidth
+				bg := lipgloss.Color(bgColor)
+				spaceStyle := lipgloss.NewStyle().Background(bg)
+				pad := spaceStyle.Render(" ")
+
+				var tail strings.Builder
+				for i := 0; i < missing; i++ {
+					tail.WriteString(pad)
+				}
+				line += tail.String()
+			}
+		}
+
 		b.WriteString(line)
 		b.WriteRune('\n')
 	}
@@ -162,4 +214,34 @@ func padCell(content string, w int) string {
 		return content
 	}
 	return content + strings.Repeat(" ", w-width)
+}
+
+// padCellWithBG right-pads content like padCell, but if a non-empty bgColor
+// is provided, the padding spaces are rendered with that background color so
+// that the cell's whitespace is also highlighted.
+func padCellWithBG(content string, w int, bgColor string) string {
+	width := lipgloss.Width(content)
+	if width >= w {
+		return content
+	}
+
+	// If no background color is specified, fall back to the plain padding.
+	if bgColor == "" {
+		return padCell(content, w)
+	}
+
+	missing := w - width
+	bg := lipgloss.Color(bgColor)
+	spaceStyle := lipgloss.NewStyle().Background(bg)
+
+	var b strings.Builder
+	b.WriteString(content)
+
+	// Render one styled space and reuse it to avoid repeated allocations.
+	pad := spaceStyle.Render(" ")
+	for i := 0; i < missing; i++ {
+		b.WriteString(pad)
+	}
+
+	return b.String()
 }

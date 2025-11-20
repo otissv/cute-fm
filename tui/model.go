@@ -23,17 +23,14 @@ const (
 
 // Model represents the main application state
 type Model struct {
-	// First row: Text input for search/commands
 	textInput textinput.Model
 
-	// Second row: Two viewports side by side
-	leftViewport  viewport.Model // Left panel viewport
-	rightViewport viewport.Model // Right panel viewport
+	FileListViewport viewport.Model
+	previewViewport  viewport.Model
 
-	// Help modal content (rendered inside a floating window when active).
 	helpViewport viewport.Model
 
-	// Data backing the left viewport (directory listing).
+	// Data backing the file list viewport (directory listing).
 	// allFiles contains the complete directory listing; files is the
 	// currently visible (possibly filtered) subset.
 	allFiles   []filesystem.FileInfo
@@ -114,20 +111,22 @@ General:
 		if len(files) > 0 {
 			selected = 0
 		}
-		// Fill the left viewport with a table of directory contents.
-		leftVp.SetContent(renderFileTable(theme, files, selected))
+		// Fill the left viewport with a table of directory contents. At this
+		// point we don't yet know the viewport width, so pass 0 for the
+		// totalWidth and let a later resize re-render with the proper width.
+		leftVp.SetContent(renderFileTable(theme, files, selected, 0))
 	}
 
 	return Model{
-		textInput:     ti,
-		leftViewport:  leftVp,
-		rightViewport: rightVp,
-		helpViewport:  helpVp,
-		allFiles:      files,
-		files:         files,
-		currentDir:    wd,
-		selectedIndex: selected,
-		theme:         theme,
+		textInput:        ti,
+		FileListViewport: leftVp,
+		previewViewport:  rightVp,
+		helpViewport:     helpVp,
+		allFiles:         files,
+		files:            files,
+		currentDir:       wd,
+		selectedIndex:    selected,
+		theme:            theme,
 	}
 }
 
@@ -150,12 +149,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 
 		// Calculate viewport dimensions
-		// CWD row: 1 content line
 		// Text input row: Height(1) with borders = 3 total lines (1 content + 2 border)
-		cwdRowHeight := 1
+		// Status row at the bottom: 1 content line
+		statusRowHeight := 1
 		textInputRowHeight := 3
-		// Viewport style height: remaining height after the top two rows
-		viewportStyleHeight := msg.Height - (cwdRowHeight + textInputRowHeight)
+		// Viewport style height: remaining height after the top and bottom rows
+		viewportStyleHeight := msg.Height - (statusRowHeight + textInputRowHeight)
 		if viewportStyleHeight < 3 {
 			viewportStyleHeight = 3 // Minimum: 1 content + 2 borders
 		}
@@ -170,13 +169,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Update left viewport dimensions
 		// Height is the content height (viewport handles scrolling internally)
-		m.leftViewport.Width = viewportWidth
-		m.leftViewport.Height = viewportContentHeight
+		m.FileListViewport.Width = viewportWidth
+		m.FileListViewport.Height = viewportContentHeight
 
 		// Update right viewport dimensions
 		// Height is the content height (viewport handles scrolling internally)
-		m.rightViewport.Width = viewportWidth
-		m.rightViewport.Height = viewportContentHeight
+		m.previewViewport.Width = viewportWidth
+		m.previewViewport.Height = viewportContentHeight
 
 		// Set text input width to full width (accounting for borders)
 		m.textInput.Width = msg.Width - 2
@@ -193,6 +192,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.helpViewport.Width = helpWidth
 		m.helpViewport.Height = helpHeight - 2 // account for borders/padding
 
+		// Re-render the file table so that the last column can pad to the new
+		// viewport width and the selected row highlight reaches the edge.
+		m.FileListViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex, m.FileListViewport.Width))
+
 		// Ensure the selected row stays visible after resize.
 		m = ensureSelectionVisible(m)
 
@@ -202,7 +205,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// If a modal is active, handle its keys first.
 		if m.activeModal != ModalNone {
 			switch msg.String() {
-			case "esc", "q", "?":
+			case "esc", "q", "?", "ctrl+c":
 				// Close help modal.
 				m.activeModal = ModalNone
 				return m, nil
@@ -244,11 +247,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// Update left viewport (second row, left column)
-	m.leftViewport, cmd = m.leftViewport.Update(msg)
+	m.FileListViewport, cmd = m.FileListViewport.Update(msg)
 	cmds = append(cmds, cmd)
 
 	// Update right viewport (second row, right column)
-	m.rightViewport, cmd = m.rightViewport.Update(msg)
+	m.previewViewport, cmd = m.previewViewport.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
@@ -274,7 +277,7 @@ func moveSelection(m Model, delta int) Model {
 	}
 
 	m.selectedIndex = newIndex
-	m.leftViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex))
+	m.FileListViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex, m.FileListViewport.Width))
 	m = ensureSelectionVisible(m)
 
 	return m
@@ -289,24 +292,24 @@ func ensureSelectionVisible(m Model) Model {
 
 	// Header row is at line 0; first file row is at line 1.
 	line := 1 + m.selectedIndex
-	viewHeight := m.leftViewport.Height
+	viewHeight := m.FileListViewport.Height
 	if viewHeight <= 0 {
 		return m
 	}
 
 	// Current scroll offset (top visible line).
-	y := m.leftViewport.YOffset
+	y := m.FileListViewport.YOffset
 
 	// If the selected line is above the viewport, scroll up.
 	if line < y+1 {
-		m.leftViewport.SetYOffset(line - 1)
+		m.FileListViewport.SetYOffset(line - 1)
 		return m
 	}
 
 	// If the selected line is below the viewport, scroll down so it becomes
 	// the last visible line.
 	if line > y+viewHeight-1 {
-		m.leftViewport.SetYOffset(line - viewHeight + 1)
+		m.FileListViewport.SetYOffset(line - viewHeight + 1)
 	}
 
 	return m
@@ -341,7 +344,7 @@ func applyFilter(m Model) Model {
 	// Adjust selection for the new list.
 	if len(m.files) == 0 {
 		m.selectedIndex = -1
-		m.leftViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex))
+		m.FileListViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex, m.FileListViewport.Width))
 		return m
 	}
 
@@ -352,7 +355,7 @@ func applyFilter(m Model) Model {
 		m.selectedIndex = len(m.files) - 1
 	}
 
-	m.leftViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex))
+	m.FileListViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex, m.FileListViewport.Width))
 	m = ensureSelectionVisible(m)
 
 	return m

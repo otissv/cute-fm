@@ -9,6 +9,20 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+var (
+	backgroundColor = "#212121"
+	foregroundColor = "#F0EDED"
+)
+
+type Style struct {
+	Background    string
+	Foreground    string
+	PaddingTop    int
+	PaddingBottom int
+	PaddingLeft   int
+	PaddingRight  int
+}
+
 // Theme holds color configuration loaded from lsfm.toml.
 // Keys are fairly free-form and mapped from the flat key/value config file.
 type Theme struct {
@@ -29,16 +43,18 @@ type Theme struct {
 	PermExec  string
 
 	// Interface colors.
-	BorderColor          string
-	SelectedForeground   string
-	SelectedBackground   string
-	Foreground           string
-	Background           string
-	SearchPlaceholder    string
-	HelpText             string
-	TitleForeground      string
-	TitleBackground      string
-	SelectedForegroundFg string // kept for possible future use
+	BorderColor        string
+	SelectedForeground string
+	SelectedBackground string
+	Foreground         string
+	Background         string
+	SearchPlaceholder  string
+	HelpText           string
+	TitleForeground    string
+	TitleBackground    string
+	FileList           Style
+	Preview            Style
+	StatusBar          Style
 }
 
 // DefaultTheme returns a sane fallback theme used when the config
@@ -52,32 +68,59 @@ func DefaultTheme() Theme {
 			"pipe":       "#FF00FF",
 			"device":     "#FFFF00+bold",
 			"executable": "#00FF00",
-			"regular":    "",
+			"regular":    foregroundColor,
 		},
 		FieldColors: map[string]string{
 			"user":  "#00FFFF",
 			"group": "#00FFFF",
 			"size":  "#FFFF00",
-			"time":  "dim",
-			"nlink": "dim",
+			"time":  foregroundColor,
+			"nlink": foregroundColor,
 		},
 		PermissionColors: map[string]string{
 			"full":    "#00FF00",
 			"partial": "#FFFF00",
-			"none":    "dim",
+			"none":    foregroundColor,
 		},
-		PermRead:           "#00FF00", // green
-		PermWrite:          "#FFFF00", // yellow
-		PermExec:           "#FF5F00", // orange/red
-		BorderColor:        "#874BFD",
-		SelectedForeground: "#FFFDF5",
-		SelectedBackground: "#25A065",
-		Foreground:         "#FFFDF5",
-		Background:         "#212121",
-		SearchPlaceholder:  "#888888",
-		HelpText:           "#888888",
-		TitleForeground:    "#FFFDF5",
+		Background:         backgroundColor,
+		BorderColor:        "#888888",
+		Foreground:         foregroundColor,
+		HelpText:           foregroundColor,
+		PermExec:           "#FF5F00",
+		PermRead:           "#00FF00",
+		PermWrite:          "#FFFF00",
+		SearchPlaceholder:  "#3B3B3B",
+		SelectedBackground: "#3B3B3B",
+		SelectedForeground: backgroundColor,
 		TitleBackground:    "#25A065",
+		TitleForeground:    foregroundColor,
+
+		FileList: Style{
+			Background:    "",
+			Foreground:    "",
+			PaddingTop:    0,
+			PaddingBottom: 1,
+			PaddingLeft:   1,
+			PaddingRight:  1,
+		},
+
+		Preview: Style{
+			Background:    "",
+			Foreground:    "",
+			PaddingTop:    0,
+			PaddingBottom: 1,
+			PaddingLeft:   1,
+			PaddingRight:  1,
+		},
+
+		StatusBar: Style{
+			Background:    foregroundColor,
+			Foreground:    backgroundColor,
+			PaddingTop:    0,
+			PaddingBottom: 0,
+			PaddingLeft:   1,
+			PaddingRight:  1,
+		},
 	}
 }
 

@@ -36,7 +36,7 @@ time = "dim"
 # TUI interface colors
 title_foreground = "#FFFDF5"    # Title text color
 title_background = "#25A065"    # Title background color
-border = "#874BFD"              # Border color for panels
+border = "#f00f00"              # Border color for panels
 selected_foreground = "#FFFDF5" # Selected item text color
 selected_background = "#25A065" # Selected item background color
 search_placeholder = "#888888"  # Search placeholder text color

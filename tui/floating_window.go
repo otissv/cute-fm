@@ -66,12 +66,19 @@ func (fw FloatingWindow) View(outerWidth, outerHeight int) string {
 
 	box := style.Render(contentView)
 
-	// Center the box in the available space.
+	// Center the box in the available space. We intentionally do NOT set
+	// WithWhitespaceChars/WithWhitespaceForeground here because this window
+	// is later overlaid on top of the base layout: if we filled the
+	// whitespace with visible characters or colors, it would cover the
+	// entire layout instead of just the dialog area.
+
 	return lipgloss.Place(
 		outerWidth,
 		outerHeight,
 		lipgloss.Center,
 		lipgloss.Center,
 		box,
+		lipgloss.WithWhitespaceChars("///"),
+		lipgloss.WithWhitespaceForeground(lipgloss.Color("#303030")),
 	)
 }

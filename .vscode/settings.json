@@ -4,6 +4,7 @@
     "charmbracelet",
     "lipgloss",
     "lsfm",
-    "textinput"
+    "textinput",
+    "viewports"
   ]
 }
