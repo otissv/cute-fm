@@ -12,6 +12,7 @@ import (
 var (
 	backgroundColor = "#212121"
 	foregroundColor = "#F0EDED"
+	borderColor     = "#888888"
 )
 
 type Style struct {
@@ -23,44 +24,61 @@ type Style struct {
 	PaddingRight  int
 }
 
-// Theme holds color configuration loaded from lsfm.toml.
-// Keys are fairly free-form and mapped from the flat key/value config file.
+type StyleColor struct {
+	Background string
+	Foreground string
+}
+
+type DefaultDialogStyle struct {
+	Background    string
+	Foreground    string
+	PaddingTop    int
+	PaddingBottom int
+	PaddingLeft   int
+	PaddingRight  int
+	BorderColor   string
+}
+
+type SearchBarStyle struct {
+	Background    string
+	Foreground    string
+	Placeholder   string
+	PaddingTop    int
+	PaddingBottom int
+	PaddingLeft   int
+	PaddingRight  int
+	BorderColor   string
+}
+
+type PermissionsStyle struct {
+	Exec  string
+	Read  string
+	Write string
+	None  string
+}
+
 type Theme struct {
-	// FileTypeColors maps keys like "directory", "symlink", "socket",
-	// "pipe", "device", "executable", "regular" to style specs.
 	FileTypeColors map[string]string
-
-	// FieldColors maps keys like "user", "group", "size", "time", "nlink".
-	FieldColors map[string]string
-
-	// PermissionColors maps keys like "full", "partial", "none".
-	PermissionColors map[string]string
-
-	// Permission bit colors for individual permission characters.
-	// These are used to color the "rwx" bits in the permissions column.
-	PermRead  string
-	PermWrite string
-	PermExec  string
-
-	// Interface colors.
-	BorderColor        string
-	SelectedForeground string
-	SelectedBackground string
-	Foreground         string
-	Background         string
-	SearchPlaceholder  string
-	HelpText           string
-	TitleForeground    string
-	TitleBackground    string
-	FileList           Style
-	Preview            Style
-	StatusBar          Style
+	FieldColors    map[string]string
+	Permissions    PermissionsStyle
+	BorderColor    string
+	Selection      StyleColor
+	Foreground     string
+	Background     string
+	FileList       Style
+	Preview        Style
+	StatusBar      Style
+	DefaultDialog  DefaultDialogStyle
+	SearchBar      SearchBarStyle
 }
 
 // DefaultTheme returns a sane fallback theme used when the config
 // file cannot be read or parsed.
 func DefaultTheme() Theme {
 	return Theme{
+		Background:  backgroundColor,
+		Foreground:  foregroundColor,
+		BorderColor: borderColor,
 		FileTypeColors: map[string]string{
 			"directory":  "#0000FF+bold",
 			"symlink":    "#00FFFF",
@@ -77,23 +95,28 @@ func DefaultTheme() Theme {
 			"time":  foregroundColor,
 			"nlink": foregroundColor,
 		},
-		PermissionColors: map[string]string{
-			"full":    "#00FF00",
-			"partial": "#FFFF00",
-			"none":    foregroundColor,
+		Permissions: PermissionsStyle{
+			Exec:  "#FF5F00",
+			Read:  "#00FF00",
+			Write: "#FFFF00",
+			None:  foregroundColor,
 		},
-		Background:         backgroundColor,
-		BorderColor:        "#888888",
-		Foreground:         foregroundColor,
-		HelpText:           foregroundColor,
-		PermExec:           "#FF5F00",
-		PermRead:           "#00FF00",
-		PermWrite:          "#FFFF00",
-		SearchPlaceholder:  "#3B3B3B",
-		SelectedBackground: "#3B3B3B",
-		SelectedForeground: backgroundColor,
-		TitleBackground:    "#25A065",
-		TitleForeground:    foregroundColor,
+
+		SearchBar: SearchBarStyle{
+			Background:    backgroundColor,
+			Foreground:    foregroundColor,
+			Placeholder:   "#3B3B3B",
+			PaddingTop:    0,
+			PaddingBottom: 0,
+			PaddingLeft:   1,
+			PaddingRight:  1,
+			BorderColor:   borderColor,
+		},
+
+		Selection: StyleColor{
+			Background: "#3B3B3B",
+			Foreground: backgroundColor,
+		},
 
 		FileList: Style{
 			Background:    "",
@@ -120,6 +143,16 @@ func DefaultTheme() Theme {
 			PaddingBottom: 0,
 			PaddingLeft:   1,
 			PaddingRight:  1,
+		},
+
+		DefaultDialog: DefaultDialogStyle{
+			Background:    backgroundColor,
+			Foreground:    foregroundColor,
+			PaddingTop:    1,
+			PaddingBottom: 1,
+			PaddingLeft:   1,
+			PaddingRight:  1,
+			BorderColor:   "#f00f00",
 		},
 	}
 }
@@ -176,40 +209,18 @@ func LoadTheme(path string) Theme {
 			}
 			theme.FieldColors[k] = v
 
-		// Permission colors
-		case "full", "partial", "none":
-			if theme.PermissionColors == nil {
-				theme.PermissionColors = map[string]string{}
-			}
-			theme.PermissionColors[k] = v
-
-		// Permission bit colors
-		case "perm_read":
-			theme.PermRead = v
-		case "perm_write":
-			theme.PermWrite = v
-		case "perm_exec":
-			theme.PermExec = v
-
 		// Interface colors
 		case "border":
 			theme.BorderColor = v
 		case "selected_foreground":
-			theme.SelectedForeground = v
+			theme.Selection.Foreground = v
 		case "selected_background":
-			theme.SelectedBackground = v
+			theme.Selection.Background = v
 		case "foreground":
 			theme.Foreground = v
 		case "background":
 			theme.Background = v
-		case "search_placeholder":
-			theme.SearchPlaceholder = v
-		case "help_text":
-			theme.HelpText = v
-		case "title_foreground":
-			theme.TitleForeground = v
-		case "title_background":
-			theme.TitleBackground = v
+
 		}
 	}
 

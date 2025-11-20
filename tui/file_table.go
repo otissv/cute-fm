@@ -78,8 +78,8 @@ func renderFileTable(theme theming.Theme, files []filesystem.FileInfo, selectedI
 		// column so the entire row is highlighted while preserving the
 		// foreground colors coming from file-type and permission-level specs.
 		bgColor := ""
-		if selectedIndex >= 0 && i == selectedIndex && theme.SelectedBackground != "" {
-			bgColor = theme.SelectedBackground
+		if selectedIndex >= 0 && i == selectedIndex && theme.Selection.Background != "" {
+			bgColor = theme.Selection.Background
 			bg := lipgloss.Color(bgColor)
 			userStyle = userStyle.Background(bg)
 			groupStyle = groupStyle.Background(bg)
@@ -186,13 +186,13 @@ func renderPermissions(theme theming.Theme, fi filesystem.FileInfo, bgColor stri
 		var spec string
 		switch ch {
 		case "r":
-			spec = theme.PermRead
+			spec = theme.Permissions.Read
 		case "w":
-			spec = theme.PermWrite
+			spec = theme.Permissions.Write
 		case "x":
-			spec = theme.PermExec
+			spec = theme.Permissions.Exec
 		default:
-			spec = theme.PermissionColors["none"]
+			spec = theme.Permissions.None
 		}
 
 		style := theming.StyleFromSpec(spec)

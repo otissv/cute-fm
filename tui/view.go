@@ -12,44 +12,29 @@ func (m Model) View() string {
 		return "Initializing..."
 	}
 
-	// Define styles for the layout.
-	// Border color is driven by the theme loaded from lsfm.toml.
-	borderColor := ""
-	if m.theme.BorderColor != "" {
-		borderColor = m.theme.BorderColor
-	}
-
 	borderStyle := lipgloss.NewStyle().
 		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color(borderColor))
+		BorderForeground(lipgloss.Color(m.theme.BorderColor))
 
-	// Search Text input
-	textInputStyle := borderStyle.
+	searchBarStyle := borderStyle.
 		Width(m.width).
 		Height(1).
 		BorderBottom(true)
 
-	textInputView := textInputStyle.Render(
+	searchBar := searchBarStyle.Render(
 		m.textInput.View(),
 	)
 
-	// Text input row: Height(1) with borders = 3 total lines (1 content + 2 border)
-	textInputRowHeight := 3 // 1 content line + 2 border lines
-
-	// Status row at the bottom: 1 content line
-	statusRowHeight := 1
-	// Viewport style height = total height - (text input row + status row)
-
 	// Calculate viewport width (half of available width, accounting for borders)
+	searchBarRowHeight := 3
+	statusRowHeight := 1
 	viewportWidth := m.width / 2
-
-	// Calculate viewport style height (content height + borders)
-	viewportStyleHeight := m.height - (textInputRowHeight + statusRowHeight)
+	viewportStyleHeight := m.height - (searchBarRowHeight + statusRowHeight)
 	if viewportStyleHeight < 3 {
 		viewportStyleHeight = 3 // Minimum height (1 content + 2 borders)
 	}
 
-	FileListViewportStyle := borderStyle.
+	fileListViewportStyle := borderStyle.
 		Width(viewportWidth).
 		Height(viewportStyleHeight).
 		Background(lipgloss.Color(m.theme.FileList.Background)).
@@ -61,7 +46,7 @@ func (m Model) View() string {
 		PaddingLeft(m.theme.FileList.PaddingLeft).
 		PaddingRight(m.theme.FileList.PaddingRight)
 
-	FileListViewportView := FileListViewportStyle.Render(
+	fileListViewportView := fileListViewportStyle.Render(
 		m.FileListViewport.View(),
 	)
 
@@ -85,7 +70,7 @@ func (m Model) View() string {
 
 	viewports := lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		FileListViewportView,
+		fileListViewportView,
 		previewViewportView,
 	)
 
@@ -108,7 +93,7 @@ func (m Model) View() string {
 	// Combine all rows vertically
 	layout := lipgloss.JoinVertical(
 		lipgloss.Left,
-		textInputView,
+		searchBar,
 		viewports,
 		statusView,
 	)
@@ -146,7 +131,7 @@ func (m Model) View() string {
 		Content: content,
 		Width:   modalWidth,
 		Height:  modalHeight,
-		Style:   DefaultFloatingStyle(),
+		Style:   DefaultFloatingStyle(m.theme),
 	}
 
 	dialogView := fw.View(m.width, m.height)

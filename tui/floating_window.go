@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"lsfm/theming"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -33,12 +35,16 @@ type FloatingWindow struct {
 
 // DefaultFloatingStyle returns a simple rounded, bordered style that matches
 // the existing theme defaults reasonably well.
-func DefaultFloatingStyle() lipgloss.Style {
+func DefaultFloatingStyle(theme theming.Theme) lipgloss.Style {
 	return lipgloss.NewStyle().
+		Background(lipgloss.Color(theme.DefaultDialog.Background)).
+		Foreground(lipgloss.Color(theme.DefaultDialog.Foreground)).
 		BorderStyle(lipgloss.RoundedBorder()).
-		Padding(0, 1).
-		BorderForeground(lipgloss.Color("#874BFD")).
-		Background(lipgloss.Color("#212121"))
+		BorderForeground(lipgloss.Color(theme.DefaultDialog.BorderColor)).
+		PaddingTop(theme.DefaultDialog.PaddingTop).
+		PaddingBottom(theme.DefaultDialog.PaddingBottom).
+		PaddingLeft(theme.DefaultDialog.PaddingLeft).
+		PaddingRight(theme.DefaultDialog.PaddingRight)
 }
 
 // View renders the floating window centered within the given outer size.
@@ -51,11 +57,6 @@ func (fw FloatingWindow) View(outerWidth, outerHeight int) string {
 	contentView := fw.Content.View()
 
 	style := fw.Style
-	// If no custom style was provided, fall back to a default one. We use
-	// a heuristic: if neither border nor background is set, assume "empty".
-	if style.GetBorderStyle() == (lipgloss.Border{}) {
-		style = DefaultFloatingStyle()
-	}
 
 	if fw.Width > 0 {
 		style = style.Width(fw.Width)
