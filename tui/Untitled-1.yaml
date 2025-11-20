@@ -1,0 +1,22 @@
+create a command module that can be used to execute commands and return the output.
+
+commands:
+- cd <directory>
+- ll  # changes file list view to -h -g -l  -a --group-directories-first --git-repos --git --color=always --icons (default)
+- ls  # changes file list view to -g --group-directories-first
+- la  # changes file list view to -g -a --group-directories-first --icons
+- ld  # changes file list view to -h -g -l -a --only-dirs --group-directories-first --git-repos --icons 
+- lf  # changes file list view to -h -a -g -l --only-files --group-directories-first --git --icons
+- lt  # changes file list view to -a --git-repos --group-directories-first --git --icons --tree --level 2
+- llt # changes file list view to -h -g -l -a --group-directories-first --git-repos --git --icons --tree --level 2 --git-ignore
+- help # opens help modal
+- touch <file> # should be have like touch command in bash
+- mkdir <directories> # should be have like mkdir -p command in bash
+- mkcd <directories> # should be have like mkdir -p and cd command in bash
+- rm <files|directories> # should be have like rm command in bash
+- mv <file> <destination> # should be have like mv command in bash
+- cp <file> <destination> # should be have like cp command in bash
+- ln <file> <destination> # should be have like ln command in bash
+- quit # exits the app
+- q # exits the app
+- sh <command> # executes the command in bash

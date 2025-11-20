@@ -56,3 +56,15 @@ next_directory="ctrl+l"         # go to next directory
 home_directory="ctrl+a"          # go to home directory
 root_directory="ctrl+e"           # go to root directory
 open="enter"                   # opens file or directory
+
+[Commands]
+projects_dir = "~/Projects"
+docs_dir = "~/Docs"
+notes_dir = "~/Notes"
+music_dir = "~/Music"
+videos_dir = "~/Videos"
+images_dir = "~/Images"
+downloads_dir = "~/Downloads"
+desktop_dir = "~/Desktop"
+documents_dir = "~/Documents"
+

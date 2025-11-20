@@ -26,6 +26,9 @@ type Model struct {
 	searchBar  textinput.Model
 	commandBar textinput.Model
 
+	// Whether the command bar is currently active/visible.
+	commandMode bool
+
 	FileListViewport viewport.Model
 	previewViewport  viewport.Model
 
@@ -136,6 +139,7 @@ General:
 		currentDir:       wd,
 		selectedIndex:    selected,
 		theme:            theme,
+		commandMode:      false,
 	}
 }
 
@@ -157,35 +161,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 
-		// Calculate viewport dimensions
-		statusRowHeight := 1    // Status row at the bottom: 1 content line
-		searchBarRowHeight := 3 // Search bar: 1 content line + 2 border lines
-		commandRowHeight := 3   // Command bar: 1 content line + 2 border lines
-
-		// Viewport style height: remaining height after the top and bottom rows
-		viewportStyleHeight := msg.Height - (statusRowHeight + searchBarRowHeight + commandRowHeight)
-		if viewportStyleHeight < 3 {
-			viewportStyleHeight = 3 // Minimum: 1 content + 2 borders
-		}
-		// Viewport content height (scrollable area): style height - 2 border lines
-		viewportContentHeight := viewportStyleHeight - 2
-		if viewportContentHeight < 1 {
-			viewportContentHeight = 1 // Minimum content height
-		}
-
-		// Calculate viewport width (half of available width, accounting for borders)
-		viewportWidth := msg.Width / 2
-
-		// Update left viewport dimensions
-		// Height is the content height (viewport handles scrolling internally)
-		m.FileListViewport.Width = viewportWidth
-		m.FileListViewport.Height = viewportContentHeight
-
-		// Update right viewport dimensions
-		// Height is the content height (viewport handles scrolling internally)
-		m.previewViewport.Width = viewportWidth
-		m.previewViewport.Height = viewportContentHeight
-
 		// Set text input widths to full width (accounting for borders)
 		m.searchBar.Width = msg.Width - 2
 		m.commandBar.Width = msg.Width - 2
@@ -202,12 +177,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.helpViewport.Width = helpWidth
 		m.helpViewport.Height = helpHeight - 2 // account for borders/padding
 
-		// Re-render the file table so that the last column can pad to the new
-		// viewport width and the selected row highlight reaches the edge.
-		m.FileListViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex, m.FileListViewport.Width))
-
-		// Ensure the selected row stays visible after resize.
-		m = ensureSelectionVisible(m)
+		// Recalculate layout and re-render the file table so that the last
+		// column can pad to the new viewport width and the selected row
+		// highlight reaches the edge.
+		m = recalcLayout(m)
 
 		return m, nil
 
@@ -225,35 +198,74 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		// Navigate the file list with arrow keys.
-		switch msg.String() {
-		case "up":
-			m = moveSelection(m, -1)
-			return m, nil
-		case "down":
-			m = moveSelection(m, 1)
-			return m, nil
+		// If the command bar is active, handle its control keys first.
+		if m.commandMode {
+			switch msg.String() {
+			case "esc", "q", "ctrl+c":
+				// Exit command mode and return focus to the search bar.
+				m.commandMode = false
+				m.commandBar.Blur()
+				m.commandBar.SetValue("")
+				m.searchBar.Focus()
+
+				// Grow the file/preview viewports back to fill the freed space.
+				m = recalcLayout(m)
+				return m, nil
+			}
 		}
 
-		// Open help modal with '?' when no modal is active.
-		if msg.String() == "?" {
+		// Navigate the file list with arrow keys (only when not in command mode).
+		if !m.commandMode {
+			switch msg.String() {
+			case "up":
+				m = moveSelection(m, -1)
+				return m, nil
+			case "down":
+				m = moveSelection(m, 1)
+				return m, nil
+			}
+		}
+
+		// Open help modal with '?' when no modal is active and not in command mode.
+		if !m.commandMode && msg.String() == "?" {
 			m.activeModal = ModalHelp
 			return m, nil
 		}
 
-		// Handle quit
-		switch {
-		case key.Matches(msg, key.NewBinding(key.WithKeys("ctrl+c", "ctrl+q"))):
-			return m, tea.Quit
+		// Enter command mode with ':' when not already in command mode.
+		if !m.commandMode && msg.String() == ":" {
+			m.commandMode = true
+			m.commandBar.SetValue("")
+			m.commandBar.Focus()
+			m.searchBar.Blur()
+
+			// Shrink the file/preview viewports to make room for the command bar.
+			m = recalcLayout(m)
+			return m, nil
+		}
+
+		// Handle quit (only when not in command mode).
+		if !m.commandMode {
+			switch {
+			case key.Matches(msg, key.NewBinding(key.WithKeys("ctrl+c", "ctrl+q"))):
+				return m, tea.Quit
+			}
 		}
 	}
 
-	// Update text input (first row) and apply filtering if the value changed.
-	before := m.searchBar.Value()
-	m.searchBar, cmd = m.searchBar.Update(msg)
-	cmds = append(cmds, cmd)
-	if m.searchBar.Value() != before {
-		m = applyFilter(m)
+	// Update the appropriate text input.
+	if m.commandMode {
+		// Command bar is active; update it instead of the search bar.
+		m.commandBar, cmd = m.commandBar.Update(msg)
+		cmds = append(cmds, cmd)
+	} else {
+		// Update search input (first row) and apply filtering if the value changed.
+		before := m.searchBar.Value()
+		m.searchBar, cmd = m.searchBar.Update(msg)
+		cmds = append(cmds, cmd)
+		if m.searchBar.Value() != before {
+			m = applyFilter(m)
+		}
 	}
 
 	// Update left viewport (second row, left column)
@@ -265,6 +277,53 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
+}
+
+// recalcLayout recalculates the viewport dimensions based on the current
+// window size and whether command mode is active, then re-renders the file
+// table and ensures the selection is visible.
+func recalcLayout(m Model) Model {
+	if m.width <= 0 || m.height <= 0 {
+		return m
+	}
+
+	statusRowHeight := 1    // Status row at the bottom: 1 content line
+	searchBarRowHeight := 3 // Search bar: 1 content line + 2 border lines
+
+	// Only reserve vertical space for the command bar when it is visible.
+	commandRowHeight := 0
+	if m.commandMode {
+		commandRowHeight = 3 // Command bar: 1 content line + 2 border lines
+	}
+
+	// Viewport style height: remaining height after the top and bottom rows.
+	viewportStyleHeight := m.height - (statusRowHeight + searchBarRowHeight + commandRowHeight)
+	if viewportStyleHeight < 3 {
+		viewportStyleHeight = 3 // Minimum: 1 content + 2 borders
+	}
+	// Viewport content height (scrollable area): style height - 2 border lines.
+	viewportContentHeight := viewportStyleHeight - 2
+	if viewportContentHeight < 1 {
+		viewportContentHeight = 1 // Minimum content height
+	}
+
+	// Calculate viewport width (half of available width, accounting for borders).
+	viewportWidth := m.width / 2
+
+	// Update left viewport dimensions (height is the content height).
+	m.FileListViewport.Width = viewportWidth
+	m.FileListViewport.Height = viewportContentHeight
+
+	// Update right viewport dimensions (height is the content height).
+	m.previewViewport.Width = viewportWidth
+	m.previewViewport.Height = viewportContentHeight
+
+	// Re-render the file table for the new width and ensure the selection is
+	// still visible.
+	m.FileListViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex, m.FileListViewport.Width))
+	m = ensureSelectionVisible(m)
+
+	return m
 }
 
 // moveSelection returns an updated model with the selection moved by delta

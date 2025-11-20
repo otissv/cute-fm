@@ -28,7 +28,11 @@ func (m Model) View() string {
 	// Calculate viewport width (half of available width, accounting for borders)
 	searchBarRowHeight := 3
 	statusRowHeight := 1
-	commandRowHeight := 3
+	// Only reserve vertical space for the command bar when it is visible.
+	commandRowHeight := 0
+	if m.commandMode {
+		commandRowHeight = 3
+	}
 	viewportWidth := m.width / 2
 	viewportStyleHeight := m.height - (searchBarRowHeight + statusRowHeight + commandRowHeight)
 	if viewportStyleHeight < 3 {
@@ -91,6 +95,7 @@ func (m Model) View() string {
 	}
 	statusView := statusStyle.Render(statusText)
 
+	// Command bar (only shown when command mode is active).
 	commandBarStyle := borderStyle.
 		Width(m.width).
 		Background(lipgloss.Color(m.theme.CommandBar.Background)).
@@ -104,17 +109,23 @@ func (m Model) View() string {
 		BorderLeft(false).
 		BorderRight(false)
 
-	commandBar := commandBarStyle.Render(
-		m.commandBar.View(),
-	)
+	rows := []string{
+		searchBar,
+		viewports,
+		statusView,
+	}
+
+	if m.commandMode {
+		commandBar := commandBarStyle.Render(
+			m.commandBar.View(),
+		)
+		rows = append(rows, commandBar)
+	}
 
 	// Combine all rows vertically
 	layout := lipgloss.JoinVertical(
 		lipgloss.Left,
-		searchBar,
-		viewports,
-		statusView,
-		commandBar,
+		rows...,
 	)
 
 	// If no modal is active, show the base layout.
