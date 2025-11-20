@@ -101,5 +101,26 @@ func (m Model) View() string {
 		secondRow, // No spacing string - borders will connect
 	)
 
-	return layout
+	// If no modal is active, show the base layout.
+	if m.activeModal == ModalNone {
+		return layout
+	}
+
+	// Decide which content to show inside the floating window.
+	var content ViewPrimitive
+	switch m.activeModal {
+	case ModalHelp:
+		content = m.helpViewport
+	}
+
+	fw := FloatingWindow{
+		Content: content,
+		Width:   m.width / 2,
+		Height:  m.height / 2,
+		Style:   DefaultFloatingStyle(),
+	}
+
+	// Render only the modal for now; we could overlay it on top of the layout
+	// if we later add dimming/background effects.
+	return fw.View(m.width, m.height)
 }

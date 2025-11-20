@@ -13,6 +13,14 @@ import (
 	"lsfm/theming"
 )
 
+// ModalKind represents the type of modal currently shown, if any.
+type ModalKind int
+
+const (
+	ModalNone ModalKind = iota
+	ModalHelp
+)
+
 // Model represents the main application state
 type Model struct {
 	// First row: Text input for search/commands
@@ -21,6 +29,9 @@ type Model struct {
 	// Second row: Two viewports side by side
 	leftViewport  viewport.Model // Left panel viewport
 	rightViewport viewport.Model // Right panel viewport
+
+	// Help modal content (rendered inside a floating window when active).
+	helpViewport viewport.Model
 
 	// Data backing the left viewport (directory listing).
 	// allFiles contains the complete directory listing; files is the
@@ -32,6 +43,9 @@ type Model struct {
 	// Index of the currently selected file in the list (0-based).
 	// -1 indicates "no selection".
 	selectedIndex int
+
+	// Currently active modal, if any.
+	activeModal ModalKind
 
 	// Theme configuration loaded from lsfm.toml.
 	theme theming.Theme
@@ -58,6 +72,25 @@ func InitialModel(startDir string) Model {
 	// Initialize right viewport for the second row
 	rightVp := viewport.New(0, 0)
 	rightVp.SetContent("Right Panel\n\nThis is the right viewport.\nIt will display file previews.")
+
+	// Initialize help viewport content for the help modal.
+	helpContent := `
+Help
+----
+
+Navigation:
+  Up/Down arrows   Move selection in file list
+  Scroll wheel     Scroll file list
+
+Search:
+  Type in the search bar to filter files by name
+
+General:
+  ?                Toggle this help
+  ctrl+c / ctrl+q  Quit
+`
+	helpVp := viewport.New(0, 0)
+	helpVp.SetContent(strings.TrimSpace(helpContent))
 
 	// Load theme configuration.
 	theme := theming.LoadTheme("lsfm.toml")
@@ -89,6 +122,7 @@ func InitialModel(startDir string) Model {
 		textInput:     ti,
 		leftViewport:  leftVp,
 		rightViewport: rightVp,
+		helpViewport:  helpVp,
 		allFiles:      files,
 		files:         files,
 		currentDir:    wd,
@@ -147,12 +181,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Set text input width to full width (accounting for borders)
 		m.textInput.Width = msg.Width - 2
 
+		// Resize the help viewport to fit nicely in a floating window.
+		helpWidth := msg.Width / 2
+		helpHeight := msg.Height / 2
+		if helpWidth < 20 {
+			helpWidth = 20
+		}
+		if helpHeight < 5 {
+			helpHeight = 5
+		}
+		m.helpViewport.Width = helpWidth
+		m.helpViewport.Height = helpHeight - 2 // account for borders/padding
+
 		// Ensure the selected row stays visible after resize.
 		m = ensureSelectionVisible(m)
 
 		return m, nil
 
 	case tea.KeyMsg:
+		// If a modal is active, handle its keys first.
+		if m.activeModal != ModalNone {
+			switch msg.String() {
+			case "esc", "q", "?":
+				// Close help modal.
+				m.activeModal = ModalNone
+				return m, nil
+			}
+
+			// For now, help modal is static; ignore other keys while open.
+			return m, nil
+		}
+
 		// Navigate the file list with arrow keys.
 		switch msg.String() {
 		case "up":
@@ -160,6 +219,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case "down":
 			m = moveSelection(m, 1)
+			return m, nil
+		}
+
+		// Open help modal with '?' when no modal is active.
+		if msg.String() == "?" {
+			m.activeModal = ModalHelp
 			return m, nil
 		}
 
