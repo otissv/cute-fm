@@ -23,7 +23,8 @@ const (
 
 // Model represents the main application state
 type Model struct {
-	textInput textinput.Model
+	searchBar  textinput.Model
+	commandBar textinput.Model
 
 	FileListViewport viewport.Model
 	previewViewport  viewport.Model
@@ -56,12 +57,19 @@ type Model struct {
 // If startDir is non-empty, it will be used as the initial directory for the
 // file list; otherwise the current working directory is used.
 func InitialModel(startDir string) Model {
-	// Initialize text input for the first row
-	ti := textinput.New()
-	ti.Placeholder = "Search or enter command..."
-	ti.Focus()
-	ti.CharLimit = 256
-	ti.Width = 50
+	// Initialize search input
+	searchInput := textinput.New()
+	searchInput.Placeholder = "Search..."
+	searchInput.Focus()
+	searchInput.CharLimit = 256
+	searchInput.Width = 50
+
+	// Initialize command input
+	commandInput := textinput.New()
+	commandInput.Prompt = ":"
+	commandInput.Placeholder = "command..."
+	commandInput.CharLimit = 256
+	commandInput.Width = 50
 
 	// Initialize left viewport for the second row
 	leftVp := viewport.New(0, 0)
@@ -118,7 +126,8 @@ General:
 	}
 
 	return Model{
-		textInput:        ti,
+		searchBar:        searchInput,
+		commandBar:       commandInput,
 		FileListViewport: leftVp,
 		previewViewport:  rightVp,
 		helpViewport:     helpVp,
@@ -149,12 +158,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 
 		// Calculate viewport dimensions
-		// Text input row: Height(1) with borders = 3 total lines (1 content + 2 border)
-		// Status row at the bottom: 1 content line
-		statusRowHeight := 1
-		textInputRowHeight := 3
+		statusRowHeight := 1    // Status row at the bottom: 1 content line
+		searchBarRowHeight := 3 // Search bar: 1 content line + 2 border lines
+		commandRowHeight := 3   // Command bar: 1 content line + 2 border lines
+
 		// Viewport style height: remaining height after the top and bottom rows
-		viewportStyleHeight := msg.Height - (statusRowHeight + textInputRowHeight)
+		viewportStyleHeight := msg.Height - (statusRowHeight + searchBarRowHeight + commandRowHeight)
 		if viewportStyleHeight < 3 {
 			viewportStyleHeight = 3 // Minimum: 1 content + 2 borders
 		}
@@ -177,8 +186,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.previewViewport.Width = viewportWidth
 		m.previewViewport.Height = viewportContentHeight
 
-		// Set text input width to full width (accounting for borders)
-		m.textInput.Width = msg.Width - 2
+		// Set text input widths to full width (accounting for borders)
+		m.searchBar.Width = msg.Width - 2
+		m.commandBar.Width = msg.Width - 2
 
 		// Resize the help viewport to fit nicely in a floating window.
 		helpWidth := msg.Width / 2
@@ -239,10 +249,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// Update text input (first row) and apply filtering if the value changed.
-	before := m.textInput.Value()
-	m.textInput, cmd = m.textInput.Update(msg)
+	before := m.searchBar.Value()
+	m.searchBar, cmd = m.searchBar.Update(msg)
 	cmds = append(cmds, cmd)
-	if m.textInput.Value() != before {
+	if m.searchBar.Value() != before {
 		m = applyFilter(m)
 	}
 
@@ -320,7 +330,7 @@ func ensureSelectionVisible(m Model) Model {
 // name. When the filter changes, the selection is clamped to the new list and
 // the table is re-rendered.
 func applyFilter(m Model) Model {
-	query := strings.TrimSpace(m.textInput.Value())
+	query := strings.TrimSpace(m.searchBar.Value())
 
 	// If there is no backing data yet, nothing to do.
 	if len(m.allFiles) == 0 {

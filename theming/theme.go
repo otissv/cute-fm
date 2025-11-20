@@ -39,7 +39,7 @@ type DefaultDialogStyle struct {
 	BorderColor   string
 }
 
-type SearchBarStyle struct {
+type BarStyle struct {
 	Background    string
 	Foreground    string
 	Placeholder   string
@@ -69,7 +69,8 @@ type Theme struct {
 	Preview        Style
 	StatusBar      Style
 	DefaultDialog  DefaultDialogStyle
-	SearchBar      SearchBarStyle
+	SearchBar      BarStyle
+	CommandBar     BarStyle
 }
 
 // DefaultTheme returns a sane fallback theme used when the config
@@ -102,7 +103,18 @@ func DefaultTheme() Theme {
 			None:  foregroundColor,
 		},
 
-		SearchBar: SearchBarStyle{
+		SearchBar: BarStyle{
+			Background:    backgroundColor,
+			Foreground:    foregroundColor,
+			Placeholder:   "#3B3B3B",
+			PaddingTop:    0,
+			PaddingBottom: 0,
+			PaddingLeft:   1,
+			PaddingRight:  1,
+			BorderColor:   borderColor,
+		},
+
+		CommandBar: BarStyle{
 			Background:    backgroundColor,
 			Foreground:    foregroundColor,
 			Placeholder:   "#3B3B3B",

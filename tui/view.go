@@ -13,7 +13,7 @@ func (m Model) View() string {
 	}
 
 	borderStyle := lipgloss.NewStyle().
-		BorderStyle(lipgloss.RoundedBorder()).
+		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color(m.theme.BorderColor))
 
 	searchBarStyle := borderStyle.
@@ -22,14 +22,15 @@ func (m Model) View() string {
 		BorderBottom(true)
 
 	searchBar := searchBarStyle.Render(
-		m.textInput.View(),
+		m.searchBar.View(),
 	)
 
 	// Calculate viewport width (half of available width, accounting for borders)
 	searchBarRowHeight := 3
 	statusRowHeight := 1
+	commandRowHeight := 3
 	viewportWidth := m.width / 2
-	viewportStyleHeight := m.height - (searchBarRowHeight + statusRowHeight)
+	viewportStyleHeight := m.height - (searchBarRowHeight + statusRowHeight + commandRowHeight)
 	if viewportStyleHeight < 3 {
 		viewportStyleHeight = 3 // Minimum height (1 content + 2 borders)
 	}
@@ -90,12 +91,30 @@ func (m Model) View() string {
 	}
 	statusView := statusStyle.Render(statusText)
 
+	commandBarStyle := borderStyle.
+		Width(m.width).
+		Background(lipgloss.Color(m.theme.CommandBar.Background)).
+		Foreground(lipgloss.Color(m.theme.CommandBar.Foreground)).
+		PaddingTop(m.theme.Preview.PaddingTop).
+		PaddingBottom(m.theme.CommandBar.PaddingBottom).
+		PaddingLeft(m.theme.CommandBar.PaddingLeft).
+		PaddingRight(m.theme.CommandBar.PaddingRight).
+		BorderTop(false).
+		BorderBottom(false).
+		BorderLeft(false).
+		BorderRight(false)
+
+	commandBar := commandBarStyle.Render(
+		m.commandBar.View(),
+	)
+
 	// Combine all rows vertically
 	layout := lipgloss.JoinVertical(
 		lipgloss.Left,
 		searchBar,
 		viewports,
 		statusView,
+		commandBar,
 	)
 
 	// If no modal is active, show the base layout.
