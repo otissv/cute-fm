@@ -6,43 +6,86 @@
 
 
 [Theme]
-# File type colors
-directory = "#0000FF+bold"   # Blue + Bold
-symlink = "#00FFFF"          # Cyan
-socket = "#FFFF00"           # Yellow
-pipe = "#FF00FF"             # Magenta
-device = "#FFFF00+bold"      # Yellow + Bold
-executable = "#00FF00"       # Green
-regular = ""                 # No color (empty)
 
-# Permission level colors
-full = "#00FF00"       # Green (full access)
-partial = "#FFFF00"    # Yellow (partial access)
-none = "dim"           # Dim (no access)
+[Interface]
+background = "#212121"
+border     = "#888888"
+foreground = "#F0EDED"
 
-# Per-bit permission colors (used for r/w/x characters)
-perm_read  = "#00FF00"  # Green
-perm_write = "#FFFF00"  # Yellow
-perm_exec  = "#FF5F00"  # Orange/Red
+[FileType]
+directory  = "#0000FF+bold"
+symlink    = "#00FFFF"
+socket     = "#FFFF00"
+pipe       = "#FF00FF"
+device     = "#FFFF00+bold"
+executable = "#00FF00"
+regular    = "#F0EDED"
 
-# Field colors
-nlink = "dim"
-user = "#00FFFF"       # Cyan
-group = "#00FFFF"      # Cyan
-size = "#FFFF00"       # Yellow
-time = "dim"
+[Field]
+group = "#00FFFF"
+nlink = "#F0EDED"
+size  = "#FFFF00"
+time  = "#F0EDED"
+user  = "#00FFFF"
 
 
-# TUI interface colors
-title_foreground = "#FFFDF5"    # Title text color
-title_background = "#25A065"    # Title background color
-border = "#f00f00"              # Border color for panels
-selected_foreground = "#FFFDF5" # Selected item text color
-selected_background = "#25A065" # Selected item background color
-search_placeholder = "#888888"  # Search placeholder text color
-help_text = "#888888"           # Help text color at bottom
-foreground = "#FFFDF5"          # Foreground color
-background = "#212121"          # Background color
+
+[Permissions]
+perm_exec  = "#FF5F00"
+perm_read  = "#00FF00"
+perm_write = "#FFFF00"
+perm_none  = "#F0EDED"
+
+
+
+[SearchBar]
+search_bar_background     = "#212121"
+search_bar_foreground     = "#F0EDED"
+search_bar_border         = "#3B3B3B"
+search_bar_placeholder    = "#888888"
+search_bar_padding_top    = 0
+search_bar_padding_bottom = 0
+search_bar_padding_left   = 1
+search_bar_padding_right  = 1
+
+[CommandBar]
+command_bar_background     = "#212121"
+command_bar_foreground     = "#F0EDED"
+command_bar_border         = "#3B3B3B"
+command_bar_placeholder    = "#888888"
+command_bar_padding_top    = 0
+command_bar_padding_bottom = 0
+command_bar_padding_left   = 1
+command_bar_padding_right  = 1
+
+[Selection]
+selection_foreground = "#3B3B3B" # Selected item text color
+selection_background = "#F0EDED" # Selected item background color
+
+[FileList]
+file_list_background     = ""
+file_list_foreground     = ""
+file_list_padding_top    = 0
+file_list_padding_bottom = 1
+file_list_padding_left   = 1
+file_list_padding_right  = 1
+
+[Preview]
+preview_background     = ""
+preview_foreground     = ""
+preview_padding_top    = 0
+preview_padding_bottom = 1
+preview_padding_left   = 1
+preview_padding_right  = 1
+
+[Dialog]
+dialog_background     = "#212121"
+dialog_foreground     = "#F0EDED"
+dialog_padding_top    = 1
+dialog_padding_bottom = 1
+dialog_padding_left   = 1
+dialog_padding_right  = 1
+dialog_border_color   = "#888888"
 
 [Keybindings]
 help_model="?"                 # open help modal
@@ -58,13 +101,12 @@ root_directory="ctrl+e"           # go to root directory
 open="enter"                   # opens file or directory
 
 [Commands]
-projects_dir = "~/Projects"
+projects = "~/Projects"
 docs_dir = "~/Docs"
-notes_dir = "~/Notes"
-music_dir = "~/Music"
+music = "~/Music"
 videos_dir = "~/Videos"
-images_dir = "~/Images"
-downloads_dir = "~/Downloads"
-desktop_dir = "~/Desktop"
-documents_dir = "~/Documents"
+images = "~/Images"
+dl = "~/Downloads"
+desktop = "~/Desktop"
+documents = "~/Documents"
 

@@ -11,8 +11,8 @@ import (
 
 var (
 	backgroundColor = "#212121"
-	foregroundColor = "#F0EDED"
 	borderColor     = "#888888"
+	foregroundColor = "#F0EDED"
 )
 
 type Style struct {
@@ -90,11 +90,11 @@ func DefaultTheme() Theme {
 			"regular":    foregroundColor,
 		},
 		FieldColors: map[string]string{
-			"user":  "#00FFFF",
 			"group": "#00FFFF",
+			"nlink": foregroundColor,
 			"size":  "#FFFF00",
 			"time":  foregroundColor,
-			"nlink": foregroundColor,
+			"user":  "#00FFFF",
 		},
 		Permissions: PermissionsStyle{
 			Exec:  "#FF5F00",
@@ -106,12 +106,12 @@ func DefaultTheme() Theme {
 		SearchBar: BarStyle{
 			Background:    backgroundColor,
 			Foreground:    foregroundColor,
+			BorderColor:   borderColor,
 			Placeholder:   "#3B3B3B",
 			PaddingTop:    0,
 			PaddingBottom: 0,
 			PaddingLeft:   1,
 			PaddingRight:  1,
-			BorderColor:   borderColor,
 		},
 
 		CommandBar: BarStyle{
@@ -164,7 +164,7 @@ func DefaultTheme() Theme {
 			PaddingBottom: 1,
 			PaddingLeft:   1,
 			PaddingRight:  1,
-			BorderColor:   "#f00f00",
+			BorderColor:   "#888888",
 		},
 	}
 }
