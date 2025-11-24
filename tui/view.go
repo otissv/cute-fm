@@ -1,7 +1,7 @@
 package tui
 
 import (
-	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/v2"
 )
 
 func (m Model) View() string {
@@ -9,52 +9,63 @@ func (m Model) View() string {
 		return "Initializing..."
 	}
 
-	// Calculate viewport width (half of available width, accounting for borders)
-	searchBarRowHeight := 3
-	statusRowHeight := 3
-	headerRowHeight := 3
-	// Only reserve vertical space for the command bar when it is visible.
-	commandRowHeight := 0
-	if m.commandMode {
-		commandRowHeight = 3
-	}
-	m.viewportWidth = m.width / 2
-	m.viewportHeight = m.height - (searchBarRowHeight + statusRowHeight + commandRowHeight + headerRowHeight)
-	if m.viewportHeight < 3 {
-		m.viewportHeight = 3 // Minimum height (1 content + 2 borders)
-	}
-
 	commandBar := m.CommandBar()
+	currentDir := m.CurrentDir()
 	fileListViewportView := m.FileList()
+	headerView := m.Header()
+	previewTabs := m.PreviewTabs()
 	previewViewportView := m.Preview()
 	searchBar := m.SearchBar()
-	statusView := m.StatusBar()
-	headerView := m.Header()
+	viewModeText := m.ViewText()
+
+	statusBar := m.StatusBar(viewModeText, currentDir)
+
+	filePanelRows := []string{
+		searchBar,
+		fileListViewportView,
+	}
+
+	if !m.isSearchBarOpen {
+		// Only show searchBar if it's open
+		filePanelRows = filePanelRows[1:]
+	}
+
+	filePanel := lipgloss.JoinVertical(
+		lipgloss.Left,
+		filePanelRows...,
+	)
+
+	previewPanel := lipgloss.JoinVertical(
+		lipgloss.Left,
+		previewTabs,
+		previewViewportView,
+	)
 
 	viewports := lipgloss.JoinHorizontal(
-		lipgloss.Left,
-		fileListViewportView,
-		previewViewportView,
+		lipgloss.Center,
+		filePanel,
+		previewPanel,
 	)
 
 	m.layoutRows = []string{
 		headerView,
-		searchBar,
 		viewports,
-		statusView,
+		statusBar,
 	}
 
-	if m.commandMode {
+	if m.isCommandBarOpen {
 		m.layoutRows = append(m.layoutRows, commandBar)
 	}
 
+	layoutStyle := lipgloss.NewStyle().Background(lipgloss.Color(m.theme.Background))
+
 	m.layout = lipgloss.JoinVertical(
-		lipgloss.Left,
+		lipgloss.Center,
 		m.layoutRows...,
 	)
 
 	if m.activeModal == ModalNone {
-		return m.layout
+		return layoutStyle.Render(m.layout)
 	}
 
 	return m.Modal()

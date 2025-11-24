@@ -1,12 +1,13 @@
 package tui
 
 import (
+	"image/color"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/v2"
 
-	"lsfm/filesystem"
-	"lsfm/theming"
+	"cute/filesystem"
+	"cute/theming"
 )
 
 // renderFileTable builds a simple eza-like table for the left viewport using
@@ -164,7 +165,7 @@ func renderPermissions(theme theming.Theme, fi filesystem.FileInfo, bgColor stri
 	var b strings.Builder
 
 	// Optional background for selected rows.
-	var bg lipgloss.Color
+	var bg color.Color
 	hasBG := false
 	if bgColor != "" {
 		bg = lipgloss.Color(bgColor)

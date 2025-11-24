@@ -4,132 +4,151 @@ import (
 	"image/color"
 	"strings"
 
-	"lsfm/command"
-
 	"github.com/charmbracelet/bubbles/viewport"
-	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lucasb-eyer/go-colorful"
 	"github.com/muesli/gamut"
+
+	"cute/command"
 )
 
-var blends = gamut.Blends(lipgloss.Color("#F25D94"), lipgloss.Color("#EDFF82"), 50)
-
 func (m *Model) CommandBar() string {
-	commandBarStyle := lipgloss.NewStyle().
-		BorderStyle(lipgloss.NormalBorder()).
+	return lipgloss.NewStyle().
+		Background(lipgloss.Color(m.theme.CommandBar.Background)).
+		BorderBottom(false).
 		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
+		BorderLeft(false).
+		BorderRight(false).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderTop(false).
 		Foreground(lipgloss.Color(m.theme.CommandBar.Foreground)).
-		PaddingTop(m.theme.Preview.PaddingTop).
 		PaddingBottom(m.theme.CommandBar.PaddingBottom).
 		PaddingLeft(m.theme.CommandBar.PaddingLeft).
 		PaddingRight(m.theme.CommandBar.PaddingRight).
-		BorderTop(false).
-		BorderBottom(false).
-		BorderLeft(false).
-		BorderRight(false)
+		PaddingTop(m.theme.Preview.PaddingTop).
+		Width(m.width).
+		Render(m.commandInput.View())
+}
 
-	return commandBarStyle.Render(
-		m.commandBar.View(),
-	)
+func (m *Model) CurrentDir() string {
+	return lipgloss.NewStyle().
+		AlignHorizontal(lipgloss.Center).
+		Background(lipgloss.Color(m.theme.CurrentDir.Background)).
+		Foreground(lipgloss.Color(m.theme.CurrentDir.Foreground)).
+		MarginRight(2).
+		PaddingBottom(1).
+		PaddingLeft(1).
+		PaddingRight(1).
+		PaddingTop(0).
+		Render(m.currentDir)
 }
 
 func (m *Model) FileList() string {
-	fileListViewportStyle := lipgloss.NewStyle().
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
-		Width(m.viewportWidth).
-		Height(m.viewportHeight).
+	return lipgloss.NewStyle().
 		Background(lipgloss.Color(m.theme.FileList.Background)).
-		Foreground(lipgloss.Color(m.theme.FileList.Foreground)).
-		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
-		BorderRight(true).
-		PaddingTop(m.theme.FileList.PaddingTop).
-		PaddingBottom(m.theme.FileList.PaddingBottom).
-		PaddingLeft(m.theme.FileList.PaddingLeft).
-		PaddingRight(m.theme.FileList.PaddingRight)
-
-	return fileListViewportStyle.Render(
-		m.FileListViewport.View(),
-	)
-}
-
-func (m *Model) Preview() string {
-	previewViewportStyle := lipgloss.NewStyle().
+		BorderBackground(lipgloss.Color(m.theme.FileList.Background)).
+		BorderForeground(lipgloss.Color(m.theme.FileList.Border)).
 		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
-		Width(m.viewportWidth).
-		Height(m.viewportHeight).
-		Background(lipgloss.Color(m.theme.Preview.Background)).
-		Foreground(lipgloss.Color(m.theme.Preview.Foreground)).
-		BorderTop(false).
+		BorderTop(true).
+		BorderLeft(false).
 		BorderRight(false).
 		BorderBottom(false).
-		BorderLeft(false).
-		PaddingTop(m.theme.Preview.PaddingTop).
-		PaddingBottom(m.theme.Preview.PaddingBottom).
-		PaddingLeft(m.theme.Preview.PaddingLeft).
-		PaddingRight(m.theme.Preview.PaddingRight)
-
-	return previewViewportStyle.Render(
-		m.previewViewport.View(),
-	)
-}
-
-func (m *Model) SearchBar() string {
-	searchBarStyle := lipgloss.NewStyle().
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color(m.theme.BorderColor)).
-		Width(m.width).
-		Height(1).
-		BorderBottom(true)
-
-	return searchBarStyle.Render(
-		m.searchBar.View(),
-	)
-}
-
-func (m *Model) StatusBar() string {
-	statusStyle := lipgloss.NewStyle().
-		Width(m.width).
-		AlignVertical(lipgloss.Center).
-		Background(lipgloss.Color(m.theme.StatusBar.Background)).
-		Foreground(lipgloss.Color(m.theme.StatusBar.Foreground)).
-		PaddingTop(m.theme.Preview.PaddingTop).
-		PaddingBottom(m.theme.StatusBar.PaddingBottom).
-		PaddingLeft(m.theme.StatusBar.PaddingLeft).
-		PaddingRight(m.theme.StatusBar.PaddingRight)
-
-	statusText := m.currentDir
-	if statusText == "" {
-		statusText = "."
-	}
-
-	viewModeText := command.CmdViewModeStatus(m.viewMode)
-
-	statusBar := lipgloss.JoinHorizontal(lipgloss.Left, viewModeText, statusText)
-	return statusStyle.Render(statusBar)
+		Foreground(lipgloss.Color(m.theme.FileList.Foreground)).
+		Height(m.viewportHeight).
+		PaddingBottom(m.theme.FileList.PaddingBottom).
+		PaddingLeft(m.theme.FileList.PaddingLeft).
+		PaddingRight(m.theme.FileList.PaddingRight).
+		PaddingTop(m.theme.FileList.PaddingTop).
+		Width(m.viewportWidth).
+		Render(m.FileListViewport.View())
 }
 
 func (m *Model) Header() string {
-	headerStyle := lipgloss.NewStyle().
+	return lipgloss.NewStyle().
+		Align(lipgloss.Center).
+		Background(lipgloss.Color(m.theme.Header.Background)).
+		PaddingBottom(1).
 		Width(m.width).
+		Render(rainbowText(
+			lipgloss.NewStyle().
+				Background(lipgloss.Color(m.theme.Header.Background)),
+			m.titleText,
+			blends(m.theme.Primary, m.theme.Secondary),
+		))
+}
+
+func (m *Model) Preview() string {
+	return lipgloss.NewStyle().
+		Background(lipgloss.Color(m.theme.Preview.Background)).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderBackground(lipgloss.Color(m.theme.Background)).
+		BorderForeground(lipgloss.Color(m.theme.Preview.Border)).
+		Foreground(lipgloss.Color(m.theme.Preview.Foreground)).
+		Height(m.viewportHeight).
+		PaddingBottom(m.theme.Preview.PaddingBottom).
+		PaddingLeft(m.theme.Preview.PaddingLeft).
+		PaddingRight(m.theme.Preview.PaddingRight).
+		PaddingTop(m.theme.Preview.PaddingTop).
+		Width(m.viewportWidth).
+		Render(m.previewViewport.View())
+}
+
+func (m *Model) PreviewTabs() string {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color(m.theme.SearchBar.Foreground)).
+		Background(lipgloss.Color(m.theme.SearchBar.Background)).
+		BorderBackground(lipgloss.Color(m.theme.Background)).
+		BorderForeground(lipgloss.Color(m.theme.SearchBar.Border)).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderTop(false).
+		BorderBottom(false).
+		BorderLeft(false).
+		BorderRight(false).
+		Height(1).
+		Width(m.viewportWidth).
+		Render("Tabs")
+}
+
+func (m *Model) SearchBar() string {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color(m.theme.SearchBar.Foreground)).
+		Background(lipgloss.Color(m.theme.SearchBar.Background)).
+		BorderBackground(lipgloss.Color(m.theme.SearchBar.Background)).
+		BorderForeground(lipgloss.Color(m.theme.SearchBar.Border)).
+		BorderTop(false).
+		BorderBottom(false).
+		BorderLeft(false).
+		BorderRight(false).
+		BorderStyle(lipgloss.NormalBorder()).
+		Height(1).
+		Width(m.viewportWidth).
+		Render(m.searchInput.View())
+}
+
+func (m *Model) StatusBar(items ...string) string {
+	statusStyle := lipgloss.NewStyle().
 		AlignVertical(lipgloss.Center).
 		Background(lipgloss.Color(m.theme.StatusBar.Background)).
-		Foreground(lipgloss.Color(m.theme.StatusBar.Foreground)).
-		PaddingTop(m.theme.Preview.PaddingTop).
 		PaddingBottom(m.theme.StatusBar.PaddingBottom).
 		PaddingLeft(m.theme.StatusBar.PaddingLeft).
-		PaddingRight(m.theme.StatusBar.PaddingRight)
+		PaddingRight(m.theme.StatusBar.PaddingRight).
+		PaddingTop(m.theme.Preview.PaddingTop).
+		Width(m.width)
 
-	headerText := m.currentDir
-	if headerText == "" {
-		headerText = "."
-	}
+	var flatItems []string
+	flatItems = append(flatItems, items...)
 
-	viewModeText := command.CmdViewModeStatus(m.viewMode)
+	statusBar := lipgloss.JoinHorizontal(lipgloss.Left, flatItems...)
+	return statusStyle.Render(statusBar)
+}
 
-	header := lipgloss.JoinHorizontal(lipgloss.Left, viewModeText, headerText)
-	return headerStyle.Render(rainbow(lipgloss.NewStyle(), header, blends))
+func (m *Model) ViewText() string {
+	return lipgloss.NewStyle().
+		Align(lipgloss.Center).
+		Background(lipgloss.Color(m.theme.ViewMode.Background)).
+		Foreground(lipgloss.Color(m.theme.ViewMode.Foreground)).
+		Width(10).
+		Render(command.CmdViewModeStatus(m.viewMode))
 }
 
 func HelpViewport() viewport.Model {
@@ -220,11 +239,27 @@ func overlayModel(layout, dialog string) string {
 	return strings.Join(out, "\n")
 }
 
-func rainbow(base lipgloss.Style, s string, colors []color.Color) string {
+func blends(colo1 string, color2 string) []color.Color {
+	return gamut.Blends(lipgloss.Color(colo1), lipgloss.Color(color2), 50)
+}
+
+func rainbowText(base lipgloss.Style, s string, colors []color.Color) string {
 	var str string
 	for i, ss := range s {
 		color, _ := colorful.MakeColor(colors[i%len(colors)])
 		str = str + base.Foreground(lipgloss.Color(color.Hex())).Render(string(ss))
+	}
+	return str
+}
+
+func rainbow(base lipgloss.Style, s string, colors []color.Color) string {
+	var str string
+	for i, ss := range s {
+		color, _ := colorful.MakeColor(colors[i%len(colors)])
+		str += base.
+			Background(lipgloss.Color(color.Hex())). // use blend as background
+			Foreground(lipgloss.Color("#D4D4D4")).   // fixed text color
+			Render(string(ss))
 	}
 	return str
 }

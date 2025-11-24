@@ -6,13 +6,60 @@ import (
 	"os"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/v2"
 )
 
 var (
-	backgroundColor = "#212121"
-	borderColor     = "#888888"
-	foregroundColor = "#F0EDED"
+	// color0 = "#262626"
+	color0 = "#1E1E1E"
+	color1 = "#F0EDED"
+	color2 = "#F25D94"
+	color3 = "#FFF1A8"
+	color4 = "#FF9BC0"
+	color5 = "#FAD2E1"
+	color6 = "#7CFFD2"
+	color7 = "#E37CFF"
+	color8 = "#A8D2FF"
+
+	background            = color0
+	foreground            = color1
+	borderColor           = color2
+	primary               = color2
+	secondary             = color3
+	placeholder           = "#33282E"
+	viewModBackground     = background
+	viewModForeground     = foreground
+	commandBarBackground  = background
+	commandBarBorder      = borderColor
+	commandBarForeground  = foreground
+	commandBarPlaceholder = "#A8A7A7"
+	currentDirBackground  = background
+	currentDirForeground  = foreground
+	fieldGroup            = color3
+	fieldNlink            = foreground
+	fieldSize             = color4
+	fieldTime             = foreground
+	fieldUser             = color3
+	fileListBackground    = background
+	fileListForeGround    = foreground
+	fileTypeDevice        = color5
+	fileTypeDirectory     = color8
+	fileTypeExecutable    = color4
+	fileTypePipe          = color6
+	fileTypeRegular       = foreground
+	fileTypeSocket        = color3
+	fileTypeSymlink       = color5
+	permExec              = color4
+	permNone              = foreground
+	permRead              = color6
+	permWrite             = color5
+	searchBackground      = background
+	searchBorder          = borderColor
+	searchForeground      = foreground
+	headerBackground      = background
+	previewBackground     = background
+	previewForeground     = foreground
+	previewBorder         = borderColor
 )
 
 type Style struct {
@@ -22,6 +69,7 @@ type Style struct {
 	PaddingBottom int
 	PaddingLeft   int
 	PaddingRight  int
+	Border        string
 }
 
 type StyleColor struct {
@@ -36,7 +84,7 @@ type DefaultDialogStyle struct {
 	PaddingBottom int
 	PaddingLeft   int
 	PaddingRight  int
-	BorderColor   string
+	Border        string
 }
 
 type BarStyle struct {
@@ -47,7 +95,7 @@ type BarStyle struct {
 	PaddingBottom int
 	PaddingLeft   int
 	PaddingRight  int
-	BorderColor   string
+	Border        string
 }
 
 type PermissionsStyle struct {
@@ -58,113 +106,140 @@ type PermissionsStyle struct {
 }
 
 type Theme struct {
-	FileTypeColors map[string]string
-	FieldColors    map[string]string
-	Permissions    PermissionsStyle
-	BorderColor    string
-	Selection      StyleColor
 	Foreground     string
 	Background     string
-	FileList       Style
-	Preview        Style
-	StatusBar      Style
-	DefaultDialog  DefaultDialogStyle
-	SearchBar      BarStyle
+	Primary        string
+	Secondary      string
+	BorderColor    string
 	CommandBar     BarStyle
+	CurrentDir     StyleColor
+	DefaultDialog  DefaultDialogStyle
+	FieldColors    map[string]string
+	FileList       Style
+	FileTypeColors map[string]string
+	Header         StyleColor
+	Permissions    PermissionsStyle
+	Preview        Style
+	SearchBar      BarStyle
+	Selection      StyleColor
+	StatusBar      Style
+	ViewMode       StyleColor
 }
 
 // DefaultTheme returns a sane fallback theme used when the config
 // file cannot be read or parsed.
 func DefaultTheme() Theme {
 	return Theme{
-		Background:  backgroundColor,
-		Foreground:  foregroundColor,
+		Background:  background,
+		Foreground:  foreground,
 		BorderColor: borderColor,
+		Primary:     primary,
+		Secondary:   secondary,
+
+		CommandBar: BarStyle{
+			Background:    commandBarBackground,
+			Border:        commandBarBorder,
+			Foreground:    commandBarForeground,
+			PaddingBottom: 0,
+			PaddingLeft:   1,
+			PaddingRight:  1,
+			PaddingTop:    0,
+			Placeholder:   commandBarPlaceholder,
+		},
+
+		DefaultDialog: DefaultDialogStyle{
+			Background:    background,
+			Border:        borderColor,
+			Foreground:    foreground,
+			PaddingBottom: 1,
+			PaddingLeft:   1,
+			PaddingRight:  1,
+			PaddingTop:    1,
+		},
+
+		CurrentDir: StyleColor{
+			Background: currentDirBackground,
+			Foreground: currentDirForeground,
+		},
+
+		FileList: Style{
+			Background:    fileListBackground,
+			Foreground:    fileListForeGround,
+			PaddingBottom: 1,
+			Border:        borderColor,
+			PaddingLeft:   1,
+			PaddingRight:  1,
+			PaddingTop:    0,
+		},
+
 		FileTypeColors: map[string]string{
-			"directory":  "#0000FF+bold",
-			"symlink":    "#00FFFF",
-			"socket":     "#FFFF00",
-			"pipe":       "#FF00FF",
-			"device":     "#FFFF00+bold",
-			"executable": "#00FF00",
-			"regular":    foregroundColor,
+			"directory":  fileTypeDirectory,
+			"symlink":    fileTypeSymlink,
+			"socket":     fileTypeSocket,
+			"pipe":       fileTypePipe,
+			"device":     fileTypeDevice,
+			"executable": fileTypeExecutable,
+			"regular":    fileTypeRegular,
 		},
+
 		FieldColors: map[string]string{
-			"group": "#00FFFF",
-			"nlink": foregroundColor,
-			"size":  "#FFFF00",
-			"time":  foregroundColor,
-			"user":  "#00FFFF",
+			"group": fieldGroup,
+			"nlink": fieldNlink,
+			"size":  fieldSize,
+			"time":  fieldTime,
+			"user":  fieldUser,
 		},
+
+		Header: StyleColor{
+			Background: headerBackground,
+		},
+
 		Permissions: PermissionsStyle{
-			Exec:  "#FF5F00",
-			Read:  "#00FF00",
-			Write: "#FFFF00",
-			None:  foregroundColor,
+			Exec:  permExec,
+			Read:  permRead,
+			Write: permWrite,
+			None:  permNone,
+		},
+
+		Preview: Style{
+			Background:    previewBackground,
+			Foreground:    previewForeground,
+			Border:        previewBorder,
+			PaddingBottom: 1,
+			PaddingLeft:   1,
+			PaddingRight:  1,
+			PaddingTop:    0,
 		},
 
 		SearchBar: BarStyle{
-			Background:    backgroundColor,
-			Foreground:    foregroundColor,
-			BorderColor:   borderColor,
-			Placeholder:   "#3B3B3B",
-			PaddingTop:    0,
+			Background:    background,
+			Border:        borderColor,
+			Foreground:    foreground,
 			PaddingBottom: 0,
 			PaddingLeft:   1,
 			PaddingRight:  1,
+			PaddingTop:    0,
+			Placeholder:   placeholder,
 		},
 
-		CommandBar: BarStyle{
-			Background:    backgroundColor,
-			Foreground:    foregroundColor,
-			Placeholder:   "#3B3B3B",
-			PaddingTop:    0,
+		StatusBar: Style{
+			Background:    searchBackground,
+			Foreground:    searchForeground,
+			Border:        searchBorder,
 			PaddingBottom: 0,
 			PaddingLeft:   1,
 			PaddingRight:  1,
-			BorderColor:   borderColor,
+			PaddingTop:    0,
 		},
 
 		Selection: StyleColor{
 			Background: "#3B3B3B",
-			Foreground: backgroundColor,
+			Foreground: background,
 		},
 
-		FileList: Style{
-			Background:    "",
-			Foreground:    "",
-			PaddingTop:    0,
-			PaddingBottom: 1,
-			PaddingLeft:   1,
-			PaddingRight:  1,
-		},
-
-		Preview: Style{
-			Background:    "",
-			Foreground:    "",
-			PaddingTop:    0,
-			PaddingBottom: 1,
-			PaddingLeft:   1,
-			PaddingRight:  1,
-		},
-
-		StatusBar: Style{
-			Background:    foregroundColor,
-			Foreground:    backgroundColor,
-			PaddingTop:    0,
-			PaddingBottom: 0,
-			PaddingLeft:   1,
-			PaddingRight:  1,
-		},
-
-		DefaultDialog: DefaultDialogStyle{
-			Background:    backgroundColor,
-			Foreground:    foregroundColor,
-			PaddingTop:    1,
-			PaddingBottom: 1,
-			PaddingLeft:   1,
-			PaddingRight:  1,
-			BorderColor:   "#888888",
+		ViewMode: StyleColor{
+			Background: viewModBackground,
+			Foreground: viewModForeground,
 		},
 	}
 }

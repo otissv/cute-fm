@@ -1,4 +1,4 @@
-# Setting configuration file for file manager
+# Setting configuration file for cute
 # Colors can be specified as:
 # - Hex colors: '#RRGGBB' (e.g., '#0000FF' for blue)
 # - ANSI color names: 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'white'
@@ -9,7 +9,7 @@
 
 [Interface]
 background = "#212121"
-border     = "#888888"
+border     = "#F25D94"
 foreground = "#F0EDED"
 
 [FileType]
