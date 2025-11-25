@@ -1,17 +1,15 @@
-package tui
+package components
 
 import (
 	"cute/theming"
 
-	"github.com/charmbracelet/lipgloss/v2"
+	"cute/tui"
+
+	"charm.land/lipgloss/v2"
 )
 
-type ViewPrimitive interface {
-	View() string
-}
-
 type FloatingWindow struct {
-	Content ViewPrimitive
+	Content tui.ViewPrimitive
 	Width   int
 	Height  int
 	Title   string
@@ -24,6 +22,7 @@ func DefaultFloatingStyle(theme theming.Theme) lipgloss.Style {
 		Foreground(lipgloss.Color(theme.DefaultDialog.Foreground)).
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(theme.DefaultDialog.Border)).
+		BorderBackground(lipgloss.Color(theme.DefaultDialog.Background)).
 		PaddingTop(theme.DefaultDialog.PaddingTop).
 		PaddingBottom(theme.DefaultDialog.PaddingBottom).
 		PaddingLeft(theme.DefaultDialog.PaddingLeft).
@@ -48,12 +47,5 @@ func (fw FloatingWindow) View(outerWidth, outerHeight int) string {
 
 	box := style.Render(contentView)
 
-	return lipgloss.Place(
-		outerWidth,
-		outerHeight,
-		lipgloss.Center,
-		lipgloss.Center,
-		box,
-		lipgloss.WithWhitespaceChars("///"),
-	)
+	return box
 }

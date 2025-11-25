@@ -3,10 +3,10 @@ package tui
 import (
 	"strings"
 
-	"github.com/charmbracelet/bubbles/key"
+	"charm.land/bubbles/v2/key"
 
-	"github.com/charmbracelet/bubbles/viewport"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/viewport"
+	tea "charm.land/bubbletea/v2"
 
 	"cute/command"
 	"cute/filesystem"
@@ -35,8 +35,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if helpHeight < 5 {
 			helpHeight = 5
 		}
-		m.helpViewport.Width = helpWidth
-		m.helpViewport.Height = helpHeight - 2 // account for borders/padding
 
 		// Recalculate layout and re-render the file table so that the last
 		// column can pad to the new viewport width and the selected row
@@ -62,10 +60,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// If the command bar is active, handle its control keys first.
 		if m.isCommandBarOpen {
 			switch msg.String() {
+			case "tab":
+				// Auto-complete with history matches
+				m.completeCommand()
+				return m, nil
+
+			case "up":
+				// Navigate through history (older commands)
+				// Works with filtered matches if input exists, or all history if input is empty
+				if len(m.commandHistory) > 0 {
+					m.navigateHistory(-1)
+					return m, nil
+				}
+				// If no history, fall through to let textinput handle it
+
+			case "down":
+				// Navigate through history (newer commands)
+				// Works with filtered matches if input exists, or all history if input is empty
+				if len(m.commandHistory) > 0 {
+					m.navigateHistory(1)
+					return m, nil
+				}
+				// If no history, fall through to let textinput handle it
+
 			case "enter":
 				// Execute the entered command.
 				line := strings.TrimSpace(m.commandInput.Value())
-
+				if line != "" {
+					m.AppendCommandHistory(line)
+					// Reload history to include the new command
+					m.commandHistory = m.LoadCommandHistory()
+				}
 				env := command.Environment{
 					Cwd:            m.currentDir,
 					ConfigCommands: m.commands,
@@ -123,6 +148,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.commandInput.Blur()
 				m.commandInput.SetValue("")
 				m.searchInput.Focus()
+				// Reset history state
+				m.historyMatches = []string{}
+				m.historyIndex = -1
 
 				// Grow the file/preview viewports back to fill the freed space.
 				m.CalcLayout()
@@ -137,9 +165,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case ":":
 			m.isCommandBarOpen = true
-			m.commandInput.Blur()
+			m.searchInput.Blur()
 			m.commandInput.SetValue("")
-			m.searchInput.Focus()
+			m.commandInput.Focus()
+			// Reset history state when opening command bar
+			m.historyMatches = []string{}
+			m.historyIndex = -1
 			m.CalcLayout()
 			return m, nil
 
@@ -170,8 +201,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Update the appropriate text input.
 	if m.isCommandBarOpen {
 		// Command bar is active; update it instead of the search bar.
+		beforeValue := m.commandInput.Value()
 		m.commandInput, cmd = m.commandInput.Update(msg)
 		cmds = append(cmds, cmd)
+		// Update history matches when input changes
+		if m.commandInput.Value() != beforeValue {
+			m.updateHistoryMatches()
+		}
 	} else {
 		// Update search input (first row) and apply filtering if the value changed.
 		before := m.searchInput.Value()
@@ -183,7 +219,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// Update left viewport (second row, left column)
-	m.FileListViewport, cmd = m.FileListViewport.Update(msg)
+	m.fileListViewport, cmd = m.fileListViewport.Update(msg)
 	cmds = append(cmds, cmd)
 
 	// Update right viewport (second row, right column)
@@ -213,7 +249,9 @@ func (m *Model) moveSelection(delta int) {
 	}
 
 	m.selectedIndex = newIndex
-	m.FileListViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex, m.FileListViewport.Width))
+	m.fileListViewport.SetContent(
+		renderFileTable(m.theme, m.files, m.selectedIndex, m.fileListViewport.Width()),
+	)
 	m.EnsureSelectionVisible()
 }
 
@@ -226,24 +264,24 @@ func (m *Model) EnsureSelectionVisible() {
 
 	// Header row is at line 0; first file row is at line 1.
 	line := 1 + m.selectedIndex
-	viewHeight := m.FileListViewport.Height
+	viewHeight := m.fileListViewport.Height()
 	if viewHeight <= 0 {
 		return
 	}
 
 	// Current scroll offset (top visible line).
-	y := m.FileListViewport.YOffset
+	y := m.fileListViewport.YOffset()
 
 	// If the selected line is above the viewport, scroll up.
 	if line < y+1 {
-		m.FileListViewport.SetYOffset(line - 1)
+		m.fileListViewport.SetYOffset(line - 1)
 		return
 	}
 
 	// If the selected line is below the viewport, scroll down so it becomes
 	// the last visible line.
 	if line > y+viewHeight-1 {
-		m.FileListViewport.SetYOffset(line - viewHeight + 1)
+		m.fileListViewport.SetYOffset(line - viewHeight + 1)
 	}
 }
 
@@ -279,7 +317,9 @@ func (m *Model) ApplyFilter() {
 	// Adjust selection for the new list.
 	if len(m.files) == 0 {
 		m.selectedIndex = -1
-		m.FileListViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex, m.FileListViewport.Width))
+		m.fileListViewport.SetContent(
+			renderFileTable(m.theme, m.files, m.selectedIndex, m.fileListViewport.Width()),
+		)
 	}
 
 	if m.selectedIndex < 0 {
@@ -289,14 +329,16 @@ func (m *Model) ApplyFilter() {
 		m.selectedIndex = len(m.files) - 1
 	}
 
-	m.FileListViewport.SetContent(renderFileTable(m.theme, m.files, m.selectedIndex, m.FileListViewport.Width))
+	m.fileListViewport.SetContent(
+		renderFileTable(m.theme, m.files, m.selectedIndex, m.fileListViewport.Width()),
+	)
 	m.EnsureSelectionVisible()
 }
 
 // ChangeDirectory updates the model to point at a new current directory and
 // reloads the file list.
 func (m *Model) ChangeDirectory(dir string) {
-	files, selected := loadDirectoryIntoView(&m.FileListViewport, m.theme, dir)
+	files, selected := loadDirectoryIntoView(&m.fileListViewport, m.theme, dir)
 	m.currentDir = dir
 	m.allFiles = files
 	m.files = files
@@ -309,7 +351,7 @@ func (m *Model) ChangeDirectory(dir string) {
 // mode. It does not modify the original slice.
 func filterByViewMode(files []filesystem.FileInfo, mode string) []filesystem.FileInfo {
 	if mode == "" {
-		mode = "lll"
+		mode = "ll"
 	}
 
 	out := make([]filesystem.FileInfo, 0, len(files))

@@ -6,11 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss/v2"
+	"charm.land/lipgloss/v2"
 )
 
 var (
-	// color0 = "#262626"
 	color0 = "#1E1E1E"
 	color1 = "#F0EDED"
 	color2 = "#F25D94"
@@ -42,6 +41,7 @@ var (
 	fieldUser             = color3
 	fileListBackground    = background
 	fileListForeGround    = foreground
+	fileListBorder        = background
 	fileTypeDevice        = color5
 	fileTypeDirectory     = color8
 	fileTypeExecutable    = color4
@@ -54,7 +54,7 @@ var (
 	permRead              = color6
 	permWrite             = color5
 	searchBackground      = background
-	searchBorder          = borderColor
+	searchBorder          = background
 	searchForeground      = foreground
 	headerBackground      = background
 	previewBackground     = background
@@ -166,7 +166,7 @@ func DefaultTheme() Theme {
 			Background:    fileListBackground,
 			Foreground:    fileListForeGround,
 			PaddingBottom: 1,
-			Border:        borderColor,
+			Border:        fileListBorder,
 			PaddingLeft:   1,
 			PaddingRight:  1,
 			PaddingTop:    0,

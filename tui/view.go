@@ -1,33 +1,34 @@
 package tui
 
 import (
-	"github.com/charmbracelet/lipgloss/v2"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
-func (m Model) View() string {
+func (m Model) View() tea.View {
 	if m.width == 0 {
-		return "Initializing..."
+		v := tea.NewView("Initializing...")
+		v.AltScreen = true
+		return v
 	}
 
-	commandBar := m.CommandBar()
-	currentDir := m.CurrentDir()
-	fileListViewportView := m.FileList()
-	headerView := m.Header()
-	previewTabs := m.PreviewTabs()
-	previewViewportView := m.Preview()
-	searchBar := m.SearchBar()
-	viewModeText := m.ViewText()
+	commandBar := ""
+	if m.CommandBar != nil {
+		commandBar = m.CommandBar(m)
+	}
+	currentDir := m.CurrentDir(m)
+	fileListViewportView := m.FileList(m)
+	headerView := m.Header(m)
+	previewTabs := m.PreviewTabs(m)
+	previewViewportView := m.Preview(m)
+	searchBar := m.SearchBar(m)
+	viewModeText := m.ViewText(m)
 
-	statusBar := m.StatusBar(viewModeText, currentDir)
+	statusBar := m.StatusBar(m, viewModeText, currentDir)
 
 	filePanelRows := []string{
 		searchBar,
 		fileListViewportView,
-	}
-
-	if !m.isSearchBarOpen {
-		// Only show searchBar if it's open
-		filePanelRows = filePanelRows[1:]
 	}
 
 	filePanel := lipgloss.JoinVertical(
@@ -42,7 +43,7 @@ func (m Model) View() string {
 	)
 
 	viewports := lipgloss.JoinHorizontal(
-		lipgloss.Center,
+		lipgloss.Top,
 		filePanel,
 		previewPanel,
 	)
@@ -51,22 +52,51 @@ func (m Model) View() string {
 		headerView,
 		viewports,
 		statusBar,
+		commandBar,
 	}
 
-	if m.isCommandBarOpen {
-		m.layoutRows = append(m.layoutRows, commandBar)
-	}
-
-	layoutStyle := lipgloss.NewStyle().Background(lipgloss.Color(m.theme.Background))
+	layoutStyle := lipgloss.NewStyle().
+		Background(lipgloss.Color(m.theme.Background)).
+		Height(m.height).
+		Width(m.width)
 
 	m.layout = lipgloss.JoinVertical(
 		lipgloss.Center,
 		m.layoutRows...,
 	)
 
-	if m.activeModal == ModalNone {
-		return layoutStyle.Render(m.layout)
+	baseContent := layoutStyle.Render(m.layout)
+	baseLayer := lipgloss.NewLayer(baseContent)
+
+	var canvas *lipgloss.Canvas
+	switch m.activeModal {
+
+	case ModalHelp:
+		if m.HelpModal != nil {
+			modalContent := m.HelpModal(m)
+
+			dialogWidth := lipgloss.Width(modalContent)
+			dialogHeight := lipgloss.Height(modalContent)
+			x := 0
+			y := 0
+			if m.width > dialogWidth {
+				x = (m.width - dialogWidth) / 2
+			}
+			if m.height > dialogHeight {
+				y = (m.height - dialogHeight) / 2
+			}
+
+			modalLayer := lipgloss.NewLayer(modalContent).X(x).Y(y)
+			canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
+		} else {
+			// No help modal configured; just render the base layout.
+			canvas = lipgloss.NewCanvas(baseLayer)
+		}
+	default:
+		canvas = lipgloss.NewCanvas(baseLayer)
 	}
 
-	return m.Modal()
+	v := tea.NewView(canvas)
+	v.AltScreen = true
+	return v
 }

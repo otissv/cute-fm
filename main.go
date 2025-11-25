@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"cute/components"
 	"cute/tui"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 func main() {
@@ -21,11 +22,20 @@ func main() {
 	// Create the initial model
 	m := tui.InitialModel(startDir)
 
+	// Inject UI components that live in other packages to avoid import cycles.
+	m.HelpModal = components.HelpModal
+	m.CommandBar = components.CommandBar
+	m.SearchBar = components.SearchBar
+	m.CurrentDir = components.CurrentDir
+	m.Header = components.Header
+	m.StatusBar = components.StatusBar
+	m.ViewText = components.ViewText
+	m.PreviewTabs = components.PreviewTabs
+	m.Preview = components.Preview
+	m.FileList = components.FileList
+
 	// Create a new Bubble Tea program
-	p := tea.NewProgram(
-		m,
-		tea.WithAltScreen(), // Enable alternate screen buffer
-	)
+	p := tea.NewProgram(m)
 
 	// Run the program
 	if _, err := p.Run(); err != nil {
