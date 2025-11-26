@@ -12,15 +12,6 @@ func (m Model) View() tea.View {
 		return v
 	}
 
-	commandBar := ""
-	if m.CommandBar != nil {
-		commandBar = m.CommandBar(
-			m, ComponentArgs{
-				Width:  m.width,
-				Height: 1,
-			})
-	}
-
 	fileListViewportView := m.FileList(
 		m, ComponentArgs{
 			Width:  m.viewportWidth,
@@ -92,7 +83,6 @@ func (m Model) View() tea.View {
 		headerView,
 		viewports,
 		statusBar,
-		commandBar,
 	}
 
 	layoutStyle := lipgloss.NewStyle()
@@ -108,15 +98,18 @@ func (m Model) View() tea.View {
 	var canvas *lipgloss.Canvas
 	switch ActiveTuiMode {
 
-	case TuiModeHelp:
-		if m.HelpModal != nil {
+	case TuiModeCommand:
+		commandLayer := m.CommandModal(m)
+		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
-			modalLayer := m.HelpModal(m)
-			canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
-		} else {
-			// No help modal configured; just render the base layout.
-			canvas = lipgloss.NewCanvas(baseLayer)
-		}
+	case TuiModeHelp:
+		modalLayer := m.HelpModal(m)
+		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
+
+	case TuiModeQuit:
+		modalLayer := m.QuitModal(m)
+		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
+
 	default:
 		canvas = lipgloss.NewCanvas(baseLayer)
 	}

@@ -1,9 +1,8 @@
 package tui
 
 import (
+	"path/filepath"
 	"strings"
-
-	"charm.land/bubbles/v2/key"
 
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
@@ -13,6 +12,13 @@ import (
 	"cute/filesystem"
 	"cute/theming"
 )
+
+func SetQuitMode() {
+	if ActiveTuiMode != TuiModeQuit {
+		PreviousTuiMode = ActiveTuiMode
+		ActiveTuiMode = TuiModeQuit
+	}
+}
 
 // Update handles messages and updates the model
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -42,41 +48,99 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 
+		if ActiveTuiMode == TuiModeQuit {
+			switch msg.String() {
+			case "ctrl+c", "ctrl+q":
+				return m, tea.Quit
+			}
+		}
+
 		if ActiveTuiMode == TuiModeNormal {
 			switch msg.String() {
-			case "ctrl+c":
-				return m, tea.Quit
-			case "?":
-				PreviousTuiMode = ActiveTuiMode
-				ActiveTuiMode = TuiModeHelp
-
+			case "ctrl+c", "ctrl+q":
+				SetQuitMode()
 				return m, nil
+			case "?":
+				if ActiveTuiMode != TuiModeHelp {
+					PreviousTuiMode = ActiveTuiMode
+					ActiveTuiMode = TuiModeHelp
+					return m, nil
+				}
+
+			case ":":
+				if ActiveTuiMode != TuiModeCommand {
+					PreviousTuiMode = ActiveTuiMode
+					ActiveTuiMode = TuiModeCommand
+
+					// Prepare the command input when entering command mode.
+					m.commandInput.SetValue("")
+					m.commandInput.Focus()
+					m.historyMatches = []string{}
+					m.historyIndex = -1
+
+					return m, nil
+				}
+			case "s":
+				if ActiveTuiMode != TuiModeSelect {
+					PreviousTuiMode = ActiveTuiMode
+					ActiveTuiMode = TuiModeSelect
+					return m, nil
+				}
+
+			case "f":
+				if ActiveTuiMode != TuiModeSelect {
+					PreviousTuiMode = ActiveTuiMode
+					ActiveTuiMode = TuiModeSelect
+					return m, nil
+				}
 			}
 		}
 
 		if ActiveTuiMode == TuiModeHelp {
+			m.commandInput.Blur()
+			m.searchInput.Focus()
+
 			switch msg.String() {
+			case "ctrl+c", "ctrl+q":
+				SetQuitMode()
+				return m, nil
+
 			case "esc", "?":
 				ActiveTuiMode = PreviousTuiMode
-			}
-		}
-
-		// If a modal is active, handle its keys first.
-		if m.activeModal != ModalNone {
-			switch msg.String() {
-			case "esc", "q", "?", "ctrl+c":
-				// Close help modal.
-				m.activeModal = ModalNone
 				return m, nil
 			}
-
-			// For now, help modal is static; ignore other keys while open.
-			return m, nil
 		}
 
-		// If the command bar is active, handle its control keys first.
-		if m.isCommandBarOpen {
+		if ActiveTuiMode == TuiModeCommand {
+			m.searchInput.Blur()
+
+			// Command bar is active; update it instead of the search bar.
+			beforeValue := m.commandInput.Value()
+			m.commandInput, cmd = m.commandInput.Update(msg)
+			cmds = append(cmds, cmd)
+
+			// Update left viewport (second row, left column)
+			m.fileListViewport, cmd = m.fileListViewport.Update(msg)
+			cmds = append(cmds, cmd)
+
+			// Update right viewport (second row, right column)
+			m.previewViewport, cmd = m.previewViewport.Update(msg)
+			cmds = append(cmds, cmd)
+
+			// Update history matches when input changes
+			if m.commandInput.Value() != beforeValue {
+				m.updateHistoryMatches()
+			}
+
 			switch msg.String() {
+			case "ctrl+c", "ctrl+q":
+				SetQuitMode()
+				return m, nil
+
+			case "esc", ":":
+				ActiveTuiMode = PreviousTuiMode
+				return m, nil
+
 			case "tab":
 				m.completeCommand()
 				return m, nil
@@ -104,9 +168,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					// Reload history to include the new command
 					m.commandHistory = m.LoadCommandHistory()
 				}
+
+				var selected *command.SelectedEntry
+				if m.selectedIndex >= 0 && m.selectedIndex < len(m.files) {
+					fi := m.files[m.selectedIndex]
+					selected = &command.SelectedEntry{
+						Name:  fi.Name,
+						Path:  filepath.Join(m.currentDir, fi.Name),
+						IsDir: fi.IsDir,
+						Type:  fi.Type,
+					}
+				}
+
 				env := command.Environment{
-					Cwd:            m.currentDir,
-					ConfigCommands: m.commands,
+					Cwd:      m.currentDir,
+					Config:   m.runtimeConfig,
+					Selected: selected,
 				}
 
 				res, err := command.Execute(env, line)
@@ -140,7 +217,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.previewViewport.SetContent(err.Error())
 				}
 
-				m.isCommandBarOpen = false
 				m.commandInput.Blur()
 				m.commandInput.SetValue("")
 				m.searchInput.Focus()
@@ -151,47 +227,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, tea.Quit
 				}
 
+				ActiveTuiMode = PreviousTuiMode
+
 				return m, nil
 
-			case "esc", "q", "ctrl+c":
-				// Exit command mode and return focus to the search bar.
-				m.isCommandBarOpen = false
-				m.commandInput.Blur()
-				m.commandInput.SetValue("")
-				m.searchInput.Focus()
-				// Reset history state
-				m.historyMatches = []string{}
-				m.historyIndex = -1
-
-				// Grow the file/preview viewports back to fill the freed space.
-				m.CalcLayout()
-				return m, nil
 			}
+		}
+
+		if ActiveFileListMode == FileListMode(TuiModeFilter) {
+			// Update search input (first row) and apply filtering if the value changed.
+			before := m.searchInput.Value()
+			m.searchInput, cmd = m.searchInput.Update(msg)
+			cmds = append(cmds, cmd)
+			if m.searchInput.Value() != before {
+				m.ApplyFilter()
+			}
+
 		}
 
 		// Navigate the file list with arrow keys (only when not in command mode).
 		switch msg.String() {
-		case "?":
-			m.activeModal = ModalHelp
-			return m, nil
-		case ":":
-			m.isCommandBarOpen = true
-			m.searchInput.Blur()
-			m.commandInput.SetValue("")
-			m.commandInput.Focus()
-			// Reset history state when opening command bar
-			m.historyMatches = []string{}
-			m.historyIndex = -1
-			m.CalcLayout()
-			return m, nil
 
-		case "ctrl+f":
-			if !m.isSearchBarOpen {
-				m.searchInput.Focus()
-			} else {
-				m.searchInput.Blur()
-			}
-			m.isSearchBarOpen = !m.isSearchBarOpen
 		case "up":
 			m.moveSelection(-1)
 			return m, nil
@@ -199,43 +255,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.moveSelection(1)
 			return m, nil
 		}
-
-		// Handle quit (only when not in command mode).
-		if !m.isCommandBarOpen {
-			switch {
-			case key.Matches(msg, key.NewBinding(key.WithKeys("ctrl+c", "ctrl+q"))):
-				return m, tea.Quit
-			}
-		}
 	}
-
-	// Update the appropriate text input.
-	if m.isCommandBarOpen {
-		// Command bar is active; update it instead of the search bar.
-		beforeValue := m.commandInput.Value()
-		m.commandInput, cmd = m.commandInput.Update(msg)
-		cmds = append(cmds, cmd)
-		// Update history matches when input changes
-		if m.commandInput.Value() != beforeValue {
-			m.updateHistoryMatches()
-		}
-	} else {
-		// Update search input (first row) and apply filtering if the value changed.
-		before := m.searchInput.Value()
-		m.searchInput, cmd = m.searchInput.Update(msg)
-		cmds = append(cmds, cmd)
-		if m.searchInput.Value() != before {
-			m.ApplyFilter()
-		}
-	}
-
-	// Update left viewport (second row, left column)
-	m.fileListViewport, cmd = m.fileListViewport.Update(msg)
-	cmds = append(cmds, cmd)
-
-	// Update right viewport (second row, right column)
-	m.previewViewport, cmd = m.previewViewport.Update(msg)
-	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }

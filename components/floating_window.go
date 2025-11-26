@@ -19,15 +19,15 @@ type FloatingWindow struct {
 
 func DefaultFloatingStyle(theme theming.Theme) lipgloss.Style {
 	return lipgloss.NewStyle().
-		Background(lipgloss.Color(theme.DefaultDialog.Background)).
-		Foreground(lipgloss.Color(theme.DefaultDialog.Foreground)).
+		Background(lipgloss.Color(theme.Dialog.Background)).
+		Foreground(lipgloss.Color(theme.Dialog.Foreground)).
 		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color(theme.DefaultDialog.Border)).
-		BorderBackground(lipgloss.Color(theme.DefaultDialog.Background)).
-		PaddingTop(theme.DefaultDialog.PaddingTop).
-		PaddingBottom(theme.DefaultDialog.PaddingBottom).
-		PaddingLeft(theme.DefaultDialog.PaddingLeft).
-		PaddingRight(theme.DefaultDialog.PaddingRight)
+		BorderForeground(lipgloss.Color(theme.Dialog.Border)).
+		BorderBackground(lipgloss.Color(theme.Dialog.Background)).
+		PaddingTop(theme.Dialog.PaddingTop).
+		PaddingBottom(theme.Dialog.PaddingBottom).
+		PaddingLeft(theme.Dialog.PaddingLeft).
+		PaddingRight(theme.Dialog.PaddingRight)
 }
 
 func (fw FloatingWindow) View(outerWidth, outerHeight int) string {
@@ -52,7 +52,6 @@ func (fw FloatingWindow) View(outerWidth, outerHeight int) string {
 		return box
 	}
 
-	// Overlay the title centered on the top border by rewriting the first line
 	// of the rendered box. This avoids needing an extra canvas or layer.
 	lines := strings.Split(box, "\n")
 	if len(lines) == 0 {
@@ -85,8 +84,6 @@ func (fw FloatingWindow) View(outerWidth, outerHeight int) string {
 
 	segmentRunes := []rune(borderSegment)
 
-	// Add a left and right border with padding of 1 around the title,
-	// e.g. `[ HELP ]`.
 	displayTitle := "┤ " + fw.Title + " ├"
 	titleRunes := []rune(displayTitle)
 

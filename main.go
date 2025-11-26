@@ -22,9 +22,8 @@ func main() {
 	// Create the initial model
 	m := tui.InitialModel(startDir)
 
-	// Inject UI components that live in other packages to avoid import cycles.
-	m.HelpModal = components.HelpModal
-	m.CommandBar = components.CommandBar
+	// Inject UI components .
+
 	m.SearchBar = components.SearchBar
 	m.CurrentDir = components.CurrentDir
 	m.Header = components.Header
@@ -34,6 +33,11 @@ func main() {
 	m.Preview = components.Preview
 	m.FileList = components.FileList
 	m.TuiMode = components.TuiMode
+
+	// Inject UI modals.
+	m.HelpModal = components.HelpModal
+	m.CommandModal = components.CommandModal
+	m.QuitModal = components.QuitModal
 
 	// Create a new Bubble Tea program
 	p := tea.NewProgram(m)

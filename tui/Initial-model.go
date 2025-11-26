@@ -8,7 +8,6 @@ import (
 
 	"cute/config"
 	"cute/filesystem"
-	"cute/theming"
 )
 
 // InitialModel creates a new model with default values.
@@ -21,12 +20,6 @@ func InitialModel(startDir string) Model {
 	// Initialize right viewport for the second row
 	rightVp := viewport.New()
 	rightVp.SetContent("Right Panel\n\nThis is the right viewport.\nIt will display file previews.")
-
-	// Load theme configuration.
-	theme := theming.LoadTheme("cute.toml")
-
-	// Load user-defined commands from the configuration file.
-	cfgCommands := config.LoadCommands("cute.toml")
 
 	// Determine initial directory for the file list.
 	wd := startDir
@@ -53,22 +46,25 @@ func InitialModel(startDir string) Model {
 	// Best-effort creation; ignore error so the TUI can still start.
 	_ = os.MkdirAll(cfgDir, 0o755)
 
-	// files, selected := loadDirectoryIntoView(&leftVp, theme, wd)
-	_, selected := loadDirectoryIntoView(&leftVp, theme, wd)
+	// Load Lua-based runtime configuration (theme + commands).
+	runtimeCfg := config.LoadRuntimeConfig(cfgDir)
+
+	// Load the initial directory into the left viewport using the configured theme.
+	_, selected := loadDirectoryIntoView(&leftVp, runtimeCfg.Theme, wd)
 
 	f := []filesystem.FileInfo{}
 
 	m := Model{
-		configDir:        cfgDir,
+		configDir:     cfgDir,
+		runtimeConfig: runtimeCfg,
+
 		fileListViewport: leftVp,
 		previewViewport:  rightVp,
 		allFiles:         f,
 		files:            f,
 		currentDir:       wd,
 		selectedIndex:    selected,
-		theme:            theme,
-		isCommandBarOpen: false,
-		commands:         cfgCommands,
+		theme:            runtimeCfg.Theme,
 		viewportHeight:   0,
 		viewportWidth:    0,
 		layoutRows:       []string{""},
@@ -80,7 +76,7 @@ func InitialModel(startDir string) Model {
 	m.searchInput = m.SearchInput(">", "Filter...")
 
 	// Initialize the command input
-	m.commandInput = m.CommandInput("COMMAND: ", "")
+	m.commandInput = m.CommandInput("", "Enter prompt...")
 
 	// Load command history for auto-complete
 	m.commandHistory = m.LoadCommandHistory()

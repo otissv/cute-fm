@@ -26,6 +26,9 @@ func TuiMode(m tui.Model, args tui.ComponentArgs) string {
 	case tui.TuiModeHelp:
 		background = theme.TuiMode.HelpModeBackground
 		foreground = theme.TuiMode.HelpModeForeground
+	case tui.TuiModeQuit:
+		background = theme.TuiMode.QuitModeBackground
+		foreground = theme.TuiMode.QuitModeForeground
 	}
 
 	return lipgloss.NewStyle().

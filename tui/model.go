@@ -6,6 +6,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
+	"cute/config"
 	"cute/filesystem"
 	"cute/theming"
 )
@@ -24,6 +25,8 @@ type TUIModes struct {
 	TuiModeCommand TUIMode
 	TuiModeFilter  TUIMode
 	TuiModeHelp    TUIMode
+	TuiModeSelect  TUIMode
+	TuiModeQuit    TUIMode
 }
 
 const (
@@ -31,6 +34,8 @@ const (
 	TuiModeCommand TUIMode = "COMMAND"
 	TuiModeFilter  TUIMode = "FILTER"
 	TuiModeHelp    TUIMode = "HELP"
+	TuiModeSelect  TUIMode = "SELECT"
+	TuiModeQuit    TUIMode = "QUIT"
 )
 
 var TuiModes = TUIModes{
@@ -82,7 +87,8 @@ type Model struct {
 	searchInput  textinput.Model
 	commandInput textinput.Model
 
-	commands map[string]string
+	// runtimeConfig holds the Lua-backed configuration (theme and commands).
+	runtimeConfig *config.RuntimeConfig
 
 	fileListViewport viewport.Model
 	previewViewport  viewport.Model
@@ -96,8 +102,7 @@ type Model struct {
 
 	theme theming.Theme
 
-	isCommandBarOpen bool
-	isSearchBarOpen  bool
+	isSearchBarOpen bool
 
 	// Command history for auto-complete
 	commandHistory []string
@@ -113,7 +118,6 @@ type Model struct {
 	titleText      string
 
 	// Components
-	CommandBar   func(m Model, args ComponentArgs) string
 	CurrentDir   func(m Model, args ComponentArgs) string
 	FileList     func(m Model, args ComponentArgs) string
 	Header       func(m Model, args ComponentArgs) string
@@ -125,7 +129,9 @@ type Model struct {
 	ViewModeText func(m Model, args ComponentArgs) string
 
 	// Modals
-	HelpModal func(m Model) *lipgloss.Layer
+	HelpModal    func(m Model) *lipgloss.Layer
+	CommandModal func(m Model) *lipgloss.Layer
+	QuitModal    func(m Model) *lipgloss.Layer
 }
 
 func (m Model) Init() tea.Cmd {
@@ -153,7 +159,9 @@ func (m Model) GetCommandInputView() string {
 }
 
 func (m Model) GetCommands() map[string]string {
-	return m.commands
+	// Deprecated: commands are now defined in Lua and executed through the
+	// runtimeConfig; this method remains only to satisfy any existing callers.
+	return nil
 }
 
 func (m Model) GetConfigDir() string {
@@ -222,10 +230,6 @@ func (m Model) GetViewportHeight() int {
 
 func (m Model) GetViewportWidth() int {
 	return m.viewportWidth
-}
-
-func (m Model) IsCommandBarOpen() bool {
-	return m.isCommandBarOpen
 }
 
 func (m Model) IsSearchBarOpen() bool {

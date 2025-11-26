@@ -19,6 +19,7 @@ var (
 	color6 = "#7CFFD2"
 	color7 = "#E37CFF"
 	color8 = "#A8D2FF"
+	color9 = "#2072D5"
 
 	background            = color0
 	foreground            = color1
@@ -68,6 +69,9 @@ var (
 	filterModeForeground  = color0
 	helpModeBackground    = color6
 	helpModeForeground    = color0
+	quitModeBackground    = "#000000"
+	quitModeForeground    = "#F0EDED"
+	dialogTitle           = color9
 )
 
 type Style struct {
@@ -85,7 +89,7 @@ type StyleColor struct {
 	Foreground string
 }
 
-type DefaultDialogStyle struct {
+type DialogStyle struct {
 	Background    string
 	Foreground    string
 	PaddingTop    int
@@ -93,6 +97,7 @@ type DefaultDialogStyle struct {
 	PaddingLeft   int
 	PaddingRight  int
 	Border        string
+	Title         string
 }
 
 type BarStyle struct {
@@ -122,6 +127,8 @@ type TuiMode struct {
 	FilterModeForeground  string
 	HelpModeBackground    string
 	HelpModeForeground    string
+	QuitModeBackground    string
+	QuitModeForeground    string
 }
 
 type FilelistMode struct {
@@ -140,7 +147,7 @@ type Theme struct {
 	BorderColor    string
 	CommandBar     BarStyle
 	CurrentDir     StyleColor
-	DefaultDialog  DefaultDialogStyle
+	Dialog         DialogStyle
 	FieldColors    map[string]string
 	FileList       Style
 	FileTypeColors map[string]string
@@ -175,7 +182,7 @@ func DefaultTheme() Theme {
 			Placeholder:   commandBarPlaceholder,
 		},
 
-		DefaultDialog: DefaultDialogStyle{
+		Dialog: DialogStyle{
 			Background:    background,
 			Border:        borderColor,
 			Foreground:    foreground,
@@ -183,6 +190,7 @@ func DefaultTheme() Theme {
 			PaddingLeft:   1,
 			PaddingRight:  1,
 			PaddingTop:    1,
+			Title:         dialogTitle,
 		},
 
 		CurrentDir: StyleColor{
@@ -266,14 +274,16 @@ func DefaultTheme() Theme {
 		},
 
 		TuiMode: TuiMode{
-			NormalModeBackground:  normalModeBackground,
-			NormalModeForeground:  normalModeForeground,
 			CommandModeBackground: commandModeBackground,
 			CommandModeForeground: commandModeForeground,
 			FilterModeBackground:  filterModeBackground,
 			FilterModeForeground:  filterModeForeground,
 			HelpModeBackground:    helpModeBackground,
 			HelpModeForeground:    helpModeForeground,
+			NormalModeBackground:  normalModeBackground,
+			NormalModeForeground:  normalModeForeground,
+			QuitModeBackground:    quitModeBackground,
+			QuitModeForeground:    quitModeForeground,
 		},
 
 		ViewMode: StyleColor{
@@ -283,10 +293,59 @@ func DefaultTheme() Theme {
 	}
 }
 
+// LoadThemeFromMap constructs a theme from a simple key/value map. The keys are
+// the same as the ones previously used in the TOML-style configuration:
+//
+//   - File type colors: "directory", "symlink", "socket", "pipe", "device",
+//     "executable", "regular"
+//   - Field colors: "nlink", "user", "group", "size", "time"
+//   - Interface colors: "border", "selected_foreground", "selected_background",
+//     "foreground", "background"
+//
+// The map is applied as overrides on top of DefaultTheme.
+func LoadThemeFromMap(raw map[string]string) Theme {
+	theme := DefaultTheme()
+
+	for k, v := range raw {
+		switch k {
+		// File type colors
+		case "directory", "symlink", "socket", "pipe", "device", "executable", "regular":
+			if theme.FileTypeColors == nil {
+				theme.FileTypeColors = map[string]string{}
+			}
+			theme.FileTypeColors[k] = v
+
+		// Field colors
+		case "nlink", "user", "group", "size", "time":
+			if theme.FieldColors == nil {
+				theme.FieldColors = map[string]string{}
+			}
+			theme.FieldColors[k] = v
+
+		// Interface colors
+		case "border":
+			theme.BorderColor = v
+		case "selected_foreground":
+			theme.Selection.Foreground = v
+		case "selected_background":
+			theme.Selection.Background = v
+		case "foreground":
+			theme.Foreground = v
+		case "background":
+			theme.Background = v
+		}
+	}
+
+	return theme
+}
+
 // LoadTheme loads theme colors from the given path. The format is a very small
 // subset of TOML: "key = \"value\"" lines, comments starting with '#', and
 // blank lines are ignored. This is intentionally lenient and does not require
 // a full TOML parser.
+//
+// This function remains for compatibility, but the main configuration path now
+// uses Lua (see config.LoadRuntimeConfig).
 func LoadTheme(path string) Theme {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -317,40 +376,7 @@ func LoadTheme(path string) Theme {
 		}
 	}
 
-	theme := DefaultTheme()
-
-	for k, v := range raw {
-		switch k {
-		// File type colors
-		case "directory", "symlink", "socket", "pipe", "device", "executable", "regular":
-			if theme.FileTypeColors == nil {
-				theme.FileTypeColors = map[string]string{}
-			}
-			theme.FileTypeColors[k] = v
-
-		// Field colors
-		case "nlink", "user", "group", "size", "time":
-			if theme.FieldColors == nil {
-				theme.FieldColors = map[string]string{}
-			}
-			theme.FieldColors[k] = v
-
-		// Interface colors
-		case "border":
-			theme.BorderColor = v
-		case "selected_foreground":
-			theme.Selection.Foreground = v
-		case "selected_background":
-			theme.Selection.Background = v
-		case "foreground":
-			theme.Foreground = v
-		case "background":
-			theme.Background = v
-
-		}
-	}
-
-	return theme
+	return LoadThemeFromMap(raw)
 }
 
 // StyleFromSpec builds a lipgloss style from a specification string, such as:
