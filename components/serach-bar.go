@@ -6,9 +6,8 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-func SearchBar(m tui.Model) string {
+func SearchBar(m tui.Model, args tui.ComponentArgs) string {
 	theme := m.GetTheme()
-	width := m.GetViewportWidth()
 	view := m.GetSearchInputView()
 
 	return lipgloss.NewStyle().
@@ -21,7 +20,7 @@ func SearchBar(m tui.Model) string {
 		BorderLeft(true).
 		BorderRight(true).
 		BorderStyle(lipgloss.NormalBorder()).
-		Height(1).
-		Width(width).
+		Height(args.Height).
+		Width(args.Width).
 		Render(view)
 }

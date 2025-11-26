@@ -12,6 +12,7 @@ func (m Model) CommandInput(prompt string, placeholder string) textinput.Model {
 	commandInput.Placeholder = placeholder
 	commandInput.CharLimit = 256
 	commandInput.SetWidth(50)
+	commandInput.Blur()
 
 	baseStyle := lipgloss.NewStyle().
 		Background(lipgloss.Color(m.theme.CommandBar.Background)).

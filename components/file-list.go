@@ -6,10 +6,8 @@ import (
 	"cute/tui"
 )
 
-func FileList(m tui.Model) string {
+func FileList(m tui.Model, args tui.ComponentArgs) string {
 	theme := m.GetTheme()
-	viewportHeight := m.GetViewportHeight()
-	viewportWidth := m.GetViewportHeight()
 	fileListViewport := m.GetFileListViewport()
 
 	return lipgloss.NewStyle().
@@ -18,7 +16,7 @@ func FileList(m tui.Model) string {
 		BorderForeground(lipgloss.Color(theme.FileList.Border)).
 		BorderStyle(lipgloss.NormalBorder()).
 		Foreground(lipgloss.Color(theme.FileList.Foreground)).
-		Height(viewportHeight).
-		Width(viewportWidth).
+		Height(args.Height).
+		Width(args.Width).
 		Render(fileListViewport.View())
 }

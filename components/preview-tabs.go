@@ -6,9 +6,8 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-func PreviewTabs(m tui.Model) string {
+func PreviewTabs(m tui.Model, args tui.ComponentArgs) string {
 	theme := m.GetTheme()
-	viewportWidth := m.GetViewportWidth()
 
 	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color(theme.SearchBar.Foreground)).
@@ -20,7 +19,7 @@ func PreviewTabs(m tui.Model) string {
 		BorderBottom(false).
 		BorderLeft(false).
 		BorderRight(false).
-		Height(1).
-		Width(viewportWidth).
+		Height(args.Height).
+		Width(args.Width).
 		Render("Tabs")
 }

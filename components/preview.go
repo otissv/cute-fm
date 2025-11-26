@@ -6,19 +6,17 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-func Preview(m tui.Model) string {
+func Preview(m tui.Model, args tui.ComponentArgs) string {
 	theme := m.GetTheme()
 	previewViewport := m.GetPreviewViewport()
-	viewportHeight := m.GetViewportHeight()
-	viewportWidth := m.GetViewportHeight()
 
 	return lipgloss.NewStyle().
 		Background(lipgloss.Color(theme.Preview.Background)).
-		BorderStyle(lipgloss.NormalBorder()).
+		BorderStyle(lipgloss.RoundedBorder()).
 		BorderBackground(lipgloss.Color(theme.Background)).
 		BorderForeground(lipgloss.Color(theme.Preview.Border)).
 		Foreground(lipgloss.Color(theme.Preview.Foreground)).
-		Height(viewportHeight).
-		Width(viewportWidth).
+		Height(args.Height).
+		Width(args.Width).
 		Render(previewViewport.View())
 }

@@ -69,7 +69,6 @@ func InitialModel(startDir string) Model {
 		theme:            theme,
 		isCommandBarOpen: false,
 		commands:         cfgCommands,
-		viewMode:         "ll",
 		viewportHeight:   0,
 		viewportWidth:    0,
 		layoutRows:       []string{""},
@@ -78,7 +77,7 @@ func InitialModel(startDir string) Model {
 	}
 
 	// Initialize the search input
-	m.searchInput = m.SearchInput(">", "Search...")
+	m.searchInput = m.SearchInput(">", "Filter...")
 
 	// Initialize the command input
 	m.commandInput = m.CommandInput("COMMAND: ", "")
@@ -89,6 +88,9 @@ func InitialModel(startDir string) Model {
 	m.historyIndex = -1
 
 	m.CalcLayout()
+
+	ActiveTuiMode = TuiModeNormal
+	ActiveFileListMode = FileListModeDir
 
 	return m
 }

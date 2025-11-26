@@ -29,10 +29,11 @@ func main() {
 	m.CurrentDir = components.CurrentDir
 	m.Header = components.Header
 	m.StatusBar = components.StatusBar
-	m.ViewText = components.ViewText
+	m.ViewModeText = components.ViewModeText
 	m.PreviewTabs = components.PreviewTabs
 	m.Preview = components.Preview
 	m.FileList = components.FileList
+	m.TuiMode = components.TuiMode
 
 	// Create a new Bubble Tea program
 	p := tea.NewProgram(m)

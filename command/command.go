@@ -148,10 +148,8 @@ func CmdViewModeStatus(mode string) string {
 	switch mode {
 	case "ll":
 		status = "All"
-	case "ls":
-		status = "List"
 	case "ld":
-		status = "Dirs:ll"
+		status = "Dirs"
 	case "lf":
 		status = "Files"
 	}

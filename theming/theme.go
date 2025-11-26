@@ -60,6 +60,14 @@ var (
 	previewBackground     = background
 	previewForeground     = foreground
 	previewBorder         = borderColor
+	normalModeBackground  = color4
+	normalModeForeground  = color0
+	commandModeBackground = color7
+	commandModeForeground = color0
+	filterModeBackground  = color4
+	filterModeForeground  = color0
+	helpModeBackground    = color6
+	helpModeForeground    = color0
 )
 
 type Style struct {
@@ -105,6 +113,25 @@ type PermissionsStyle struct {
 	None  string
 }
 
+type TuiMode struct {
+	NormalModeBackground  string
+	NormalModeForeground  string
+	CommandModeBackground string
+	CommandModeForeground string
+	FilterModeBackground  string
+	FilterModeForeground  string
+	HelpModeBackground    string
+	HelpModeForeground    string
+}
+
+type FilelistMode struct {
+	ListModeBackground     string
+	ListModeModeForeground string
+	FileModeBackground     string
+	DirModeForeground      string
+	DirerModeBackground    string
+}
+
 type Theme struct {
 	Foreground     string
 	Background     string
@@ -124,6 +151,7 @@ type Theme struct {
 	Selection      StyleColor
 	StatusBar      Style
 	ViewMode       StyleColor
+	TuiMode        TuiMode
 }
 
 // DefaultTheme returns a sane fallback theme used when the config
@@ -227,14 +255,25 @@ func DefaultTheme() Theme {
 			Foreground:    searchForeground,
 			Border:        searchBorder,
 			PaddingBottom: 0,
-			PaddingLeft:   1,
-			PaddingRight:  1,
+			PaddingLeft:   0,
+			PaddingRight:  0,
 			PaddingTop:    0,
 		},
 
 		Selection: StyleColor{
 			Background: "#3B3B3B",
 			Foreground: background,
+		},
+
+		TuiMode: TuiMode{
+			NormalModeBackground:  normalModeBackground,
+			NormalModeForeground:  normalModeForeground,
+			CommandModeBackground: commandModeBackground,
+			CommandModeForeground: commandModeForeground,
+			FilterModeBackground:  filterModeBackground,
+			FilterModeForeground:  filterModeForeground,
+			HelpModeBackground:    helpModeBackground,
+			HelpModeForeground:    helpModeForeground,
 		},
 
 		ViewMode: StyleColor{

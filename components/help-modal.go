@@ -6,11 +6,12 @@ import (
 	"cute/tui"
 
 	"charm.land/bubbles/v2/viewport"
+	"charm.land/lipgloss/v2"
 )
 
 // HelpModal renders the help dialog as a floating window using information
 // exposed by the public TUI model.
-func HelpModal(m tui.Model) string {
+func HelpModal(m tui.Model) *lipgloss.Layer {
 	width, height := m.GetSize()
 	theme := m.GetTheme()
 
@@ -55,9 +56,24 @@ func HelpModal(m tui.Model) string {
 		Width:   modalWidth,
 		Height:  modalHeight,
 		Style:   DefaultFloatingStyle(theme),
+		Title:   "HELP",
 	}
 
-	// Return just the dialog view; compositing with the base layout is handled
-	// at the View() layer via Lip Gloss layers/canvas.
-	return fw.View(width, height)
+	modalContent := fw.View(width, height)
+	return CenterModal(modalContent, width, height)
+}
+
+func CenterModal(modalContent string, width, height int) *lipgloss.Layer {
+	dialogWidth := lipgloss.Width(modalContent)
+	dialogHeight := lipgloss.Height(modalContent)
+	x := 10
+	y := 10
+	if width > dialogWidth {
+		x = (width - dialogWidth) / 2
+	}
+	if height > dialogHeight {
+		y = (height - dialogHeight) / 2
+	}
+
+	return lipgloss.NewLayer(modalContent).X(x).Y(y)
 }

@@ -9,6 +9,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"cute/command"
+	"cute/console"
 	"cute/filesystem"
 	"cute/theming"
 )
@@ -26,7 +27,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 
-		// Resize the help viewport to fit nicely in a floating window.
 		helpWidth := msg.Width / 2
 		helpHeight := msg.Height / 2
 		if helpWidth < 20 {
@@ -36,14 +36,31 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			helpHeight = 5
 		}
 
-		// Recalculate layout and re-render the file table so that the last
-		// column can pad to the new viewport width and the selected row
-		// highlight reaches the edge.
 		m.CalcLayout()
 
 		return m, nil
 
 	case tea.KeyMsg:
+
+		if ActiveTuiMode == TuiModeNormal {
+			switch msg.String() {
+			case "ctrl+c":
+				return m, tea.Quit
+			case "?":
+				PreviousTuiMode = ActiveTuiMode
+				ActiveTuiMode = TuiModeHelp
+
+				return m, nil
+			}
+		}
+
+		if ActiveTuiMode == TuiModeHelp {
+			switch msg.String() {
+			case "esc", "?":
+				ActiveTuiMode = PreviousTuiMode
+			}
+		}
+
 		// If a modal is active, handle its keys first.
 		if m.activeModal != ModalNone {
 			switch msg.String() {
@@ -61,13 +78,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.isCommandBarOpen {
 			switch msg.String() {
 			case "tab":
-				// Auto-complete with history matches
 				m.completeCommand()
 				return m, nil
 
 			case "up":
-				// Navigate through history (older commands)
-				// Works with filtered matches if input exists, or all history if input is empty
+
 				if len(m.commandHistory) > 0 {
 					m.navigateHistory(-1)
 					return m, nil
@@ -75,8 +90,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// If no history, fall through to let textinput handle it
 
 			case "down":
-				// Navigate through history (newer commands)
-				// Works with filtered matches if input exists, or all history if input is empty
+
 				if len(m.commandHistory) > 0 {
 					m.navigateHistory(1)
 					return m, nil
@@ -84,7 +98,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// If no history, fall through to let textinput handle it
 
 			case "enter":
-				// Execute the entered command.
 				line := strings.TrimSpace(m.commandInput.Value())
 				if line != "" {
 					m.AppendCommandHistory(line)
@@ -110,7 +123,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// actually changes when commands like "ll", "ls", "ld", "lf",
 				// etc. are executed.
 				if res.ViewMode != "" {
-					m.viewMode = res.ViewMode
+					ActiveFileListMode = FileListMode(res.ViewMode)
+					console.Log("%s %s", ActiveFileListMode, res.ViewMode)
 					m.ApplyFilter()
 				}
 
@@ -122,18 +136,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.previewViewport.SetContent(res.Output)
 				}
 
-				// On error, show it in the preview if there was no other output.
 				if err != nil && res.Output == "" {
 					m.previewViewport.SetContent(err.Error())
 				}
 
-				// Exit command mode and return focus to the search bar.
 				m.isCommandBarOpen = false
 				m.commandInput.Blur()
 				m.commandInput.SetValue("")
 				m.searchInput.Focus()
 
-				// Grow the file/preview viewports back to fill the freed space.
 				m.CalcLayout()
 
 				if res.Quit {
@@ -297,8 +308,7 @@ func (m *Model) ApplyFilter() {
 		return
 	}
 
-	// First apply the current view mode (ll, ls, ld, lf, etc.).
-	base := filterByViewMode(m.allFiles, m.viewMode)
+	base := filterByViewMode(m.allFiles)
 
 	// Then apply the search query on top.
 	if query == "" {
@@ -349,14 +359,14 @@ func (m *Model) ChangeDirectory(dir string) {
 
 // filterByViewMode filters the given file list according to the current view
 // mode. It does not modify the original slice.
-func filterByViewMode(files []filesystem.FileInfo, mode string) []filesystem.FileInfo {
-	if mode == "" {
-		mode = "ll"
+func filterByViewMode(files []filesystem.FileInfo) []filesystem.FileInfo {
+	if ActiveFileListMode == "" {
+		ActiveFileListMode = "ll"
 	}
 
 	out := make([]filesystem.FileInfo, 0, len(files))
 
-	switch mode {
+	switch ActiveFileListMode {
 	case "ls":
 		// Hide dotfiles (roughly emulating eza/ls without -a).
 		for _, fi := range files {

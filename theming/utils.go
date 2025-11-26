@@ -1,4 +1,4 @@
-package tui
+package theming
 
 import (
 	"image/color"

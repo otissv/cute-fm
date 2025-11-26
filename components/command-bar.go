@@ -8,9 +8,8 @@ import (
 
 // CommandBar renders the bottom command bar using only the public TUI model
 // interface, so this component can live outside the tui package.
-func CommandBar(m tui.Model) string {
+func CommandBar(m tui.Model, args tui.ComponentArgs) string {
 	theme := m.GetTheme()
-	width, _ := m.GetSize()
 	view := m.GetCommandInputView()
 
 	return lipgloss.NewStyle().
@@ -26,6 +25,7 @@ func CommandBar(m tui.Model) string {
 		PaddingLeft(theme.CommandBar.PaddingLeft).
 		PaddingRight(theme.CommandBar.PaddingRight).
 		PaddingTop(theme.Preview.PaddingTop).
-		Width(width).
+		Width(args.Width).
+		Height(args.Height).
 		Render(view)
 }

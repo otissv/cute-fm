@@ -11,6 +11,7 @@ func (m Model) SearchInput(prompt string, placeholder string) textinput.Model {
 	searchInput.Placeholder = placeholder
 	searchInput.CharLimit = 256
 	searchInput.SetWidth(50)
+	searchInput.Blur()
 
 	searchBaseStyle := lipgloss.NewStyle().
 		Background(lipgloss.Color(m.theme.CommandBar.Background)).
@@ -31,7 +32,6 @@ func (m Model) SearchInput(prompt string, placeholder string) textinput.Model {
 	searchStyles.Cursor.Color = lipgloss.Color(m.theme.CommandBar.Foreground)
 
 	searchInput.SetStyles(searchStyles)
-	searchInput.Focus()
 
 	return searchInput
 }

@@ -14,17 +14,57 @@ func (m Model) View() tea.View {
 
 	commandBar := ""
 	if m.CommandBar != nil {
-		commandBar = m.CommandBar(m)
+		commandBar = m.CommandBar(
+			m, ComponentArgs{
+				Width:  m.width,
+				Height: 1,
+			})
 	}
-	currentDir := m.CurrentDir(m)
-	fileListViewportView := m.FileList(m)
-	headerView := m.Header(m)
-	previewTabs := m.PreviewTabs(m)
-	previewViewportView := m.Preview(m)
-	searchBar := m.SearchBar(m)
-	viewModeText := m.ViewText(m)
 
-	statusBar := m.StatusBar(m, viewModeText, currentDir)
+	fileListViewportView := m.FileList(
+		m, ComponentArgs{
+			Width:  m.viewportWidth,
+			Height: m.viewportHeight,
+		})
+	headerView := m.Header(m, ComponentArgs{
+		Width: m.width,
+	})
+	previewTabs := m.PreviewTabs(m, ComponentArgs{
+		Width:  m.viewportWidth,
+		Height: 1,
+	})
+	previewViewportView := m.Preview(
+		m, ComponentArgs{
+			Width:  m.viewportWidth,
+			Height: m.viewportHeight,
+		})
+	searchBar := m.SearchBar(
+		m, ComponentArgs{
+			Width:  m.viewportWidth,
+			Height: 1,
+		})
+
+	currentDir := m.CurrentDir(m, ComponentArgs{
+		Height: 1,
+	})
+	tuiMode := m.TuiMode(m, ComponentArgs{
+		Height: 1,
+	})
+	viewModeText := m.ViewModeText(
+		m, ComponentArgs{
+			Width:  10,
+			Height: 1,
+		})
+
+	statusBar := m.StatusBar(
+		m, ComponentArgs{
+			Width:  m.width,
+			Height: 1,
+		},
+		tuiMode,
+		viewModeText,
+		currentDir,
+	)
 
 	filePanelRows := []string{
 		searchBar,
@@ -55,10 +95,7 @@ func (m Model) View() tea.View {
 		commandBar,
 	}
 
-	layoutStyle := lipgloss.NewStyle().
-		Background(lipgloss.Color(m.theme.Background)).
-		Height(m.height).
-		Width(m.width)
+	layoutStyle := lipgloss.NewStyle()
 
 	m.layout = lipgloss.JoinVertical(
 		lipgloss.Center,
@@ -69,24 +106,12 @@ func (m Model) View() tea.View {
 	baseLayer := lipgloss.NewLayer(baseContent)
 
 	var canvas *lipgloss.Canvas
-	switch m.activeModal {
+	switch ActiveTuiMode {
 
-	case ModalHelp:
+	case TuiModeHelp:
 		if m.HelpModal != nil {
-			modalContent := m.HelpModal(m)
 
-			dialogWidth := lipgloss.Width(modalContent)
-			dialogHeight := lipgloss.Height(modalContent)
-			x := 0
-			y := 0
-			if m.width > dialogWidth {
-				x = (m.width - dialogWidth) / 2
-			}
-			if m.height > dialogHeight {
-				y = (m.height - dialogHeight) / 2
-			}
-
-			modalLayer := lipgloss.NewLayer(modalContent).X(x).Y(y)
+			modalLayer := m.HelpModal(m)
 			canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 		} else {
 			// No help modal configured; just render the base layout.

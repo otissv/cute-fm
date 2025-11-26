@@ -43,7 +43,7 @@ func (m *Model) CalcLayout() {
 
 	// Calculate viewport width (half of available width, accounting for borders).
 
-	m.viewportWidth = (m.width / 2) - 2
+	m.viewportWidth = (m.width / 2)
 
 	// Update left viewport dimensions (height is the content height).
 	m.fileListViewport.SetWidth(m.viewportWidth)
