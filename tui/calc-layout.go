@@ -46,17 +46,17 @@ func (m *Model) CalcLayout() {
 	m.viewportWidth = (m.width / 2)
 
 	// Update left viewport dimensions (height is the content height).
-	m.fileListViewport.SetWidth(m.viewportWidth)
-	m.fileListViewport.SetHeight(viewportContentHeight)
+	m.leftViewport.SetWidth(m.viewportWidth)
+	m.leftViewport.SetHeight(viewportContentHeight)
 
 	// Update right viewport dimensions (height is the content height).
-	m.previewViewport.SetWidth(m.viewportWidth)
-	m.previewViewport.SetHeight(viewportContentHeight)
+	m.rightViewport.SetWidth(m.viewportWidth)
+	m.rightViewport.SetHeight(viewportContentHeight)
 
 	// Re-render the file table for the new width and ensure the selection is
 	// still visible.
-	m.fileListViewport.SetContent(
-		renderFileTable(m.theme, m.files, m.selectedIndex, m.fileListViewport.Width()),
+	m.leftViewport.SetContent(
+		renderFileTable(m.theme, m.files, m.selectedIndex, m.leftViewport.Width()),
 	)
 	m.EnsureSelectionVisible()
 }

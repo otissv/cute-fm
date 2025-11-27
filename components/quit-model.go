@@ -11,7 +11,7 @@ import (
 func QuitModal(m tui.Model) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()
-	content := "Press CTRL+c or CTRL+q to quit"
+	content := "Press CTRL+c or CTRL+q to quit.\n\nPress ESC to Cancel"
 
 	fw := FloatingWindow{
 		Content: textView(content),

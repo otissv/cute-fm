@@ -90,8 +90,8 @@ type Model struct {
 	// runtimeConfig holds the Lua-backed configuration (theme and commands).
 	runtimeConfig *config.RuntimeConfig
 
-	fileListViewport viewport.Model
-	previewViewport  viewport.Model
+	leftViewport  viewport.Model
+	rightViewport viewport.Model
 
 	allFiles      []filesystem.FileInfo
 	files         []filesystem.FileInfo
@@ -173,7 +173,7 @@ func (m Model) GetCurrentDir() string {
 }
 
 func (m Model) GetFileListViewport() viewport.Model {
-	return m.fileListViewport
+	return m.leftViewport
 }
 
 func (m Model) GetFiles() []filesystem.FileInfo {
@@ -197,7 +197,7 @@ func (m Model) GetLayoutRows() []string {
 }
 
 func (m Model) GetPreviewViewport() viewport.Model {
-	return m.previewViewport
+	return m.rightViewport
 }
 
 func (m Model) GetSearchInput() textinput.Model {

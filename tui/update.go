@@ -52,6 +52,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 			case "ctrl+c", "ctrl+q":
 				return m, tea.Quit
+
+			case "esc":
+				ActiveTuiMode = PreviousTuiMode
+				return m, nil
 			}
 		}
 
@@ -88,9 +92,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			case "f":
-				if ActiveTuiMode != TuiModeSelect {
+				if ActiveTuiMode != TuiModeFilter {
 					PreviousTuiMode = ActiveTuiMode
-					ActiveTuiMode = TuiModeSelect
+					ActiveTuiMode = TuiModeFilter
 					return m, nil
 				}
 			}
@@ -111,6 +115,36 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+		if ActiveTuiMode == TuiModeFilter {
+			// Update search input (first row) and apply filtering if the value changed.
+			before := m.searchInput.Value()
+			m.searchInput, cmd = m.searchInput.Update(msg)
+			cmds = append(cmds, cmd)
+			if m.searchInput.Value() != before {
+				m.ApplyFilter()
+			}
+
+			switch msg.String() {
+			case "ctrl+c", "ctrl+q":
+				SetQuitMode()
+				return m, nil
+			case "esc":
+				ActiveTuiMode = TuiModeNormal
+				return m, nil
+			}
+		}
+
+		if ActiveTuiMode == TuiModeSelect {
+			switch msg.String() {
+			case "ctrl+c", "ctrl+q":
+				SetQuitMode()
+				return m, nil
+			case "esc":
+				ActiveTuiMode = TuiModeNormal
+				return m, nil
+			}
+		}
+
 		if ActiveTuiMode == TuiModeCommand {
 			m.searchInput.Blur()
 
@@ -120,11 +154,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 
 			// Update left viewport (second row, left column)
-			m.fileListViewport, cmd = m.fileListViewport.Update(msg)
+			m.leftViewport, cmd = m.leftViewport.Update(msg)
 			cmds = append(cmds, cmd)
 
 			// Update right viewport (second row, right column)
-			m.previewViewport, cmd = m.previewViewport.Update(msg)
+			m.rightViewport, cmd = m.rightViewport.Update(msg)
 			cmds = append(cmds, cmd)
 
 			// Update history matches when input changes
@@ -210,11 +244,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				if res.Output != "" {
-					m.previewViewport.SetContent(res.Output)
+					m.rightViewport.SetContent(res.Output)
 				}
 
 				if err != nil && res.Output == "" {
-					m.previewViewport.SetContent(err.Error())
+					m.rightViewport.SetContent(err.Error())
 				}
 
 				m.commandInput.Blur()
@@ -232,17 +266,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 
 			}
-		}
-
-		if ActiveFileListMode == FileListMode(TuiModeFilter) {
-			// Update search input (first row) and apply filtering if the value changed.
-			before := m.searchInput.Value()
-			m.searchInput, cmd = m.searchInput.Update(msg)
-			cmds = append(cmds, cmd)
-			if m.searchInput.Value() != before {
-				m.ApplyFilter()
-			}
-
 		}
 
 		// Navigate the file list with arrow keys (only when not in command mode).
@@ -280,8 +303,8 @@ func (m *Model) moveSelection(delta int) {
 	}
 
 	m.selectedIndex = newIndex
-	m.fileListViewport.SetContent(
-		renderFileTable(m.theme, m.files, m.selectedIndex, m.fileListViewport.Width()),
+	m.leftViewport.SetContent(
+		renderFileTable(m.theme, m.files, m.selectedIndex, m.leftViewport.Width()),
 	)
 	m.EnsureSelectionVisible()
 }
@@ -295,24 +318,24 @@ func (m *Model) EnsureSelectionVisible() {
 
 	// Header row is at line 0; first file row is at line 1.
 	line := 1 + m.selectedIndex
-	viewHeight := m.fileListViewport.Height()
+	viewHeight := m.leftViewport.Height()
 	if viewHeight <= 0 {
 		return
 	}
 
 	// Current scroll offset (top visible line).
-	y := m.fileListViewport.YOffset()
+	y := m.leftViewport.YOffset()
 
 	// If the selected line is above the viewport, scroll up.
 	if line < y+1 {
-		m.fileListViewport.SetYOffset(line - 1)
+		m.leftViewport.SetYOffset(line - 1)
 		return
 	}
 
 	// If the selected line is below the viewport, scroll down so it becomes
 	// the last visible line.
 	if line > y+viewHeight-1 {
-		m.fileListViewport.SetYOffset(line - viewHeight + 1)
+		m.leftViewport.SetYOffset(line - viewHeight + 1)
 	}
 }
 
@@ -347,8 +370,8 @@ func (m *Model) ApplyFilter() {
 	// Adjust selection for the new list.
 	if len(m.files) == 0 {
 		m.selectedIndex = -1
-		m.fileListViewport.SetContent(
-			renderFileTable(m.theme, m.files, m.selectedIndex, m.fileListViewport.Width()),
+		m.leftViewport.SetContent(
+			renderFileTable(m.theme, m.files, m.selectedIndex, m.leftViewport.Width()),
 		)
 	}
 
@@ -359,8 +382,8 @@ func (m *Model) ApplyFilter() {
 		m.selectedIndex = len(m.files) - 1
 	}
 
-	m.fileListViewport.SetContent(
-		renderFileTable(m.theme, m.files, m.selectedIndex, m.fileListViewport.Width()),
+	m.leftViewport.SetContent(
+		renderFileTable(m.theme, m.files, m.selectedIndex, m.leftViewport.Width()),
 	)
 	m.EnsureSelectionVisible()
 }
@@ -368,7 +391,7 @@ func (m *Model) ApplyFilter() {
 // ChangeDirectory updates the model to point at a new current directory and
 // reloads the file list.
 func (m *Model) ChangeDirectory(dir string) {
-	files, selected := loadDirectoryIntoView(&m.fileListViewport, m.theme, dir)
+	files, selected := loadDirectoryIntoView(&m.leftViewport, m.theme, dir)
 	m.currentDir = dir
 	m.allFiles = files
 	m.files = files

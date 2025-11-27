@@ -15,11 +15,11 @@ import (
 // file list; otherwise the current working directory is used.
 func InitialModel(startDir string) Model {
 	// Initialize left viewport for the second row
-	leftVp := viewport.New()
+	leftViewport := viewport.New()
 
 	// Initialize right viewport for the second row
-	rightVp := viewport.New()
-	rightVp.SetContent("Right Panel\n\nThis is the right viewport.\nIt will display file previews.")
+	rightViewport := viewport.New()
+	rightViewport.SetContent("Right Panel\n\nThis is the right viewport.\nIt will display file previews.")
 
 	// Determine initial directory for the file list.
 	wd := startDir
@@ -50,7 +50,7 @@ func InitialModel(startDir string) Model {
 	runtimeCfg := config.LoadRuntimeConfig(cfgDir)
 
 	// Load the initial directory into the left viewport using the configured theme.
-	_, selected := loadDirectoryIntoView(&leftVp, runtimeCfg.Theme, wd)
+	_, selected := loadDirectoryIntoView(&leftViewport, runtimeCfg.Theme, wd)
 
 	f := []filesystem.FileInfo{}
 
@@ -58,18 +58,18 @@ func InitialModel(startDir string) Model {
 		configDir:     cfgDir,
 		runtimeConfig: runtimeCfg,
 
-		fileListViewport: leftVp,
-		previewViewport:  rightVp,
-		allFiles:         f,
-		files:            f,
-		currentDir:       wd,
-		selectedIndex:    selected,
-		theme:            runtimeCfg.Theme,
-		viewportHeight:   0,
-		viewportWidth:    0,
-		layoutRows:       []string{""},
-		layout:           "",
-		titleText:        "The Cute File Manager",
+		leftViewport:   leftViewport,
+		rightViewport:  rightViewport,
+		allFiles:       f,
+		files:          f,
+		currentDir:     wd,
+		selectedIndex:  selected,
+		theme:          runtimeCfg.Theme,
+		viewportHeight: 0,
+		viewportWidth:  0,
+		layoutRows:     []string{""},
+		layout:         "",
+		titleText:      "The Cute File Manager",
 	}
 
 	// Initialize the search input

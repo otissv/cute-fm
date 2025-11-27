@@ -12,7 +12,7 @@ func (m Model) View() tea.View {
 		return v
 	}
 
-	fileListViewportView := m.FileList(
+	leftViewportView := m.FileList(
 		m, ComponentArgs{
 			Width:  m.viewportWidth,
 			Height: m.viewportHeight,
@@ -24,7 +24,7 @@ func (m Model) View() tea.View {
 		Width:  m.viewportWidth,
 		Height: 1,
 	})
-	previewViewportView := m.Preview(
+	rightViewportView := m.Preview(
 		m, ComponentArgs{
 			Width:  m.viewportWidth,
 			Height: m.viewportHeight,
@@ -59,7 +59,7 @@ func (m Model) View() tea.View {
 
 	filePanelRows := []string{
 		searchBar,
-		fileListViewportView,
+		leftViewportView,
 	}
 
 	filePanel := lipgloss.JoinVertical(
@@ -70,7 +70,7 @@ func (m Model) View() tea.View {
 	previewPanel := lipgloss.JoinVertical(
 		lipgloss.Left,
 		previewTabs,
-		previewViewportView,
+		rightViewportView,
 	)
 
 	viewports := lipgloss.JoinHorizontal(
