@@ -27,6 +27,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds []tea.Cmd
 	)
 
+	bindings := GetKeyBindings()
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		// Handle window resize
@@ -49,11 +51,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 
 		if ActiveTuiMode == TuiModeQuit {
-			switch msg.String() {
-			case "ctrl+c", "ctrl+q":
+			switch {
+			case bindings.Quit.Matches(msg.String()):
 				return m, tea.Quit
 
-			case "esc":
+			case bindings.Cancel.Matches(msg.String()):
 				ActiveTuiMode = PreviousTuiMode
 				return m, nil
 			}
@@ -61,7 +63,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if ActiveTuiMode == TuiModeNormal {
 			switch msg.String() {
-			case "ctrl+c", "ctrl+q":
+			case "ctrl+c":
 				SetQuitMode()
 				return m, nil
 			case "?":
@@ -97,6 +99,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					ActiveTuiMode = TuiModeFilter
 					return m, nil
 				}
+
+			case "up":
+				m.moveSelection(-1)
+				return m, nil
+
+			case "down":
+				m.moveSelection(1)
+				return m, nil
 			}
 		}
 
@@ -105,7 +115,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.searchInput.Focus()
 
 			switch msg.String() {
-			case "ctrl+c", "ctrl+q":
+			case "ctrl+c":
 				SetQuitMode()
 				return m, nil
 
@@ -125,7 +135,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			switch msg.String() {
-			case "ctrl+c", "ctrl+q":
+			case "ctrl+c":
 				SetQuitMode()
 				return m, nil
 			case "esc":
@@ -136,7 +146,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if ActiveTuiMode == TuiModeSelect {
 			switch msg.String() {
-			case "ctrl+c", "ctrl+q":
+			case "ctrl+c":
 				SetQuitMode()
 				return m, nil
 			case "esc":
@@ -167,7 +177,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			switch msg.String() {
-			case "ctrl+c", "ctrl+q":
+			case "ctrl+c":
 				SetQuitMode()
 				return m, nil
 
@@ -266,17 +276,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 
 			}
-		}
-
-		// Navigate the file list with arrow keys (only when not in command mode).
-		switch msg.String() {
-
-		case "up":
-			m.moveSelection(-1)
-			return m, nil
-		case "down":
-			m.moveSelection(1)
-			return m, nil
 		}
 	}
 

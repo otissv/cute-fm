@@ -7,7 +7,6 @@ import (
 	"charm.land/bubbles/v2/viewport"
 
 	"cute/config"
-	"cute/filesystem"
 )
 
 // InitialModel creates a new model with default values.
@@ -50,9 +49,7 @@ func InitialModel(startDir string) Model {
 	runtimeCfg := config.LoadRuntimeConfig(cfgDir)
 
 	// Load the initial directory into the left viewport using the configured theme.
-	_, selected := loadDirectoryIntoView(&leftViewport, runtimeCfg.Theme, wd)
-
-	f := []filesystem.FileInfo{}
+	files, selected := loadDirectoryIntoView(&leftViewport, runtimeCfg.Theme, wd)
 
 	m := Model{
 		configDir:     cfgDir,
@@ -60,8 +57,8 @@ func InitialModel(startDir string) Model {
 
 		leftViewport:   leftViewport,
 		rightViewport:  rightViewport,
-		allFiles:       f,
-		files:          f,
+		allFiles:       files,
+		files:          files,
 		currentDir:     wd,
 		selectedIndex:  selected,
 		theme:          runtimeCfg.Theme,
