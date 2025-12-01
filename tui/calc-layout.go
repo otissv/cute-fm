@@ -3,8 +3,8 @@ package tui
 // Init initializes the model (required by Bubble Tea)
 
 // CalcLayout recalculates the viewport dimensions based on the current
-// window size and whether command mode is active, then re-renders the file
-// table and ensures the selection is visible.
+// window size and whether command mode is active, then updates the file
+// list and right viewport dimensions.
 func (m *Model) CalcLayout() {
 	if m.width <= 0 || m.height <= 0 {
 		return
@@ -42,21 +42,21 @@ func (m *Model) CalcLayout() {
 	}
 
 	// Calculate viewport width (half of available width, accounting for borders).
-
 	m.viewportWidth = (m.width / 2)
 
-	// Update left viewport dimensions (height is the content height).
-	m.leftViewport.SetWidth(m.viewportWidth)
-	m.leftViewport.SetHeight(viewportContentHeight)
+	// Content width for the list (subtract borders).
+	listContentWidth := m.viewportWidth - 2
+	if listContentWidth < 1 {
+		listContentWidth = 1
+	}
+
+	// Update the file list dimensions.
+	m.fileList.SetSize(listContentWidth, viewportContentHeight)
+
+	// Update the delegate with the new width for proper row padding.
+	m.UpdateFileListDelegate(listContentWidth)
 
 	// Update right viewport dimensions (height is the content height).
 	m.rightViewport.SetWidth(m.viewportWidth)
 	m.rightViewport.SetHeight(viewportContentHeight)
-
-	// Re-render the file table for the new width and ensure the selection is
-	// still visible.
-	m.leftViewport.SetContent(
-		renderFileTable(m.theme, m.files, m.selectedIndex, m.leftViewport.Width()),
-	)
-	m.EnsureSelectionVisible()
 }

@@ -31,7 +31,7 @@ func main() {
 	m.ViewModeText = components.ViewModeText
 	m.PreviewTabs = components.PreviewTabs
 	m.Preview = components.Preview
-	m.FileList = components.FileList
+	m.FileListView = components.FileList
 	m.TuiMode = components.TuiMode
 
 	// Inject UI modals.

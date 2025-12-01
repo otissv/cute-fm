@@ -8,7 +8,7 @@ import (
 
 func FileList(m tui.Model, args tui.ComponentArgs) string {
 	theme := m.GetTheme()
-	fileListViewport := m.GetFileListViewport()
+	fileList := m.GetFileList()
 
 	return lipgloss.NewStyle().
 		Background(lipgloss.Color(theme.FileList.Background)).
@@ -18,5 +18,5 @@ func FileList(m tui.Model, args tui.ComponentArgs) string {
 		Foreground(lipgloss.Color(theme.FileList.Foreground)).
 		Height(args.Height).
 		Width(args.Width).
-		Render(fileListViewport.View())
+		Render(fileList.View())
 }

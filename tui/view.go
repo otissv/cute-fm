@@ -12,7 +12,7 @@ func (m Model) View() tea.View {
 		return v
 	}
 
-	leftViewportView := m.FileList(
+	leftViewportView := m.FileListView(
 		m, ComponentArgs{
 			Width:  m.viewportWidth,
 			Height: m.viewportHeight,

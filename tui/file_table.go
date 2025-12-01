@@ -1,27 +1,70 @@
 package tui
 
 import (
-	"image/color"
+	"io"
 	"strings"
 
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
 	"cute/filesystem"
 	"cute/theming"
 )
 
-// renderFileTable builds a simple eza-like table for the left viewport using
-// the provided theme and directory listing. selectedIndex is the 0-based row
-// index that should be highlighted; pass -1 for "no selection".
-// totalWidth is the target width (in terminal cells) of each rendered row;
-// when greater than zero, the last column is padded so that the row's
-// background color extends all the way to the viewport edge.
-//
-// Columns:
-//
-//	Permissions Size User  Group Date Modified  Name
-func renderFileTable(theme theming.Theme, files []filesystem.FileInfo, selectedIndex int, totalWidth int) string {
-	var b strings.Builder
+// FileItem wraps filesystem.FileInfo to implement the list.Item interface.
+type FileItem struct {
+	Info filesystem.FileInfo
+}
+
+// FilterValue returns the file name for filtering.
+func (i FileItem) FilterValue() string {
+	return i.Info.Name
+}
+
+// FileItemDelegate handles rendering of file items in the list.
+type FileItemDelegate struct {
+	theme      theming.Theme
+	totalWidth int
+}
+
+// NewFileItemDelegate creates a new delegate for rendering file items.
+func NewFileItemDelegate(theme theming.Theme, width int) FileItemDelegate {
+	return FileItemDelegate{
+		theme:      theme,
+		totalWidth: width,
+	}
+}
+
+// Height returns the height of each item (1 line per file).
+func (d FileItemDelegate) Height() int {
+	return 1
+}
+
+// Spacing returns the spacing between items.
+func (d FileItemDelegate) Spacing() int {
+	return 0
+}
+
+// Update handles item-level updates.
+func (d FileItemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
+	return nil
+}
+
+// Render renders a single file item.
+func (d FileItemDelegate) Render(w io.Writer, m list.Model, index int, item list.Item) {
+	fi, ok := item.(FileItem)
+	if !ok {
+		return
+	}
+
+	isSelected := index == m.Index()
+	line := d.renderFileRow(fi.Info, isSelected)
+	_, _ = io.WriteString(w, line)
+}
+
+// renderFileRow renders a single file row with all columns styled.
+func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool) string {
 	const (
 		colPerms = 11
 		colSize  = 6
@@ -30,132 +73,92 @@ func renderFileTable(theme theming.Theme, files []filesystem.FileInfo, selectedI
 		colDate  = 14
 	)
 
-	// Header (unstyled for simplicity, then bolded as a whole).
-	headerCols := []string{
-		padCell("Permissions", colPerms),
-		padCell("Size", colSize),
-		padCell("User", colUser),
-		padCell("Group", colGroup),
-		padCell("Date Modified", colDate),
-		"Name",
+	theme := d.theme
+
+	size := fi.Size
+	user := fi.User
+	group := fi.Group
+	date := fi.DateModified
+	name := fi.Name
+
+	// Field colors.
+	userStyle := theming.StyleFromSpec(theme.FieldColors["user"])
+	groupStyle := theming.StyleFromSpec(theme.FieldColors["group"])
+	sizeStyle := theming.StyleFromSpec(theme.FieldColors["size"])
+	timeStyle := theming.StyleFromSpec(theme.FieldColors["time"])
+
+	// Background color for the row.
+	bgColor := ""
+	if isSelected && theme.Selection.Background != "" {
+		bgColor = theme.Selection.Background
+		bg := lipgloss.Color(bgColor)
+		userStyle = userStyle.Background(bg)
+		groupStyle = groupStyle.Background(bg)
+		sizeStyle = sizeStyle.Background(bg)
+		timeStyle = timeStyle.Background(bg)
+	} else {
+		bgColor = theme.FileList.Background
+		bg := lipgloss.Color(bgColor)
+		userStyle = userStyle.Background(bg)
+		groupStyle = groupStyle.Background(bg)
+		sizeStyle = sizeStyle.Background(bg)
+		timeStyle = timeStyle.Background(bg)
 	}
 
-	// When we know the total target width, pad the "Name" header so that its
-	// cell lines up with the last column and visually spans the remaining
-	// viewport width.
-	if totalWidth > 0 {
-		const numSeps = 5 // spaces between the 6 header columns
-		fixedCols := colPerms + colSize + colUser + colGroup + colDate
-		baseWidth := fixedCols + numSeps
-		if totalWidth > baseWidth {
-			nameColWidth := totalWidth - baseWidth
-			if nameColWidth < lipgloss.Width("Name") {
-				nameColWidth = lipgloss.Width("Name")
-			}
-			headerCols[len(headerCols)-1] = padCell("Name", nameColWidth)
-		}
+	// Render permission string with per-character coloring.
+	permTextRaw := renderPermissions(theme, fi, bgColor)
+	permText := padCellWithBG(permTextRaw, colPerms, bgColor)
+
+	userText := padCellWithBG(userStyle.Render(user), colUser, bgColor)
+	groupText := padCellWithBG(groupStyle.Render(group), colGroup, bgColor)
+	sizeText := padCellWithBG(sizeStyle.Render(size), colSize, bgColor)
+	timeText := padCellWithBG(timeStyle.Render(date), colDate, bgColor)
+
+	// File name color based on file type.
+	nameColorSpec := theme.FileTypeColors[fi.Type]
+	nameStyle := theming.StyleFromSpec(nameColorSpec)
+	if bgColor != "" {
+		nameStyle = nameStyle.Background(lipgloss.Color(bgColor))
+	}
+	nameText := nameStyle.Render(name)
+
+	lineCols := []string{
+		permText,
+		sizeText,
+		userText,
+		groupText,
+		timeText,
+		nameText,
 	}
 
-	headerLine := strings.Join(headerCols, " ")
-	headerStyle := lipgloss.NewStyle().Bold(true)
-	b.WriteString(headerStyle.Render(headerLine))
-	b.WriteRune('\n')
+	sep := " "
+	if bgColor != "" {
+		sep = lipgloss.NewStyle().Background(lipgloss.Color(bgColor)).Render(" ")
+	}
 
-	// Rows
-	for i, fi := range files {
-		size := fi.Size
-		user := fi.User
-		group := fi.Group
-		date := fi.DateModified
-		name := fi.Name
+	line := strings.Join(lineCols, sep)
 
-		// Field colors.
-		userStyle := theming.StyleFromSpec(theme.FieldColors["user"])
-		groupStyle := theming.StyleFromSpec(theme.FieldColors["group"])
-		sizeStyle := theming.StyleFromSpec(theme.FieldColors["size"])
-		timeStyle := theming.StyleFromSpec(theme.FieldColors["time"])
-
-		// If this row is selected, apply only the selected background to every
-		// column so the entire row is highlighted while preserving the
-		// foreground colors coming from file-type and permission-level specs.
-		bgColor := ""
-		if selectedIndex >= 0 && i == selectedIndex && theme.Selection.Background != "" {
-			bgColor = theme.Selection.Background
+	// Pad the end of the line so that the row's background extends to the edge.
+	if d.totalWidth > 0 && bgColor != "" {
+		lineWidth := lipgloss.Width(line)
+		if lineWidth < d.totalWidth {
+			missing := d.totalWidth - lineWidth
 			bg := lipgloss.Color(bgColor)
-			userStyle = userStyle.Background(bg)
-			groupStyle = groupStyle.Background(bg)
-			sizeStyle = sizeStyle.Background(bg)
-			timeStyle = timeStyle.Background(bg)
-		} else {
-			bgColor = theme.FileList.Background
-			bg := lipgloss.Color(bgColor)
-			userStyle = userStyle.Background(bg)
-			groupStyle = groupStyle.Background(bg)
-			sizeStyle = sizeStyle.Background(bg)
-			timeStyle = timeStyle.Background(bg)
-		}
+			spaceStyle := lipgloss.NewStyle().Background(bg)
+			pad := spaceStyle.Render(" ")
 
-		// Render permission string with per-character coloring.
-		permTextRaw := renderPermissions(theme, fi, bgColor)
-		permText := padCellWithBG(permTextRaw, colPerms, bgColor)
-
-		userText := padCellWithBG(userStyle.Render(user), colUser, bgColor)
-		groupText := padCellWithBG(groupStyle.Render(group), colGroup, bgColor)
-		sizeText := padCellWithBG(sizeStyle.Render(size), colSize, bgColor)
-		timeText := padCellWithBG(timeStyle.Render(date), colDate, bgColor)
-
-		// File name color based on file type.
-		nameColorSpec := theme.FileTypeColors[fi.Type]
-		nameStyle := theming.StyleFromSpec(nameColorSpec)
-		if bgColor != "" {
-			nameStyle = nameStyle.Background(lipgloss.Color(bgColor))
-		}
-		nameText := nameStyle.Render(name)
-
-		lineCols := []string{
-			permText,
-			sizeText,
-			userText,
-			groupText,
-			timeText,
-			nameText,
-		}
-
-		sep := " "
-		if bgColor != "" {
-			sep = lipgloss.NewStyle().Background(lipgloss.Color(bgColor)).Render(" ")
-		}
-
-		line := strings.Join(lineCols, sep)
-
-		// If we know the viewport width, pad the end of the line so that the
-		// row's background extends all the way to the edge. This is especially
-		// important for the selected row highlight on the "Name" column.
-		if totalWidth > 0 && bgColor != "" {
-			lineWidth := lipgloss.Width(line)
-			if lineWidth < totalWidth {
-				missing := totalWidth - lineWidth
-				bg := lipgloss.Color(bgColor)
-				spaceStyle := lipgloss.NewStyle().Background(bg)
-				pad := spaceStyle.Render(" ")
-
-				var tail strings.Builder
-				for i := 0; i < missing; i++ {
-					tail.WriteString(pad)
-				}
-				line += tail.String()
+			var tail strings.Builder
+			for i := 0; i < missing; i++ {
+				tail.WriteString(pad)
 			}
+			line += tail.String()
 		}
-
-		b.WriteString(line)
-		b.WriteRune('\n')
 	}
 
-	return b.String()
+	return line
 }
 
-// colorForPermissions selects a permission style based on how permissive the
-// rwx bits are, using the "full", "partial", and "none" colors from the theme.
+// renderPermissions renders the permission string with per-character coloring.
 func renderPermissions(theme theming.Theme, fi filesystem.FileInfo, bgColor string) string {
 	perm := fi.Permissions
 	if perm == "" {
@@ -165,18 +168,13 @@ func renderPermissions(theme theming.Theme, fi filesystem.FileInfo, bgColor stri
 	var b strings.Builder
 
 	// Optional background for selected rows.
-	var bg color.Color
-	hasBG := false
-	if bgColor != "" {
-		bg = lipgloss.Color(bgColor)
-		hasBG = true
-	}
+	hasBG := bgColor != ""
 
 	// First character: type indicator ('d', '.', 'l', etc.) colored by file type.
 	typeSpec := theme.FileTypeColors[fi.Type]
 	typeStyle := theming.StyleFromSpec(typeSpec)
 	if hasBG {
-		typeStyle = typeStyle.Background(bg)
+		typeStyle = typeStyle.Background(lipgloss.Color(bgColor))
 	}
 	b.WriteString(typeStyle.Render(string(perm[0])))
 
@@ -198,7 +196,7 @@ func renderPermissions(theme theming.Theme, fi filesystem.FileInfo, bgColor stri
 
 		style := theming.StyleFromSpec(spec)
 		if hasBG {
-			style = style.Background(bg)
+			style = style.Background(lipgloss.Color(bgColor))
 		}
 
 		b.WriteString(style.Render(ch))
@@ -245,4 +243,13 @@ func padCellWithBG(content string, w int, bgColor string) string {
 	}
 
 	return b.String()
+}
+
+// FileInfosToItems converts a slice of FileInfo to a slice of list.Item.
+func FileInfosToItems(files []filesystem.FileInfo) []list.Item {
+	items := make([]list.Item, len(files))
+	for i, f := range files {
+		items[i] = FileItem{Info: f}
+	}
+	return items
 }

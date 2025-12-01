@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"charm.land/bubbles/v2/list"
 	"charm.land/bubbles/v2/textinput"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
@@ -90,13 +91,12 @@ type Model struct {
 	// runtimeConfig holds the Lua-backed configuration (theme and commands).
 	runtimeConfig *config.RuntimeConfig
 
-	leftViewport  viewport.Model
+	fileList      list.Model // Bubbles list for file listing
 	rightViewport viewport.Model
 
-	allFiles      []filesystem.FileInfo
-	files         []filesystem.FileInfo
-	currentDir    string
-	selectedIndex int // Index of the currently selected file in the list (0-based). -1 indicates "no selection".
+	allFiles   []filesystem.FileInfo
+	files      []filesystem.FileInfo
+	currentDir string
 
 	activeModal ModalKind
 
@@ -119,7 +119,7 @@ type Model struct {
 
 	// Components
 	CurrentDir   func(m Model, args ComponentArgs) string
-	FileList     func(m Model, args ComponentArgs) string
+	FileListView func(m Model, args ComponentArgs) string
 	Header       func(m Model, args ComponentArgs) string
 	Preview      func(m Model, args ComponentArgs) string
 	PreviewTabs  func(m Model, args ComponentArgs) string
@@ -172,8 +172,8 @@ func (m Model) GetCurrentDir() string {
 	return m.currentDir
 }
 
-func (m Model) GetFileListViewport() viewport.Model {
-	return m.leftViewport
+func (m Model) GetFileList() list.Model {
+	return m.fileList
 }
 
 func (m Model) GetFiles() []filesystem.FileInfo {
@@ -209,7 +209,7 @@ func (m Model) GetSearchInputView() string {
 }
 
 func (m Model) GetSelectedIndex() int {
-	return m.selectedIndex
+	return m.fileList.Index()
 }
 
 func (m Model) GetSize() (width, height int) {

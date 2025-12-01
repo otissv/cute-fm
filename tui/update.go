@@ -4,13 +4,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 
 	"cute/command"
 	"cute/console"
 	"cute/filesystem"
-	"cute/theming"
 )
 
 func SetQuitMode() {
@@ -97,15 +95,42 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if ActiveTuiMode != TuiModeFilter {
 					PreviousTuiMode = ActiveTuiMode
 					ActiveTuiMode = TuiModeFilter
+
+					// Prepare the search input when entering filter mode.
+					m.searchInput.Focus()
+
 					return m, nil
 				}
 
-			case "up":
-				m.moveSelection(-1)
+			case "up", "k":
+				m.fileList.CursorUp()
 				return m, nil
 
-			case "down":
-				m.moveSelection(1)
+			case "down", "j":
+				m.fileList.CursorDown()
+				return m, nil
+
+			case "g":
+				m.fileList.GoToStart()
+				return m, nil
+
+			case "G":
+				m.fileList.GoToEnd()
+				return m, nil
+
+			case "ctrl+l":
+				ActiveFileListMode = "ll"
+				m.ApplyFilter()
+				return m, nil
+
+			case "ctrl+d":
+				ActiveFileListMode = "ld"
+				m.ApplyFilter()
+				return m, nil
+
+			case "ctrl+f":
+				ActiveFileListMode = "lf"
+				m.ApplyFilter()
 				return m, nil
 			}
 		}
@@ -158,13 +183,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if ActiveTuiMode == TuiModeCommand {
 			m.searchInput.Blur()
 
-			// Command bar is active; update it instead of the search bar.
+			// Command modal is active; update it instead of the search bar.
 			beforeValue := m.commandInput.Value()
 			m.commandInput, cmd = m.commandInput.Update(msg)
-			cmds = append(cmds, cmd)
-
-			// Update left viewport (second row, left column)
-			m.leftViewport, cmd = m.leftViewport.Update(msg)
 			cmds = append(cmds, cmd)
 
 			// Update right viewport (second row, right column)
@@ -207,30 +228,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case "enter":
 				line := strings.TrimSpace(m.commandInput.Value())
-				if line != "" {
-					m.AppendCommandHistory(line)
-					// Reload history to include the new command
-					m.commandHistory = m.LoadCommandHistory()
-				}
 
-				var selected *command.SelectedEntry
-				if m.selectedIndex >= 0 && m.selectedIndex < len(m.files) {
-					fi := m.files[m.selectedIndex]
-					selected = &command.SelectedEntry{
-						Name:  fi.Name,
-						Path:  filepath.Join(m.currentDir, fi.Name),
-						IsDir: fi.IsDir,
-						Type:  fi.Type,
-					}
-				}
-
-				env := command.Environment{
-					Cwd:      m.currentDir,
-					Config:   m.runtimeConfig,
-					Selected: selected,
-				}
-
-				res, err := command.Execute(env, line)
+				res, err := m.ExecuteCommand(line)
 
 				// Apply environment changes.
 				if res.Cwd != "" && res.Cwd != m.currentDir {
@@ -282,66 +281,39 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-// moveSelection updates the selection by delta rows (negative for up,
-// positive for down). The selection is clamped to the valid range and the
-// table is re-rendered.
-func (m *Model) moveSelection(delta int) {
-	if len(m.files) == 0 {
-		return
+func (m *Model) ExecuteCommand(line string) (command.Result, error) {
+	if line != "" {
+		m.AppendCommandHistory(line)
+		// Reload history to include the new command
+		m.commandHistory = m.LoadCommandHistory()
 	}
 
-	newIndex := m.selectedIndex + delta
-	if newIndex < 0 {
-		newIndex = 0
-	}
-	if newIndex >= len(m.files) {
-		newIndex = len(m.files) - 1
-	}
-	if newIndex == m.selectedIndex {
-		return
-	}
-
-	m.selectedIndex = newIndex
-	m.leftViewport.SetContent(
-		renderFileTable(m.theme, m.files, m.selectedIndex, m.leftViewport.Width()),
-	)
-	m.EnsureSelectionVisible()
-}
-
-// EnsureSelectionVisible adjusts the left viewport's scroll offset so that the
-// selected row remains visible.
-func (m *Model) EnsureSelectionVisible() {
-	if m.selectedIndex < 0 {
-		return
+	var selected *command.SelectedEntry
+	selectedIdx := m.fileList.Index()
+	if selectedIdx >= 0 && selectedIdx < len(m.files) {
+		fi := m.files[selectedIdx]
+		selected = &command.SelectedEntry{
+			Name:  fi.Name,
+			Path:  filepath.Join(m.currentDir, fi.Name),
+			IsDir: fi.IsDir,
+			Type:  fi.Type,
+		}
 	}
 
-	// Header row is at line 0; first file row is at line 1.
-	line := 1 + m.selectedIndex
-	viewHeight := m.leftViewport.Height()
-	if viewHeight <= 0 {
-		return
+	env := command.Environment{
+		Cwd:      m.currentDir,
+		Config:   m.runtimeConfig,
+		Selected: selected,
 	}
 
-	// Current scroll offset (top visible line).
-	y := m.leftViewport.YOffset()
+	res, err := command.Execute(env, line)
 
-	// If the selected line is above the viewport, scroll up.
-	if line < y+1 {
-		m.leftViewport.SetYOffset(line - 1)
-		return
-	}
-
-	// If the selected line is below the viewport, scroll down so it becomes
-	// the last visible line.
-	if line > y+viewHeight-1 {
-		m.leftViewport.SetYOffset(line - viewHeight + 1)
-	}
+	return res, err
 }
 
 // ApplyFilter recomputes the visible file list based on the current value of
 // the text input. The filter is a case-insensitive substring match on the file
-// name. When the filter changes, the selection is clamped to the new list and
-// the table is re-rendered.
+// name. When the filter changes, the list is updated with the new items.
 func (m *Model) ApplyFilter() {
 	query := strings.TrimSpace(m.searchInput.Value())
 
@@ -366,35 +338,38 @@ func (m *Model) ApplyFilter() {
 		m.files = filtered
 	}
 
-	// Adjust selection for the new list.
-	if len(m.files) == 0 {
-		m.selectedIndex = -1
-		m.leftViewport.SetContent(
-			renderFileTable(m.theme, m.files, m.selectedIndex, m.leftViewport.Width()),
-		)
-	}
+	// Update the list with new items.
+	items := FileInfosToItems(m.files)
+	m.fileList.SetItems(items)
 
-	if m.selectedIndex < 0 {
-		m.selectedIndex = 0
+	// Reset selection to first item if we have items.
+	if len(m.files) > 0 {
+		m.fileList.Select(0)
 	}
-	if m.selectedIndex >= len(m.files) {
-		m.selectedIndex = len(m.files) - 1
-	}
-
-	m.leftViewport.SetContent(
-		renderFileTable(m.theme, m.files, m.selectedIndex, m.leftViewport.Width()),
-	)
-	m.EnsureSelectionVisible()
 }
 
 // ChangeDirectory updates the model to point at a new current directory and
 // reloads the file list.
 func (m *Model) ChangeDirectory(dir string) {
-	files, selected := loadDirectoryIntoView(&m.leftViewport, m.theme, dir)
+	files, err := filesystem.ListDirectory(dir)
+	if err != nil {
+		m.rightViewport.SetContent("Error reading directory:\n" + err.Error())
+		return
+	}
+
 	m.currentDir = dir
 	m.allFiles = files
 	m.files = files
-	m.selectedIndex = selected
+
+	// Update the list with new items.
+	items := FileInfosToItems(files)
+	m.fileList.SetItems(items)
+
+	// Select the first item if we have items.
+	if len(files) > 0 {
+		m.fileList.Select(0)
+	}
+
 	// Re-apply search/view filters for the new directory.
 	m.ApplyFilter()
 }
@@ -438,26 +413,4 @@ func filterByViewMode(files []filesystem.FileInfo) []filesystem.FileInfo {
 	}
 
 	return out
-}
-
-// loadDirectoryIntoView lists the given directory and loads it into the left
-// viewport using the provided theme. It returns the file list and the selected
-// index (0-based, or -1 if there is no selection).
-func loadDirectoryIntoView(vp *viewport.Model, theme theming.Theme, dir string) ([]filesystem.FileInfo, int) {
-	files, err := filesystem.ListDirectory(dir)
-	selected := -1
-	if err != nil {
-		vp.SetContent("Error reading directory:\n" + err.Error())
-		return nil, selected
-	}
-
-	if len(files) > 0 {
-		selected = 0
-	}
-
-	// At this point we don't yet know the viewport width, so pass 0 for the
-	// totalWidth and let a later resize re-render with the proper width.
-	vp.SetContent(renderFileTable(theme, files, selected, 0))
-
-	return files, selected
 }
