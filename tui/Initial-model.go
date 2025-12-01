@@ -57,17 +57,21 @@ func InitialModel(startDir string) Model {
 		configDir:     cfgDir,
 		runtimeConfig: runtimeCfg,
 
-		fileList:       fileList,
-		rightViewport:  rightViewport,
-		allFiles:       files,
-		files:          files,
-		currentDir:     currentDir,
-		theme:          runtimeCfg.Theme,
-		viewportHeight: 0,
-		viewportWidth:  0,
-		layoutRows:     []string{""},
-		layout:         "",
-		titleText:      "The Cute File Manager",
+		fileList:           fileList,
+		rightViewport:      rightViewport,
+		allFiles:           files,
+		files:              files,
+		currentDir:         currentDir,
+		theme:              runtimeCfg.Theme,
+		viewportHeight:     0,
+		viewportWidth:      0,
+		layoutRows:         []string{""},
+		layout:             "",
+		titleText:          "The Cute File Manager",
+		terminalType:       string(detectTerminalType()),
+		lastPreviewedPath:  "",
+		imagePreviewActive: false,
+		previewEnabled:     false,
 	}
 
 	// Initialize the search input
@@ -84,7 +88,12 @@ func InitialModel(startDir string) Model {
 	m.CalcLayout()
 
 	ActiveTuiMode = TuiModeNormal
-	ActiveFileListMode = FileListModeDir
+	// Start in the default "list all" view mode so navigation (enter/backspace)
+	// does not implicitly force the directories-only view ("ld").
+	ActiveFileListMode = FileListModeList
+
+	// Initialize preview for the initial selection, if any.
+	m.UpdatePreview()
 
 	return m
 }

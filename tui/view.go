@@ -24,6 +24,7 @@ func (m Model) View() tea.View {
 		Width:  m.viewportWidth,
 		Height: 1,
 	})
+
 	rightViewportView := m.Preview(
 		m, ComponentArgs{
 			Width:  m.viewportWidth,

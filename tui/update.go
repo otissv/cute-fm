@@ -31,7 +31,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		// Handle window resize
 		m.width = msg.Width
-		m.height = msg.Height
+		m.height = msg.Height + 2
 
 		helpWidth := msg.Width / 2
 		helpHeight := msg.Height / 2
@@ -102,20 +102,53 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 				}
 
+			// Toggle preview vs. file info/properties in the right-hand panel.
+			case "w":
+				m.previewEnabled = !m.previewEnabled
+				m.UpdatePreview()
+				return m, nil
+
+			// Navigate into the selected directory.
+			case "enter":
+				selectedIdx := m.fileList.Index()
+				if selectedIdx >= 0 && selectedIdx < len(m.files) {
+					fi := m.files[selectedIdx]
+					if fi.IsDir {
+						m.ChangeDirectory(fi.Path)
+						return m, nil
+					}
+				}
+
+			// Navigate to the parent directory.
+			case "backspace", "backspace2":
+				parent := filepath.Dir(m.currentDir)
+				if parent != "" && parent != m.currentDir {
+					m.ChangeDirectory(parent)
+				} else {
+					// Even if we're at the root (Dir("/") == "/"), attempt to
+					// reload so the listing stays fresh.
+					m.ChangeDirectory(m.currentDir)
+				}
+				return m, nil
+
 			case "up", "k":
 				m.fileList.CursorUp()
+				m.UpdatePreview()
 				return m, nil
 
 			case "down", "j":
 				m.fileList.CursorDown()
+				m.UpdatePreview()
 				return m, nil
 
 			case "g":
 				m.fileList.GoToStart()
+				m.UpdatePreview()
 				return m, nil
 
 			case "G":
 				m.fileList.GoToEnd()
+				m.UpdatePreview()
 				return m, nil
 
 			case "ctrl+l":
@@ -346,6 +379,9 @@ func (m *Model) ApplyFilter() {
 	if len(m.files) > 0 {
 		m.fileList.Select(0)
 	}
+
+	// Update preview for the new selection after filtering.
+	m.UpdatePreview()
 }
 
 // ChangeDirectory updates the model to point at a new current directory and
@@ -372,6 +408,9 @@ func (m *Model) ChangeDirectory(dir string) {
 
 	// Re-apply search/view filters for the new directory.
 	m.ApplyFilter()
+
+	// And recompute the preview for the new directory/selection.
+	m.UpdatePreview()
 }
 
 // filterByViewMode filters the given file list according to the current view

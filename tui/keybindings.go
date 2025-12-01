@@ -43,7 +43,7 @@ func GetKeyBindings() Keybindings {
 			Description: "Close window.",
 		},
 		Cd: Keybinding{
-			On:          []string{"ctrl+d"},
+			On:          []string{"c"},
 			Description: "Change directory.",
 		},
 		Command: Keybinding{
@@ -51,7 +51,7 @@ func GetKeyBindings() Keybindings {
 			Description: "Enter Commands.",
 		},
 		Copy: Keybinding{
-			On:          []string{"c"},
+			On:          []string{"y"},
 			Description: "Copy file or directory.",
 		},
 		Directories: Keybinding{

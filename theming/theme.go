@@ -21,67 +21,69 @@ var (
 	color8 = "#A8D2FF"
 	color9 = "#2072D5"
 
-	background            = color0
-	foreground            = color1
-	borderColor           = color2
-	primary               = color2
-	secondary             = color3
-	placeholder           = "#33282E"
-	viewModBackground     = background
-	viewModForeground     = foreground
-	commandBarBackground  = background
-	commandBarBorder      = borderColor
-	commandBarForeground  = foreground
-	commandBarPlaceholder = "#A8A7A7"
-	currentDirBackground  = background
-	currentDirForeground  = foreground
-	fieldGroup            = color3
-	fieldNlink            = foreground
-	fieldSize             = color4
-	fieldTime             = foreground
-	fieldUser             = color3
-	fileListBackground    = background
-	fileListForeGround    = foreground
-	fileListBorder        = background
-	fileTypeDevice        = color5
-	fileTypeDirectory     = color8
-	fileTypeExecutable    = color4
-	fileTypePipe          = color6
-	fileTypeRegular       = foreground
-	fileTypeSocket        = color3
-	fileTypeSymlink       = color5
-	permExec              = color4
-	permNone              = foreground
-	permRead              = color6
-	permWrite             = color5
-	searchBackground      = background
-	searchBorder          = background
-	searchForeground      = foreground
-	headerBackground      = background
-	previewBackground     = background
-	previewForeground     = foreground
-	previewBorder         = borderColor
-	normalModeBackground  = color4
-	normalModeForeground  = color0
-	commandModeBackground = color7
-	commandModeForeground = color0
-	filterModeBackground  = color4
-	filterModeForeground  = color0
-	helpModeBackground    = color6
-	helpModeForeground    = color0
-	quitModeBackground    = "#000000"
-	quitModeForeground    = "#F0EDED"
-	dialogTitle           = color9
+	background              = ""
+	foreground              = color1
+	borderColor             = color2
+	primary                 = color2
+	secondary               = color3
+	placeholder             = "#33282E"
+	viewModBackground       = background
+	viewModForeground       = foreground
+	commandBarBackground    = background
+	commandBarBorder        = borderColor
+	commandBarForeground    = foreground
+	commandBarPlaceholder   = "#A8A7A7"
+	currentDirBackground    = background
+	currentDirForeground    = foreground
+	fieldGroup              = color3
+	fieldNlink              = foreground
+	fieldSize               = color4
+	fieldTime               = foreground
+	fieldUser               = color3
+	fileListBackground      = background
+	fileListForeGround      = foreground
+	fileListBorder          = background
+	fileTypeDevice          = color5
+	fileTypeDirectory       = color8
+	fileTypeExecutable      = color4
+	fileTypePipe            = color6
+	fileTypeRegular         = foreground
+	fileTypeSocket          = color3
+	fileTypeSymlink         = color5
+	permExec                = color4
+	permNone                = foreground
+	permRead                = color6
+	permWrite               = color5
+	searchBackground        = background
+	searchBorder            = background
+	searchForeground        = foreground
+	headerBackground        = background
+	previewBackground       = background
+	previewBorderBackground = ""
+	previewForeground       = foreground
+	previewBorder           = borderColor
+	normalModeBackground    = color4
+	normalModeForeground    = color0
+	commandModeBackground   = color7
+	commandModeForeground   = color0
+	filterModeBackground    = color4
+	filterModeForeground    = color0
+	helpModeBackground      = color6
+	helpModeForeground      = color0
+	quitModeBackground      = "#000000"
+	quitModeForeground      = "#F0EDED"
+	dialogTitle             = color9
 )
 
 type Style struct {
-	Background    string
-	Foreground    string
-	PaddingTop    int
-	PaddingBottom int
-	PaddingLeft   int
-	PaddingRight  int
-	Border        string
+	Background       string
+	BorderBackground string
+	Foreground       string
+	PaddingTop       int
+	PaddingBottom    int
+	PaddingLeft      int
+	PaddingRight     int
+	Border           string
 }
 
 type StyleColor struct {
@@ -238,13 +240,14 @@ func DefaultTheme() Theme {
 		},
 
 		Preview: Style{
-			Background:    previewBackground,
-			Foreground:    previewForeground,
-			Border:        previewBorder,
-			PaddingBottom: 1,
-			PaddingLeft:   1,
-			PaddingRight:  1,
-			PaddingTop:    0,
+			Background:       previewBackground,
+			BorderBackground: previewBorderBackground,
+			Foreground:       previewForeground,
+			Border:           previewBorder,
+			PaddingBottom:    1,
+			PaddingLeft:      1,
+			PaddingRight:     1,
+			PaddingTop:       0,
 		},
 
 		SearchBar: BarStyle{

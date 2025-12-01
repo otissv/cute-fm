@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"time"
+
 	"charm.land/bubbles/v2/list"
 	"charm.land/bubbles/v2/textinput"
 	"charm.land/bubbles/v2/viewport"
@@ -117,6 +119,16 @@ type Model struct {
 	layoutRows     []string
 	titleText      string
 
+	// Terminal / preview state
+	terminalType       string
+	lastPreviewedPath  string
+	imagePreviewActive bool
+	previewEnabled     bool
+
+	// Debounced image preview
+	imagePreviewTimer *time.Timer
+	pendingImagePath  string
+
 	// Components
 	CurrentDir   func(m Model, args ComponentArgs) string
 	FileListView func(m Model, args ComponentArgs) string
@@ -220,6 +232,23 @@ func (m Model) GetTheme() theming.Theme {
 	return m.theme
 }
 
+// GetTerminalType returns the detected terminal type (e.g. "kitty").
+func (m Model) GetTerminalType() string {
+	return m.terminalType
+}
+
+// GetLastPreviewedPath returns the last file path we generated a preview for.
+func (m Model) GetLastPreviewedPath() string {
+	return m.lastPreviewedPath
+}
+
+// IsImagePreviewActive reports whether the current preview is expected to be
+// rendered as an image (e.g. via Kitty graphics) rather than text content in
+// the right viewport.
+func (m Model) IsImagePreviewActive() bool {
+	return m.imagePreviewActive
+}
+
 func (m Model) GetTitleText() string {
 	return m.titleText
 }
@@ -234,4 +263,11 @@ func (m Model) GetViewportWidth() int {
 
 func (m Model) IsSearchBarOpen() bool {
 	return m.isSearchBarOpen
+}
+
+// IsPreviewEnabled reports whether rich previews (text/image) are enabled for
+// the right-hand panel. When disabled, the panel shows simple file
+// information/properties instead.
+func (m Model) IsPreviewEnabled() bool {
+	return m.previewEnabled
 }
