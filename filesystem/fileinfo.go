@@ -124,28 +124,28 @@ func ListDirectory(dirPath string) ([]FileInfo, error) {
 // classifyFileType classifies a file into a high-level type used for styling.
 func classifyFileType(info os.FileInfo, isDir bool) string {
 	if isDir {
-		return "directory"
+		return "Directory"
 	}
 
 	mode := info.Mode()
 
 	switch {
 	case mode&os.ModeSymlink != 0:
-		return "symlink"
+		return "Dymlink"
 	case mode&os.ModeSocket != 0:
-		return "socket"
+		return "Docket"
 	case mode&os.ModeNamedPipe != 0:
 		return "pipe"
 	case mode&os.ModeDevice != 0:
-		return "device"
+		return "Device"
 	}
 
 	// Treat any non-directory file with an execute bit set as "executable".
 	if mode&0o111 != 0 {
-		return "executable"
+		return "Executable"
 	}
 
-	return "file"
+	return "File"
 }
 
 // formatPermissions formats file permissions in Unix-style format
