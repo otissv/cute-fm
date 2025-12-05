@@ -13,7 +13,7 @@ import (
 // FileInfo represents file or directory information
 type FileInfo struct {
 	Permissions  string // File permissions (e.g., "drwxr-xr-x", ".rw-r--r--")
-	Size         string // File size (e.g., "1.3k", "5.7M", "-" for directories)
+	Size         string // File size (e.g., "1.3k", "5.7M"); for directories this is a byte total of direct children
 	User         string // Owner username
 	Group        string // Group name
 	DateModified string // Date modified (e.g., "19 Nov 18:41")
@@ -73,8 +73,16 @@ func ListDirectory(dirPath string) ([]FileInfo, error) {
 		// Format permissions
 		permissions := formatPermissions(info.Mode(), entry.IsDir())
 
-		// Format size
-		size := formatSize(info.Size(), entry.IsDir())
+		// Format size. For regular files we use the file size directly. For
+		// directories, we compute a shallow size by summing the sizes of
+		// non-directory entries in that directory.
+		var size string
+		if entry.IsDir() {
+			dirSize := calculateDirectorySize(fullPath)
+			size = formatSize(dirSize, false)
+		} else {
+			size = formatSize(info.Size(), false)
+		}
 
 		// Format date modified
 		dateModified := formatDateModified(info.ModTime())
@@ -206,14 +214,9 @@ func formatPermissions(mode os.FileMode, isDir bool) string {
 	return result
 }
 
-// formatSize formats file size in human-readable format (base 10)
-// Returns "-" for directories
+// formatSize formats file size in human-readable format (base 10).
 // Format: "1.3k", "5.7M", etc.
 func formatSize(size int64, isDir bool) string {
-	if isDir {
-		return "-"
-	}
-
 	const (
 		KB = 1000 // Base 10 (decimal)
 		MB = KB * 1000
@@ -233,6 +236,29 @@ func formatSize(size int64, isDir bool) string {
 	default:
 		return fmt.Sprintf("%d", size) // No "B" suffix for bytes
 	}
+}
+
+// calculateDirectorySize returns a shallow size for the given directory path by
+// summing the sizes of non-directory entries directly inside it. Errors are
+// treated as zero so that directory listings remain robust.
+func calculateDirectorySize(dirPath string) int64 {
+	entries, err := os.ReadDir(dirPath)
+	if err != nil {
+		return 0
+	}
+
+	var total int64
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		if info.IsDir() {
+			continue
+		}
+		total += info.Size()
+	}
+	return total
 }
 
 // formatDateModified formats the modification time
