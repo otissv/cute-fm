@@ -30,15 +30,19 @@ type TUIModes struct {
 	TuiModeHelp    TUIMode
 	TuiModeSelect  TUIMode
 	TuiModeQuit    TUIMode
+	TuiModeAddFile TUIMode
+	TuiModeMkdir   TUIMode
 }
 
 const (
-	TuiModeNormal  TUIMode = "NORMAL"
 	TuiModeCommand TUIMode = "COMMAND"
 	TuiModeFilter  TUIMode = "FILTER"
 	TuiModeHelp    TUIMode = "HELP"
-	TuiModeSelect  TUIMode = "SELECT"
+	TuiModeNormal  TUIMode = "NORMAL"
 	TuiModeQuit    TUIMode = "QUIT"
+	TuiModeSelect  TUIMode = "SELECT"
+	TuiModeAddFile TUIMode = "ADD_FILE"
+	TuiModeMkdir   TUIMode = "MKDIR"
 )
 
 var TuiModes = TUIModes{
@@ -46,6 +50,8 @@ var TuiModes = TUIModes{
 	TuiModeCommand: TuiModeCommand,
 	TuiModeFilter:  TuiModeFilter,
 	TuiModeHelp:    TuiModeHelp,
+	TuiModeAddFile: TuiModeAddFile,
+	TuiModeMkdir:   TuiModeMkdir,
 }
 
 type (
@@ -71,6 +77,12 @@ type ViewPrimitive interface {
 type ComponentArgs struct {
 	Width  int
 	Height int
+}
+
+type CommandModalArgs struct {
+	Title       string
+	Prompt      string
+	Placeholder string
 }
 
 type DialogArgs struct {
@@ -142,7 +154,7 @@ type Model struct {
 
 	// Modals
 	HelpModal    func(m Model) *lipgloss.Layer
-	CommandModal func(m Model) *lipgloss.Layer
+	CommandModal func(m Model, args CommandModalArgs) *lipgloss.Layer
 	QuitModal    func(m Model) *lipgloss.Layer
 }
 

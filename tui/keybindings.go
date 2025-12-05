@@ -6,38 +6,38 @@ type Keybinding struct {
 }
 
 type Keybindings struct {
-	Add         Keybinding
-	Cancel      Keybinding
-	Cd          Keybinding
-	CdParent    Keybinding
-	Command     Keybinding
-	Copy        Keybinding
-	Directories Keybinding
-	Down        Keybinding
-	Enter       Keybinding
-	Files       Keybinding
-	Filter      Keybinding
-	GoToStart   Keybinding
-	GoToEnd     Keybinding
-	Help        Keybinding
-	HiddenFiles Keybinding
-	List        Keybinding
-	Mkdir       Keybinding
-	Move        Keybinding
-	Paste       Keybinding
-	Preview     Keybinding
-	Quit        Keybinding
-	Redo        Keybinding
-	Rename      Keybinding
-	Select      Keybinding
-	Tab         Keybinding
-	Undo        Keybinding
-	Up          Keybinding
+	AddFile      Keybinding
+	Cancel       Keybinding
+	Cd           Keybinding
+	Parent       Keybinding
+	Command      Keybinding
+	Copy         Keybinding
+	Directories  Keybinding
+	Down         Keybinding
+	Enter        Keybinding
+	Files        Keybinding
+	Filter       Keybinding
+	GoToStart    Keybinding
+	GoToEnd      Keybinding
+	Help         Keybinding
+	HiddenFiles  Keybinding
+	List         Keybinding
+	Mkdir        Keybinding
+	Move         Keybinding
+	Paste        Keybinding
+	Preview      Keybinding
+	Quit         Keybinding
+	Redo         Keybinding
+	Rename       Keybinding
+	Select       Keybinding
+	AutoComplete Keybinding
+	Undo         Keybinding
+	Up           Keybinding
 }
 
 func GetKeyBindings() Keybindings {
 	bindings := Keybindings{
-		Add: Keybinding{
+		AddFile: Keybinding{
 			On:          []string{"n"},
 			Description: "Create new file.",
 		},
@@ -49,9 +49,9 @@ func GetKeyBindings() Keybindings {
 			On:          []string{"c"},
 			Description: "Change directory.",
 		},
-		CdParent: Keybinding{
+		Parent: Keybinding{
 			On:          []string{"backspace", "backspace2"},
-			Description: "Change directory.",
+			Description: "Change directory to parent directory.",
 		},
 		Command: Keybinding{
 			On:          []string{":"},
@@ -136,7 +136,7 @@ func GetKeyBindings() Keybindings {
 			On:          []string{"s"},
 			Description: "Select files or directories.",
 		},
-		Tab: Keybinding{
+		AutoComplete: Keybinding{
 			On:          []string{"tab"},
 			Description: "Auto complete.",
 		},

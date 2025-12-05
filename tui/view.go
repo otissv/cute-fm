@@ -100,7 +100,17 @@ func (m Model) View() tea.View {
 	switch ActiveTuiMode {
 
 	case TuiModeCommand:
-		commandLayer := m.CommandModal(m)
+		commandLayer := m.CommandModal(m, CommandModalArgs{
+			Title:       "Command",
+			Placeholder: "Enter commnad..",
+		})
+		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
+
+	case TuiModeAddFile:
+		commandLayer := m.CommandModal(m, CommandModalArgs{
+			Title:       "Add New File",
+			Placeholder: "Enter file name...",
+		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case TuiModeHelp:

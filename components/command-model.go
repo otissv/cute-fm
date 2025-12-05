@@ -17,10 +17,26 @@ func (t textView) View() string {
 
 // CommandBar renders the bottom command bar using only the public TUI model
 // interface, so this component can live outside the tui package.
-func CommandModal(m tui.Model) *lipgloss.Layer {
+func CommandModal(m tui.Model, args tui.CommandModalArgs) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()
-	commandInputView := m.GetCommandInputView()
+
+	commandInput := m.GetCommandInput()
+
+	title := ""
+	if args.Title != "" {
+		title = args.Title
+	}
+	commandInput.Prompt = ""
+	if args.Prompt != "" {
+		commandInput.Prompt = args.Prompt
+	}
+	commandInput.Placeholder = ""
+	if args.Placeholder != "" {
+		commandInput.Placeholder = args.Placeholder
+	}
+
+	commandInputView := commandInput.View()
 
 	// Choose a dialog-sized window, not full-screen.
 	modalWidth := width / 2
@@ -36,7 +52,7 @@ func CommandModal(m tui.Model) *lipgloss.Layer {
 		Width:   modalWidth,
 		Height:  4,
 		Style:   DefaultFloatingStyle(theme),
-		Title:   "Command",
+		Title:   title,
 	}
 
 	modalContent := fw.View(width, height)

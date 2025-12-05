@@ -78,7 +78,7 @@ func InitialModel(startDir string) Model {
 	m.searchInput = m.SearchInput(">", "Filter...")
 
 	// Initialize the command input
-	m.commandInput = m.CommandInput("", "Enter prompt...")
+	m.commandInput = m.CommandInput("", "")
 
 	// Load command history for auto-complete
 	m.commandHistory = m.LoadCommandHistory()

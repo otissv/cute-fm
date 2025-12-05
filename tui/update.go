@@ -7,7 +7,6 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"cute/command"
-	"cute/console"
 	"cute/filesystem"
 )
 
@@ -20,13 +19,6 @@ func SetQuitMode() {
 
 // Update handles messages and updates the model
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-
-	bindings := GetKeyBindings()
-
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		// Handle window resize
@@ -47,268 +39,40 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-
 		if ActiveTuiMode == TuiModeQuit {
-			switch {
-			case bindings.Quit.Matches(msg.String()):
-				return m, tea.Quit
-
-			case bindings.Cancel.Matches(msg.String()):
-				ActiveTuiMode = PreviousTuiMode
-				return m, nil
-			}
+			return m.QuitMode(msg)
 		}
 
 		if ActiveTuiMode == TuiModeNormal {
-			switch {
-			case bindings.Quit.Matches(msg.String()):
-				SetQuitMode()
-				return m, nil
-			case bindings.Help.Matches(msg.String()):
-				if ActiveTuiMode != TuiModeHelp {
-					PreviousTuiMode = ActiveTuiMode
-					ActiveTuiMode = TuiModeHelp
-					return m, nil
-				}
-
-			case bindings.Command.Matches(msg.String()):
-				if ActiveTuiMode != TuiModeCommand {
-					PreviousTuiMode = ActiveTuiMode
-					ActiveTuiMode = TuiModeCommand
-
-					m.commandInput.SetValue("")
-					m.commandInput.Focus()
-					m.historyMatches = []string{}
-					m.historyIndex = -1
-
-					return m, nil
-				}
-			case bindings.Select.Matches(msg.String()):
-				if ActiveTuiMode != TuiModeSelect {
-					PreviousTuiMode = ActiveTuiMode
-					ActiveTuiMode = TuiModeSelect
-					return m, nil
-				}
-
-			case bindings.Filter.Matches(msg.String()):
-				if ActiveTuiMode != TuiModeFilter {
-					PreviousTuiMode = ActiveTuiMode
-					ActiveTuiMode = TuiModeFilter
-
-					m.searchInput.Focus()
-
-					return m, nil
-				}
-
-			case bindings.Preview.Matches(msg.String()):
-				m.previewEnabled = !m.previewEnabled
-				m.UpdatePreview()
-				return m, nil
-
-			// Navigate into the selected directory.
-			case bindings.Enter.Matches(msg.String()):
-				selectedIdx := m.fileList.Index()
-				if selectedIdx >= 0 && selectedIdx < len(m.files) {
-					fi := m.files[selectedIdx]
-					if fi.IsDir {
-						m.ChangeDirectory(fi.Path)
-						return m, nil
-					}
-				}
-
-			// Navigate to the parent directory.
-			case bindings.Enter.Matches(msg.String()):
-				parent := filepath.Dir(m.currentDir)
-				if parent != "" && parent != m.currentDir {
-					m.ChangeDirectory(parent)
-				} else {
-					// Even if we're at the root (Dir("/") == "/"), attempt to
-					// reload so the listing stays fresh.
-					m.ChangeDirectory(m.currentDir)
-				}
-				return m, nil
-
-			case bindings.Up.Matches(msg.String()):
-				m.fileList.CursorUp()
-				m.UpdatePreview()
-				return m, nil
-
-			case bindings.Down.Matches(msg.String()):
-				m.fileList.CursorDown()
-				m.UpdatePreview()
-				return m, nil
-
-			case bindings.GoToStart.Matches(msg.String()):
-				m.fileList.GoToStart()
-				m.UpdatePreview()
-				return m, nil
-
-			case bindings.GoToEnd.Matches(msg.String()):
-				m.fileList.GoToEnd()
-				m.UpdatePreview()
-				return m, nil
-
-			case bindings.List.Matches(msg.String()):
-				ActiveFileListMode = "ll"
-				m.ApplyFilter()
-				return m, nil
-
-			case bindings.Directories.Matches(msg.String()):
-				ActiveFileListMode = "ld"
-				m.ApplyFilter()
-				return m, nil
-
-			case bindings.Files.Matches(msg.String()):
-				ActiveFileListMode = "lf"
-				m.ApplyFilter()
-				return m, nil
-			}
+			return m.NormalMode(msg)
 		}
 
 		if ActiveTuiMode == TuiModeHelp {
-			m.commandInput.Blur()
-			m.searchInput.Focus()
-
-			switch msg.String() {
-			case "ctrl+c":
-				SetQuitMode()
-				return m, nil
-
-			case "esc", "?":
-				ActiveTuiMode = PreviousTuiMode
-				return m, nil
-			}
+			return m.HelpMode(msg)
 		}
 
 		if ActiveTuiMode == TuiModeFilter {
-			// Update search input (first row) and apply filtering if the value changed.
-			before := m.searchInput.Value()
-			m.searchInput, cmd = m.searchInput.Update(msg)
-			cmds = append(cmds, cmd)
-			if m.searchInput.Value() != before {
-				m.ApplyFilter()
-			}
-
-			switch msg.String() {
-			case "ctrl+c":
-				SetQuitMode()
-				return m, nil
-			case "esc":
-				ActiveTuiMode = TuiModeNormal
-				return m, nil
-			}
+			return m.FilterMode(msg)
 		}
 
 		if ActiveTuiMode == TuiModeSelect {
-			switch msg.String() {
-			case "ctrl+c":
-				SetQuitMode()
-				return m, nil
-			case "esc":
-				ActiveTuiMode = TuiModeNormal
-				return m, nil
-			}
+			return m.SelectMode(msg)
 		}
 
 		if ActiveTuiMode == TuiModeCommand {
-			m.searchInput.Blur()
+			return m.CommandMode(msg)
+		}
 
-			// Command modal is active; update it instead of the search bar.
-			beforeValue := m.commandInput.Value()
-			m.commandInput, cmd = m.commandInput.Update(msg)
-			cmds = append(cmds, cmd)
+		if ActiveTuiMode == TuiModeAddFile {
+			m.AddFileMode(msg)
+		}
 
-			// Update right viewport (second row, right column)
-			m.rightViewport, cmd = m.rightViewport.Update(msg)
-			cmds = append(cmds, cmd)
-
-			// Update history matches when input changes
-			if m.commandInput.Value() != beforeValue {
-				m.updateHistoryMatches()
-			}
-
-			switch msg.String() {
-			case "ctrl+c":
-				SetQuitMode()
-				return m, nil
-
-			case "esc", ":":
-				ActiveTuiMode = PreviousTuiMode
-				return m, nil
-
-			case "tab":
-				m.completeCommand()
-				return m, nil
-
-			case "up":
-
-				if len(m.commandHistory) > 0 {
-					m.navigateHistory(-1)
-					return m, nil
-				}
-				// If no history, fall through to let textinput handle it
-
-			case "down":
-
-				if len(m.commandHistory) > 0 {
-					m.navigateHistory(1)
-					return m, nil
-				}
-				// If no history, fall through to let textinput handle it
-
-			case "enter":
-				line := strings.TrimSpace(m.commandInput.Value())
-
-				res, err := m.ExecuteCommand(line)
-
-				// Apply environment changes.
-				if res.Cwd != "" && res.Cwd != m.currentDir {
-					m.ChangeDirectory(res.Cwd)
-				} else if res.Refresh {
-					// Re-list the current directory when requested by the command.
-					m.ChangeDirectory(m.currentDir)
-				}
-
-				// Update view mode and re-apply filters so the file list view
-				// actually changes when commands like "ll", "ls", "ld", "lf",
-				// etc. are executed.
-				if res.ViewMode != "" {
-					ActiveFileListMode = FileListMode(res.ViewMode)
-					console.Log("%s %s", ActiveFileListMode, res.ViewMode)
-					m.ApplyFilter()
-				}
-
-				if res.OpenHelp {
-					m.activeModal = ModalHelp
-				}
-
-				if res.Output != "" {
-					m.rightViewport.SetContent(res.Output)
-				}
-
-				if err != nil && res.Output == "" {
-					m.rightViewport.SetContent(err.Error())
-				}
-
-				m.commandInput.Blur()
-				m.commandInput.SetValue("")
-				m.searchInput.Focus()
-
-				m.CalcLayout()
-
-				if res.Quit {
-					return m, tea.Quit
-				}
-
-				ActiveTuiMode = PreviousTuiMode
-
-				return m, nil
-
-			}
+		if ActiveTuiMode == TuiModeMkdir {
+			return m.MkdirMode(msg)
 		}
 	}
 
-	return m, tea.Batch(cmds...)
+	return m, nil
 }
 
 func (m *Model) ExecuteCommand(line string) (command.Result, error) {
