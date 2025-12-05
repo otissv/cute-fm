@@ -131,9 +131,9 @@ func classifyFileType(info os.FileInfo, isDir bool) string {
 
 	switch {
 	case mode&os.ModeSymlink != 0:
-		return "Dymlink"
+		return "Symlink"
 	case mode&os.ModeSocket != 0:
-		return "Docket"
+		return "Socket"
 	case mode&os.ModeNamedPipe != 0:
 		return "pipe"
 	case mode&os.ModeDevice != 0:
