@@ -137,7 +137,7 @@ func classifyFileType(info os.FileInfo, isDir bool) string {
 		return "executable"
 	}
 
-	return "regular"
+	return "file"
 }
 
 // formatPermissions formats file permissions in Unix-style format
