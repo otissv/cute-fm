@@ -9,6 +9,7 @@ type Keybindings struct {
 	Add         Keybinding
 	Cancel      Keybinding
 	Cd          Keybinding
+	CdParent    Keybinding
 	Command     Keybinding
 	Copy        Keybinding
 	Directories Keybinding
@@ -16,6 +17,8 @@ type Keybindings struct {
 	Enter       Keybinding
 	Files       Keybinding
 	Filter      Keybinding
+	GoToStart   Keybinding
+	GoToEnd     Keybinding
 	Help        Keybinding
 	HiddenFiles Keybinding
 	List        Keybinding
@@ -46,6 +49,10 @@ func GetKeyBindings() Keybindings {
 			On:          []string{"c"},
 			Description: "Change directory.",
 		},
+		CdParent: Keybinding{
+			On:          []string{"backspace", "backspace2"},
+			Description: "Change directory.",
+		},
 		Command: Keybinding{
 			On:          []string{":"},
 			Description: "Enter Commands.",
@@ -55,7 +62,7 @@ func GetKeyBindings() Keybindings {
 			Description: "Copy file or directory.",
 		},
 		Directories: Keybinding{
-			On:          []string{"d"},
+			On:          []string{"ctrl+d"},
 			Description: "List directories only.",
 		},
 		Down: Keybinding{
@@ -67,13 +74,24 @@ func GetKeyBindings() Keybindings {
 			Description: "Execute a command.",
 		},
 		Files: Keybinding{
-			On:          []string{"enter"},
+			On:          []string{"ctrl+f"},
 			Description: "List files only.",
 		},
 		Filter: Keybinding{
-			On:          []string{"?"},
+			On:          []string{"f"},
 			Description: "Filter directory content.",
 		},
+
+		GoToStart: Keybinding{
+			On:          []string{"g"},
+			Description: "Goto start",
+		},
+
+		GoToEnd: Keybinding{
+			On:          []string{"G"},
+			Description: "Goto end",
+		},
+
 		Help: Keybinding{
 			On:          []string{"?"},
 			Description: "View help (This window).",
@@ -83,7 +101,7 @@ func GetKeyBindings() Keybindings {
 			Description: "Toggle hidden files.",
 		},
 		List: Keybinding{
-			On:          []string{"?"},
+			On:          []string{"ctrl+l"},
 			Description: "List directory contents.",
 		},
 		Move: Keybinding{
@@ -95,7 +113,7 @@ func GetKeyBindings() Keybindings {
 			Description: "Create a new directory.",
 		},
 		Paste: Keybinding{
-			On:          []string{"?"},
+			On:          []string{"v"},
 			Description: "Paste file or directory.",
 		},
 		Preview: Keybinding{
@@ -103,11 +121,11 @@ func GetKeyBindings() Keybindings {
 			Description: "Preview file or folder.",
 		},
 		Quit: Keybinding{
-			On:          []string{"ctrl+c", "ctrl+q"},
+			On:          []string{"q"},
 			Description: "Quit the application.",
 		},
 		Rename: Keybinding{
-			On:          []string{"n"},
+			On:          []string{"r"},
 			Description: "Rename file or folder.",
 		},
 		Redo: Keybinding{
@@ -115,7 +133,7 @@ func GetKeyBindings() Keybindings {
 			Description: "Redo.",
 		},
 		Select: Keybinding{
-			On:          []string{"tab"},
+			On:          []string{"s"},
 			Description: "Select files or directories.",
 		},
 		Tab: Keybinding{

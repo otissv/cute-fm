@@ -60,23 +60,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if ActiveTuiMode == TuiModeNormal {
-			switch msg.String() {
-			case "ctrl+c":
+			switch {
+			case bindings.Quit.Matches(msg.String()):
 				SetQuitMode()
 				return m, nil
-			case "?":
+			case bindings.Help.Matches(msg.String()):
 				if ActiveTuiMode != TuiModeHelp {
 					PreviousTuiMode = ActiveTuiMode
 					ActiveTuiMode = TuiModeHelp
 					return m, nil
 				}
 
-			case ":":
+			case bindings.Command.Matches(msg.String()):
 				if ActiveTuiMode != TuiModeCommand {
 					PreviousTuiMode = ActiveTuiMode
 					ActiveTuiMode = TuiModeCommand
 
-					// Prepare the command input when entering command mode.
 					m.commandInput.SetValue("")
 					m.commandInput.Focus()
 					m.historyMatches = []string{}
@@ -84,32 +83,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					return m, nil
 				}
-			case "s":
+			case bindings.Select.Matches(msg.String()):
 				if ActiveTuiMode != TuiModeSelect {
 					PreviousTuiMode = ActiveTuiMode
 					ActiveTuiMode = TuiModeSelect
 					return m, nil
 				}
 
-			case "f":
+			case bindings.Filter.Matches(msg.String()):
 				if ActiveTuiMode != TuiModeFilter {
 					PreviousTuiMode = ActiveTuiMode
 					ActiveTuiMode = TuiModeFilter
 
-					// Prepare the search input when entering filter mode.
 					m.searchInput.Focus()
 
 					return m, nil
 				}
 
-			// Toggle preview vs. file info/properties in the right-hand panel.
-			case "w":
+			case bindings.Preview.Matches(msg.String()):
 				m.previewEnabled = !m.previewEnabled
 				m.UpdatePreview()
 				return m, nil
 
 			// Navigate into the selected directory.
-			case "enter":
+			case bindings.Enter.Matches(msg.String()):
 				selectedIdx := m.fileList.Index()
 				if selectedIdx >= 0 && selectedIdx < len(m.files) {
 					fi := m.files[selectedIdx]
@@ -120,7 +117,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			// Navigate to the parent directory.
-			case "backspace", "backspace2":
+			case bindings.Enter.Matches(msg.String()):
 				parent := filepath.Dir(m.currentDir)
 				if parent != "" && parent != m.currentDir {
 					m.ChangeDirectory(parent)
@@ -131,37 +128,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return m, nil
 
-			case "up", "k":
+			case bindings.Up.Matches(msg.String()):
 				m.fileList.CursorUp()
 				m.UpdatePreview()
 				return m, nil
 
-			case "down", "j":
+			case bindings.Down.Matches(msg.String()):
 				m.fileList.CursorDown()
 				m.UpdatePreview()
 				return m, nil
 
-			case "g":
+			case bindings.GoToStart.Matches(msg.String()):
 				m.fileList.GoToStart()
 				m.UpdatePreview()
 				return m, nil
 
-			case "G":
+			case bindings.GoToEnd.Matches(msg.String()):
 				m.fileList.GoToEnd()
 				m.UpdatePreview()
 				return m, nil
 
-			case "ctrl+l":
+			case bindings.List.Matches(msg.String()):
 				ActiveFileListMode = "ll"
 				m.ApplyFilter()
 				return m, nil
 
-			case "ctrl+d":
+			case bindings.Directories.Matches(msg.String()):
 				ActiveFileListMode = "ld"
 				m.ApplyFilter()
 				return m, nil
 
-			case "ctrl+f":
+			case bindings.Files.Matches(msg.String()):
 				ActiveFileListMode = "lf"
 				m.ApplyFilter()
 				return m, nil
