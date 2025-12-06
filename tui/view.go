@@ -117,8 +117,25 @@ func (m Model) View() tea.View {
 		modalLayer := m.HelpModal(m)
 		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 
+	case TuiModeMkdir:
+		commandLayer := m.CommandModal(m, CommandModalArgs{
+			Title:       "Add Directory",
+			Placeholder: "Enter directory name...",
+		})
+		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
+
+	case TuiModeRemove:
+		modalLayer := m.DialogModal(m, DialogModalArgs{
+			Title:   "Remove",
+			Content: "Are you sure you want to remove\n\nYes (y) No (n)",
+		})
+		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
+
 	case TuiModeQuit:
-		modalLayer := m.QuitModal(m)
+		modalLayer := m.DialogModal(m, DialogModalArgs{
+			Title:   "Quit",
+			Content: "Press q to quit\n\nor\n\n press ESC to cancel",
+		})
 		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 
 	default:

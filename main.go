@@ -37,7 +37,7 @@ func main() {
 	// Inject UI modals.
 	m.HelpModal = components.HelpModal
 	m.CommandModal = components.CommandModal
-	m.QuitModal = components.QuitModal
+	m.DialogModal = components.DialogModal
 
 	// Create a new Bubble Tea program
 	p := tea.NewProgram(m)

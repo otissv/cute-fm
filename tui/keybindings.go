@@ -56,9 +56,9 @@ var KeybindingCategories = KeybindingCategory{
 
 type Keybindings struct {
 	AddFile      Keybinding
+	AutoComplete Keybinding
 	Cancel       Keybinding
 	Cd           Keybinding
-	Parent       Keybinding
 	Command      Keybinding
 	Copy         Keybinding
 	Directories  Keybinding
@@ -66,20 +66,21 @@ type Keybindings struct {
 	Enter        Keybinding
 	Files        Keybinding
 	Filter       Keybinding
-	GoToStart    Keybinding
 	GoToEnd      Keybinding
+	GoToStart    Keybinding
 	Help         Keybinding
 	HiddenFiles  Keybinding
 	List         Keybinding
 	Mkdir        Keybinding
 	Move         Keybinding
+	Parent       Keybinding
 	Paste        Keybinding
 	Preview      Keybinding
 	Quit         Keybinding
+	Remove       Keybinding
 	Redo         Keybinding
 	Rename       Keybinding
 	Select       Keybinding
-	AutoComplete Keybinding
 	Undo         Keybinding
 	Up           Keybinding
 }
@@ -87,9 +88,14 @@ type Keybindings struct {
 func GetKeyBindings() Keybindings {
 	bindings := Keybindings{
 		AddFile: Keybinding{
-			On:          []string{"n"},
+			On:          []string{"a"},
 			Description: "Create new file.",
 			Category:    KeybindingCategories.Editing.Name,
+		},
+		AutoComplete: Keybinding{
+			On:          []string{"tab"},
+			Description: "Auto complete.",
+			Category:    KeybindingCategories.Command.Name,
 		},
 		Cancel: Keybinding{
 			On:          []string{"esc", "ctrl+q"},
@@ -191,8 +197,13 @@ func GetKeyBindings() Keybindings {
 			Description: "Quit the application.",
 			Category:    KeybindingCategories.General.Name,
 		},
-		Rename: Keybinding{
+		Remove: Keybinding{
 			On:          []string{"r"},
+			Description: "Remove files or folders.",
+			Category:    KeybindingCategories.Command.Name,
+		},
+		Rename: Keybinding{
+			On:          []string{"n"},
 			Description: "Rename file or folder.",
 			Category:    KeybindingCategories.Editing.Name,
 		},
@@ -206,11 +217,7 @@ func GetKeyBindings() Keybindings {
 			Description: "Select files or directories.",
 			Category:    KeybindingCategories.Editing.Name,
 		},
-		AutoComplete: Keybinding{
-			On:          []string{"tab"},
-			Description: "Auto complete.",
-			Category:    KeybindingCategories.Command.Name,
-		},
+
 		Undo: Keybinding{
 			On:          []string{"z"},
 			Description: "Undo.",

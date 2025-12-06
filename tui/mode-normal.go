@@ -19,10 +19,22 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Add file
 	case bindings.AddFile.Matches(keyMsg.String()):
-
 		if ActiveTuiMode != TuiModeAddFile {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = TuiModeAddFile
+
+			m.commandInput.SetValue("")
+			m.commandInput.Focus()
+		} else {
+			ActiveTuiMode = PreviousTuiMode
+		}
+		return m, nil
+
+		// Add change
+	case bindings.Cd.Matches(keyMsg.String()):
+		if ActiveTuiMode != TuiModeCd {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = TuiModeCd
 
 			m.commandInput.SetValue("")
 			m.commandInput.Focus()
@@ -97,6 +109,19 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.UpdatePreview()
 		return m, nil
 
+		// Add new directory
+	case bindings.Mkdir.Matches(keyMsg.String()):
+		if ActiveTuiMode != TuiModeMkdir {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = TuiModeMkdir
+
+			m.commandInput.SetValue("")
+			m.commandInput.Focus()
+		} else {
+			ActiveTuiMode = PreviousTuiMode
+		}
+		return m, nil
+
 	// Open help modal
 	case bindings.Help.Matches(keyMsg.String()):
 		if ActiveTuiMode != TuiModeHelp {
@@ -132,6 +157,19 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Quit application
 	case bindings.Quit.Matches(keyMsg.String()):
 		SetQuitMode()
+		return m, nil
+
+		// Remove file or direcory
+	case bindings.Remove.Matches(keyMsg.String()):
+		if ActiveTuiMode != TuiModeRemove {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = TuiModeRemove
+
+			m.commandInput.SetValue("")
+			m.commandInput.Focus()
+		} else {
+			ActiveTuiMode = PreviousTuiMode
+		}
 		return m, nil
 
 	// Enter select mode

@@ -6,7 +6,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
-func (m Model) MkdirMode(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) UtilityMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -31,11 +31,11 @@ func (m Model) MkdirMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		SetQuitMode()
 		return m, nil
 
-	// Confirm and create the file on Enter.
+	// Confirm command on Enter.
 	case bindings.Enter.Matches(keyMsg.String()):
-		line := strings.TrimSpace(m.commandInput.Value())
-		if line != "" {
-			res, _ := m.ExecuteCommand("touch " + line)
+		inputValue := strings.TrimSpace(m.commandInput.Value())
+		if inputValue != "" {
+			res, _ := m.ExecuteCommand(command + " " + inputValue)
 
 			if res.Cwd != "" && res.Cwd != m.currentDir {
 				m.ChangeDirectory(res.Cwd)

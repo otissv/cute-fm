@@ -64,11 +64,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if ActiveTuiMode == TuiModeAddFile {
-			m.AddFileMode(msg)
+			m.UtilityMode(msg, "touch")
 		}
 
 		if ActiveTuiMode == TuiModeMkdir {
-			return m.MkdirMode(msg)
+			return m.UtilityMode(msg, "mkdir")
+		}
+
+		if ActiveTuiMode == TuiModeMkdir {
+			return m.UtilityMode(msg, "mkdir")
+		}
+
+		if ActiveTuiMode == TuiModeRemove {
+			return m.ConfirmMode(msg, "rm -r")
 		}
 	}
 
@@ -82,27 +90,41 @@ func (m *Model) ExecuteCommand(line string) (command.Result, error) {
 		m.commandHistory = m.LoadCommandHistory()
 	}
 
-	var selected *command.SelectedEntry
-	selectedIdx := m.fileList.Index()
-	if selectedIdx >= 0 && selectedIdx < len(m.files) {
-		fi := m.files[selectedIdx]
-		selected = &command.SelectedEntry{
-			Name:  fi.Name,
-			Path:  filepath.Join(m.currentDir, fi.Name),
-			IsDir: fi.IsDir,
-			Type:  fi.Type,
-		}
-	}
-
-	env := command.Environment{
-		Cwd:      m.currentDir,
-		Config:   m.runtimeConfig,
-		Selected: selected,
-	}
+	env := m.GetCommandEnvironment()
 
 	res, err := command.Execute(env, line)
 
 	return res, err
+}
+
+func (m *Model) GetSelectedEntry() *command.SelectedEntry {
+	selectedIdx := m.fileList.Index()
+	if selectedIdx < 0 || selectedIdx >= len(m.files) {
+		return nil
+	}
+
+	fi := m.files[selectedIdx]
+	path := fi.Path
+	if path == "" {
+		path = filepath.Join(m.currentDir, fi.Name)
+	}
+
+	return &command.SelectedEntry{
+		Name:  fi.Name,
+		Path:  path,
+		IsDir: fi.IsDir,
+		Type:  fi.Type,
+	}
+}
+
+// GetCommandEnvironment builds the command execution environment using the
+// current model state, including the currently selected entry (if any).
+func (m *Model) GetCommandEnvironment() command.Environment {
+	return command.Environment{
+		Cwd:      m.currentDir,
+		Config:   m.runtimeConfig,
+		Selected: m.GetSelectedEntry(),
+	}
 }
 
 // ApplyFilter recomputes the visible file list based on the current value of

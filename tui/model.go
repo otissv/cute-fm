@@ -25,33 +25,52 @@ type TUIMode string
 
 type TUIModes struct {
 	TuiModeNormal  TUIMode
+	TuiModeAddFile TUIMode
+	TuiModeCd      TUIMode
 	TuiModeCommand TUIMode
 	TuiModeFilter  TUIMode
 	TuiModeHelp    TUIMode
-	TuiModeSelect  TUIMode
-	TuiModeQuit    TUIMode
-	TuiModeAddFile TUIMode
 	TuiModeMkdir   TUIMode
+	TuiModeQuit    TUIMode
+	TuiModeRemove  TUIMode
+	TuiModeSelect  TUIMode
+
+	TuiModeMove   TUIMode
+	TuiModeCopy   TUIMode
+	TuiModeParent TUIMode
+	TuiModeRename TUIMode
 }
 
 const (
-	TuiModeCommand TUIMode = "COMMAND"
-	TuiModeFilter  TUIMode = "FILTER"
-	TuiModeHelp    TUIMode = "HELP"
-	TuiModeNormal  TUIMode = "NORMAL"
-	TuiModeQuit    TUIMode = "QUIT"
-	TuiModeSelect  TUIMode = "SELECT"
-	TuiModeAddFile TUIMode = "ADD_FILE"
-	TuiModeMkdir   TUIMode = "MKDIR"
+	TuiModeAddFile      TUIMode = "ADD_FILE"
+	TuiModeAutoComplete TUIMode = "AUTOCOMPLETE"
+	TuiModeCd           TUIMode = "CD"
+	TuiModeCommand      TUIMode = "COMMAND"
+	TuiModeFilter       TUIMode = "FILTER"
+	TuiModeHelp         TUIMode = "HELP"
+	TuiModeMkdir        TUIMode = "MKDIR"
+	TuiModeNormal       TUIMode = "NORMAL"
+	TuiModeParent       TUIMode = "TUIMODEPARENT"
+	TuiModeQuit         TUIMode = "QUIT"
+	TuiModeRemove       TUIMode = "REMOVE"
+	TuiModeMove         TUIMode = "MOVE"
+	TuiModeCopy         TUIMode = "COPY"
+	TuiModeRename       TUIMode = "RENAME"
+	TuiModeSelect       TUIMode = "SELECT"
 )
 
 var TuiModes = TUIModes{
-	TuiModeNormal:  TuiModeNormal,
+	TuiModeAddFile: TuiModeAddFile,
+	TuiModeCd:      TuiModeCd,
 	TuiModeCommand: TuiModeCommand,
+	TuiModeCopy:    TuiModeCopy,
 	TuiModeFilter:  TuiModeFilter,
 	TuiModeHelp:    TuiModeHelp,
-	TuiModeAddFile: TuiModeAddFile,
 	TuiModeMkdir:   TuiModeMkdir,
+	TuiModeNormal:  TuiModeNormal,
+	TuiModeParent:  TuiModeParent,
+	TuiModeRemove:  TuiModeRemove,
+	TuiModeRename:  TuiModeRename,
 }
 
 type (
@@ -88,6 +107,22 @@ type CommandModalArgs struct {
 type DialogArgs struct {
 	X int
 	Y int
+}
+
+type DialogModalArgs struct {
+	Title   string
+	Content string
+}
+
+type SelectedEntry struct {
+	// Name is the base name of the entry.
+	Name string
+	// Path is the full filesystem path to the entry.
+	Path string
+	// IsDir indicates whether the entry is a directory.
+	IsDir bool
+	// Type is the classified file type string ("directory", "regular", ...).
+	Type string
 }
 
 var (
@@ -158,7 +193,7 @@ type Model struct {
 	// Modals
 	HelpModal    func(m Model) *lipgloss.Layer
 	CommandModal func(m Model, args CommandModalArgs) *lipgloss.Layer
-	QuitModal    func(m Model) *lipgloss.Layer
+	DialogModal  func(m Model, args DialogModalArgs) *lipgloss.Layer
 }
 
 func (m Model) Init() tea.Cmd {
