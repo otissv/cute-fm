@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"cute/tui"
@@ -16,22 +17,8 @@ func HelpModal(m tui.Model) *lipgloss.Layer {
 	helpContent := strings.TrimSpace(buildHelpContent())
 	scrollOffset := m.GetHelpScrollOffset()
 
-	// Choose a dialog-sized window, not full-screen.
-	modalWidth := width / 2
-	if modalWidth > 60 {
-		modalWidth = 60
-	}
-	if modalWidth < 30 {
-		modalWidth = 30
-	}
-
+	modalWidth := 80
 	modalHeight := height / 2
-	if modalHeight > 16 {
-		modalHeight = 16
-	}
-	if modalHeight < 6 {
-		modalHeight = 6
-	}
 
 	fw := FloatingWindow{
 		Content:      textView(helpContent),
@@ -49,35 +36,15 @@ func HelpModal(m tui.Model) *lipgloss.Layer {
 func buildHelpContent() string {
 	bindings := tui.GetKeyBindings()
 
-	// Flatten all keybindings into a slice so we can group them dynamically
-	allBindings := []tui.Keybinding{
-		bindings.AddFile,
-		bindings.Cancel,
-		bindings.Cd,
-		bindings.Parent,
-		bindings.Command,
-		bindings.Copy,
-		bindings.Directories,
-		bindings.Down,
-		bindings.Enter,
-		bindings.Files,
-		bindings.Filter,
-		bindings.GoToStart,
-		bindings.GoToEnd,
-		bindings.Help,
-		bindings.HiddenFiles,
-		bindings.List,
-		bindings.Mkdir,
-		bindings.Move,
-		bindings.Paste,
-		bindings.Preview,
-		bindings.Quit,
-		bindings.Redo,
-		bindings.Rename,
-		bindings.Select,
-		bindings.AutoComplete,
-		bindings.Undo,
-		bindings.Up,
+	v := reflect.ValueOf(bindings)
+
+	allBindings := make([]tui.Keybinding, v.NumField())
+
+	for i := 0; i < v.NumField(); i++ {
+		kb, ok := v.Field(i).Interface().(tui.Keybinding)
+		if ok {
+			allBindings[i] = kb
+		}
 	}
 
 	// Group bindings by category name
