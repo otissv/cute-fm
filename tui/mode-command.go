@@ -69,35 +69,56 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Execute command
 	case bindings.Enter.Matches(keyMsg.String()):
 		line := strings.TrimSpace(m.commandInput.Value())
+		//
+		// Special-case pure numeric inputs so that command mode can be
+		// used as a "goto row" prompt, mirroring GotoMode:
+		//
+		//   :10   -> move 10 rows down
+		//   :10-  -> move 10 rows up
+		//   :-10  -> move 10 rows up
+		//
+		// Only when line does *not* match this pattern do we forward it to
+		// the external command executor.
+		if !m.applyRelativeGoto(line) && line != "" {
+			res, err := m.ExecuteCommand(line)
 
-		res, err := m.ExecuteCommand(line)
+			// Apply environment changes.
+			if res.Cwd != "" && res.Cwd != m.currentDir {
+				m.ChangeDirectory(res.Cwd)
+			} else if res.Refresh {
+				// Re-list the current directory when requested by the command.
+				m.ChangeDirectory(m.currentDir)
+			}
 
-		// Apply environment changes.
-		if res.Cwd != "" && res.Cwd != m.currentDir {
-			m.ChangeDirectory(res.Cwd)
-		} else if res.Refresh {
-			// Re-list the current directory when requested by the command.
-			m.ChangeDirectory(m.currentDir)
-		}
+			// Update view mode and re-apply filters so the file list view
+			// actually changes when commands like "ll", "ls", "ld", "lf",
+			// etc. are executed.
+			if res.ViewMode != "" {
+				ActiveFileListMode = FileListMode(res.ViewMode)
+				m.ApplyFilter()
+			}
 
-		// Update view mode and re-apply filters so the file list view
-		// actually changes when commands like "ll", "ls", "ld", "lf",
-		// etc. are executed.
-		if res.ViewMode != "" {
-			ActiveFileListMode = FileListMode(res.ViewMode)
-			m.ApplyFilter()
-		}
+			if res.OpenHelp {
+				m.activeModal = ModalHelp
+			}
 
-		if res.OpenHelp {
-			m.activeModal = ModalHelp
-		}
+			if res.Output != "" {
+				m.rightViewport.SetContent(res.Output)
+			}
 
-		if res.Output != "" {
-			m.rightViewport.SetContent(res.Output)
-		}
+			if err != nil && res.Output == "" {
+				m.rightViewport.SetContent(err.Error())
+			}
 
-		if err != nil && res.Output == "" {
-			m.rightViewport.SetContent(err.Error())
+			if res.Quit {
+				// Clear the prompt before quitting so we don't leave a stale
+				// command line visible.
+				m.commandInput.Blur()
+				m.commandInput.SetValue("")
+				m.searchInput.Focus()
+				m.CalcLayout()
+				return m, tea.Quit
+			}
 		}
 
 		m.commandInput.Blur()
@@ -105,10 +126,6 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.searchInput.Focus()
 
 		m.CalcLayout()
-
-		if res.Quit {
-			return m, tea.Quit
-		}
 
 		ActiveTuiMode = PreviousTuiMode
 

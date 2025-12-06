@@ -38,46 +38,13 @@ func (m Model) GotoMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.Enter.Matches(keyMsg.String()):
 		inputValue := strings.TrimSpace(m.commandInput.Value())
 
-		if inputValue != "" && len(m.files) > 0 {
-			// If the input ends with "-", move the selection up by that many rows.
-			// Otherwise, move the selection down by that many rows.
-			moveBackward := false
-			if strings.HasSuffix(inputValue, "-") {
-				moveBackward = true
-				inputValue = strings.TrimSpace(strings.TrimSuffix(inputValue, "-"))
-			}
-
-			if inputValue != "" {
-				if n, err := strconv.Atoi(inputValue); err == nil {
-					if n < 0 {
-						n = -n
-					}
-					if n > 0 {
-						current := m.fileList.Index()
-						if current < 0 {
-							current = 0
-						}
-
-						var target int
-						if moveBackward {
-							target = current - n
-						} else {
-							target = current + n
-						}
-
-						if target < 0 {
-							target = 0
-						}
-						if target >= len(m.files) {
-							target = len(m.files) - 1
-						}
-
-						m.fileList.Select(target)
-						m.UpdatePreview()
-					}
-				}
-			}
-		}
+		// Delegate the actual movement to a shared helper so that command
+		// mode and goto mode both support the same relative-jump syntax:
+		//
+		//   "10"   -> move 10 rows down
+		//   "10-"  -> move 10 rows up
+		//   "-10"  -> move 10 rows up
+		m.applyRelativeGoto(inputValue)
 
 		m.commandInput.Blur()
 		m.commandInput.SetValue("")
@@ -96,4 +63,76 @@ func (m Model) GotoMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, tea.Batch(cmds...)
+}
+
+// applyRelativeGoto moves the current selection in the file list according to
+// a Vim-style relative offset encoded in inputValue.
+//
+// Supported forms (after trimming whitespace):
+//
+//	"10"   -> move 10 rows down
+//	"10-"  -> move 10 rows up
+//	"-10"  -> move 10 rows up
+//
+// It returns true if a valid movement was performed, or false if the input was
+// not a valid relative offset or if there are no files to move between.
+func (m *Model) applyRelativeGoto(inputValue string) bool {
+	inputValue = strings.TrimSpace(inputValue)
+	if inputValue == "" || len(m.files) == 0 {
+		return false
+	}
+
+	moveBackward := false
+
+	// A trailing "-" means "move up".
+	if strings.HasSuffix(inputValue, "-") {
+		moveBackward = true
+		inputValue = strings.TrimSpace(strings.TrimSuffix(inputValue, "-"))
+		if inputValue == "" {
+			return false
+		}
+	}
+
+	n, err := strconv.Atoi(inputValue)
+	if err != nil {
+		return false
+	}
+
+	// A leading "-" also means "move up".
+	if n < 0 {
+		moveBackward = true
+		n = -n
+	}
+
+	if n <= 0 {
+		return false
+	}
+
+	current := m.fileList.Index()
+	if current < 0 {
+		current = 0
+	}
+
+	var target int
+	if moveBackward {
+		target = current - n
+	} else {
+		target = current + n
+	}
+
+	if target < 0 {
+		target = 0
+	}
+	if target >= len(m.files) {
+		target = len(m.files) - 1
+	}
+
+	if target == current {
+		return false
+	}
+
+	m.fileList.Select(target)
+	m.UpdatePreview()
+
+	return true
 }
