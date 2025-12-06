@@ -73,6 +73,8 @@ type Keybindings struct {
 	List         Keybinding
 	Mkdir        Keybinding
 	Move         Keybinding
+	PageDown     Keybinding
+	PageUp       Keybinding
 	Parent       Keybinding
 	Paste        Keybinding
 	Preview      Keybinding
@@ -105,6 +107,16 @@ func GetKeyBindings() Keybindings {
 		Cd: Keybinding{
 			On:          []string{"c"},
 			Description: "Change directory.",
+			Category:    KeybindingCategories.Navigation.Name,
+		},
+		PageDown: Keybinding{
+			On:          []string{"pgdown"},
+			Description: "Move selection one page down.",
+			Category:    KeybindingCategories.Navigation.Name,
+		},
+		PageUp: Keybinding{
+			On:          []string{"pgup"},
+			Description: "Move selection one page up.",
 			Category:    KeybindingCategories.Navigation.Name,
 		},
 		Parent: Keybinding{

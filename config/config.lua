@@ -1,10 +1,4 @@
--- Lua configuration for the Cute file manager.
---
--- This file replaces the old cute.toml configuration. It defines both:
---   - the UI theme (via the global `theme` table), and
---   - user-defined commands (via the global `commands` table).
---
--- The Go side loads this file once at startup. Commands are invoked from the
+-- This file once at startup. Commands are invoked from the
 -- command bar with access to the currently selected file or directory.
 
 -- Theme -----------------------------------------------------------------------

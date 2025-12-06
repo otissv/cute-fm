@@ -143,6 +143,11 @@ type Model struct {
 	searchInput  textinput.Model
 	commandInput textinput.Model
 
+	// countPrefix stores a pending numeric prefix for Vim-style
+	// navigation (e.g. "10j" / "3↓" in the file list).
+	// A value of 0 means "no active prefix".
+	countPrefix int
+
 	// runtimeConfig holds the Lua-backed configuration (theme and commands).
 	runtimeConfig *config.RuntimeConfig
 

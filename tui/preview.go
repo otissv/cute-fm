@@ -206,8 +206,8 @@ func (m *Model) previewDirectory(path string) string {
 	delegate := NewFileItemDelegate(m.theme, m.viewportWidth-2)
 
 	var b strings.Builder
-	for _, entry := range entries {
-		line := delegate.renderFileRow(entry, false)
+	for i, entry := range entries {
+		line := delegate.renderFileRow(entry, false, i)
 		b.WriteString(line)
 		b.WriteByte('\n')
 	}

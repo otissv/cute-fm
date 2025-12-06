@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"fmt"
 	"io"
 	"strings"
 
@@ -59,13 +60,14 @@ func (d FileItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 	}
 
 	isSelected := index == m.Index()
-	line := d.renderFileRow(fi.Info, isSelected)
+	line := d.renderFileRow(fi.Info, isSelected, index)
 	_, _ = io.WriteString(w, line)
 }
 
 // renderFileRow renders a single file row with all columns styled.
-func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool) string {
+func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool, index int) string {
 	const (
+		colIndex = 5
 		colPerms = 11
 		colSize  = 6
 		colUser  = 8
@@ -82,6 +84,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool)
 	name := fi.Name
 
 	// Field colors.
+	indexStyle := theming.StyleFromSpec(theme.FieldColors["nlink"])
 	userStyle := theming.StyleFromSpec(theme.FieldColors["user"])
 	groupStyle := theming.StyleFromSpec(theme.FieldColors["group"])
 	sizeStyle := theming.StyleFromSpec(theme.FieldColors["size"])
@@ -92,6 +95,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool)
 	if isSelected && theme.Selection.Background != "" {
 		bgColor = theme.Selection.Background
 		bg := lipgloss.Color(bgColor)
+		indexStyle = indexStyle.Background(bg)
 		userStyle = userStyle.Background(bg)
 		groupStyle = groupStyle.Background(bg)
 		sizeStyle = sizeStyle.Background(bg)
@@ -99,6 +103,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool)
 	} else {
 		bgColor = theme.FileList.Background
 		bg := lipgloss.Color(bgColor)
+		indexStyle = indexStyle.Background(bg)
 		userStyle = userStyle.Background(bg)
 		groupStyle = groupStyle.Background(bg)
 		sizeStyle = sizeStyle.Background(bg)
@@ -109,6 +114,8 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool)
 	permTextRaw := renderPermissions(theme, fi, bgColor)
 	permText := padCellWithBG(permTextRaw, colPerms, bgColor)
 
+	// 1-based index so it matches Vim-style counts used for navigation.
+	indexText := padCellWithBG(indexStyle.Render(fmt.Sprintf("%d", index+1)), colIndex, bgColor)
 	userText := padCellWithBG(userStyle.Render(user), colUser, bgColor)
 	groupText := padCellWithBG(groupStyle.Render(group), colGroup, bgColor)
 	sizeText := padCellWithBG(sizeStyle.Render(size), colSize, bgColor)
@@ -123,6 +130,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool)
 	nameText := nameStyle.Render(name)
 
 	lineCols := []string{
+		indexText,
 		permText,
 		sizeText,
 		userText,
