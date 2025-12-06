@@ -14,7 +14,6 @@ func FileList(m tui.Model, args tui.ComponentArgs) string {
 		Background(lipgloss.Color(theme.FileList.Background)).
 		BorderBackground(lipgloss.Color(theme.FileList.Background)).
 		BorderForeground(lipgloss.Color(theme.FileList.Border)).
-		// BorderStyle(lipgloss.RoundedBorder()).
 		Foreground(lipgloss.Color(theme.FileList.Foreground)).
 		Height(args.Height).
 		Width(args.Width).

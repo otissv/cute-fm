@@ -54,24 +54,25 @@ func InitialModel(startDir string) Model {
 	fileList.Styles.NoItems = fileList.Styles.NoItems.Foreground(nil)
 
 	m := Model{
-		configDir:          cfgDir,
-		runtimeConfig:      runtimeCfg,
-		jumpTo:             "",
-		fileList:           fileList,
-		fileInfoViewport:   fileInfoViewport,
 		allFiles:           files,
-		files:              files,
+		configDir:          cfgDir,
 		currentDir:         currentDir,
+		fileInfoViewport:   fileInfoViewport,
+		fileList:           fileList,
+		files:              files,
+		imagePreviewActive: false,
+		jumpTo:             "",
+		lastPreviewedPath:  "",
+		layout:             "",
+		layoutRows:         []string{""},
+		previewEnabled:     false,
+		runtimeConfig:      runtimeCfg,
+		showRightPanel:     true,
+		terminalType:       string(detectTerminalType()),
 		theme:              runtimeCfg.Theme,
+		titleText:          "The Cute File Manager",
 		viewportHeight:     0,
 		viewportWidth:      0,
-		layoutRows:         []string{""},
-		layout:             "",
-		titleText:          "The Cute File Manager",
-		terminalType:       string(detectTerminalType()),
-		lastPreviewedPath:  "",
-		imagePreviewActive: false,
-		previewEnabled:     false,
 	}
 
 	// Initialize the search input

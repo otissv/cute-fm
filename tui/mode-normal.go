@@ -263,6 +263,11 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
+	case bindings.ToggleRightPanel.Matches(key):
+		m.showRightPanel = !m.showRightPanel
+		m.CalcLayout()
+		return m, nil
+
 	// Move cursor up in file list (with optional count)
 	case bindings.Up.Matches(key):
 		// Arrow keys should move one row at a time, nano-style. Ignore any

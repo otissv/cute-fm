@@ -81,9 +81,15 @@ func (m Model) View() tea.View {
 
 	rightPanel := lipgloss.JoinVertical(
 		lipgloss.Left,
-		previewTabs,
-		fileInfoViewportView,
 	)
+
+	if m.showRightPanel {
+		rightPanel = lipgloss.JoinVertical(
+			lipgloss.Left,
+			previewTabs,
+			fileInfoViewportView,
+		)
+	}
 
 	viewports := lipgloss.JoinHorizontal(
 		lipgloss.Top,
@@ -100,7 +106,7 @@ func (m Model) View() tea.View {
 	layoutStyle := lipgloss.NewStyle()
 
 	m.layout = lipgloss.JoinVertical(
-		lipgloss.Center,
+		lipgloss.Left,
 		m.layoutRows...,
 	)
 

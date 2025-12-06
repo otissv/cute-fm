@@ -55,39 +55,40 @@ var KeybindingCategories = KeybindingCategory{
 }
 
 type Keybindings struct {
-	AddFile      Keybinding
-	AutoComplete Keybinding
-	Cancel       Keybinding
-	Cd           Keybinding
-	Command      Keybinding
-	Copy         Keybinding
-	Directories  Keybinding
-	Down         Keybinding
-	Enter        Keybinding
-	Files        Keybinding
-	Filter       Keybinding
-	GoToEnd      Keybinding
-	GoToStart    Keybinding
-	Goto         Keybinding
-	Help         Keybinding
-	HiddenFiles  Keybinding
-	List         Keybinding
-	Mkdir        Keybinding
-	Move         Keybinding
-	NextDir      Keybinding
-	PageDown     Keybinding
-	PageUp       Keybinding
-	Parent       Keybinding
-	Paste        Keybinding
-	Preview      Keybinding
-	PreviousDir  Keybinding
-	Quit         Keybinding
-	Redo         Keybinding
-	Remove       Keybinding
-	Rename       Keybinding
-	Select       Keybinding
-	Undo         Keybinding
-	Up           Keybinding
+	AddFile          Keybinding
+	AutoComplete     Keybinding
+	Cancel           Keybinding
+	Cd               Keybinding
+	Command          Keybinding
+	Copy             Keybinding
+	Directories      Keybinding
+	Down             Keybinding
+	Enter            Keybinding
+	Files            Keybinding
+	Filter           Keybinding
+	GoToEnd          Keybinding
+	GoToStart        Keybinding
+	Goto             Keybinding
+	Help             Keybinding
+	HiddenFiles      Keybinding
+	List             Keybinding
+	Mkdir            Keybinding
+	Move             Keybinding
+	NextDir          Keybinding
+	PageDown         Keybinding
+	PageUp           Keybinding
+	Parent           Keybinding
+	Paste            Keybinding
+	Preview          Keybinding
+	PreviousDir      Keybinding
+	Quit             Keybinding
+	Redo             Keybinding
+	Remove           Keybinding
+	Rename           Keybinding
+	Select           Keybinding
+	ToggleRightPanel Keybinding
+	Undo             Keybinding
+	Up               Keybinding
 }
 
 func GetKeyBindings() Keybindings {
@@ -241,7 +242,7 @@ func GetKeyBindings() Keybindings {
 		},
 		Redo: Keybinding{
 			On:          []string{"ctrl+z"},
-			Description: "Redo.",
+			Description: "Redo previuos action.",
 			Category:    KeybindingCategories.General.Name,
 		},
 		Select: Keybinding{
@@ -249,9 +250,14 @@ func GetKeyBindings() Keybindings {
 			Description: "Select files or directories.",
 			Category:    KeybindingCategories.Editing.Name,
 		},
+		ToggleRightPanel: Keybinding{
+			On:          []string{"t"},
+			Description: "Toggle right panel.",
+			Category:    KeybindingCategories.General.Name,
+		},
 		Undo: Keybinding{
 			On:          []string{"z"},
-			Description: "Undo.",
+			Description: "Undo last action.",
 			Category:    KeybindingCategories.General.Name,
 		},
 		Up: Keybinding{

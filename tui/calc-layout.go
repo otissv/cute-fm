@@ -41,8 +41,13 @@ func (m *Model) CalcLayout() {
 		viewportContentHeight = 1 // Minimum content height
 	}
 
-	// Calculate viewport width (half of available width, accounting for borders).
-	m.viewportWidth = (m.width / 2)
+	// Calculate viewport width. When the right panel is hidden, the left
+	// viewport should take the full terminal width; otherwise, split evenly.
+	if m.showRightPanel {
+		m.viewportWidth = m.width / 2
+	} else {
+		m.viewportWidth = m.width
+	}
 
 	// Content width for the list (subtract borders).
 	listContentWidth := m.viewportWidth - 2

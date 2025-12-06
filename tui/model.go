@@ -138,6 +138,8 @@ type Model struct {
 	searchInput  textinput.Model
 	commandInput textinput.Model
 
+	showRightPanel bool
+
 	jumpTo string
 
 	// countPrefix stores a pending numeric prefix for Vim-style
