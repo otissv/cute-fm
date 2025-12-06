@@ -205,8 +205,17 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			// Even if we're at the root (Dir("/") == "/"), attempt to
 			// reload so the listing stays fresh.
-			m.ChangeDirectory(m.currentDir)
+			m.ReloadDirectory()
 		}
+		return m, nil
+
+	// Navigate backwards/forwards through directory history.
+	case bindings.PreviousDir.Matches(key):
+		m.NavigatePreviousDir()
+		return m, nil
+
+	case bindings.NextDir.Matches(key):
+		m.NavigateNextDir()
 		return m, nil
 
 	// Toggle preview

@@ -74,11 +74,13 @@ type Keybindings struct {
 	List         Keybinding
 	Mkdir        Keybinding
 	Move         Keybinding
+	NextDir      Keybinding
 	PageDown     Keybinding
 	PageUp       Keybinding
 	Parent       Keybinding
 	Paste        Keybinding
 	Preview      Keybinding
+	PreviousDir  Keybinding
 	Quit         Keybinding
 	Redo         Keybinding
 	Remove       Keybinding
@@ -160,7 +162,6 @@ func GetKeyBindings() Keybindings {
 			Description: "Filter directory content.",
 			Category:    KeybindingCategories.Filter.Name,
 		},
-
 		Goto: Keybinding{
 			On:          []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"},
 			Description: "Enter goto mode to jump to a selection",
@@ -182,7 +183,7 @@ func GetKeyBindings() Keybindings {
 			Category:    KeybindingCategories.Help.Name,
 		},
 		HiddenFiles: Keybinding{
-			On:          []string{"h"},
+			On:          []string{"i"},
 			Description: "Toggle hidden files.",
 			Category:    KeybindingCategories.Views.Name,
 		},
@@ -211,6 +212,18 @@ func GetKeyBindings() Keybindings {
 			Description: "Preview file or folder.",
 			Category:    KeybindingCategories.Views.Name,
 		},
+
+		NextDir: Keybinding{
+			On:          []string{"right", "l"},
+			Description: "Go to next directory in history.",
+			Category:    KeybindingCategories.Navigation.Name,
+		},
+		PreviousDir: Keybinding{
+			On:          []string{"left", "h"},
+			Description: "Go to previous directory in history.",
+			Category:    KeybindingCategories.Navigation.Name,
+		},
+
 		Quit: Keybinding{
 			On:          []string{"q"},
 			Description: "Quit the application.",

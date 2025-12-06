@@ -38,10 +38,8 @@ type TUIModes struct {
 	TuiModeCopy    TUIMode
 	TuiModeGoto    TUIMode
 
-	TuiModeParent      TUIMode
-	TuiModeRename      TUIMode
-	TuiModePreviousDir TUIMode
-	TuiModeNextDir     TUIMode
+	TuiModeRename  TUIMode
+	TuiModeNextDir TUIMode
 }
 
 const (
@@ -54,10 +52,8 @@ const (
 	TuiModeHelp         TUIMode = "HELP"
 	TuiModeMkdir        TUIMode = "MKDIR"
 	TuiModeMove         TUIMode = "MOVE"
-	TuiModeNextDir      TUIMode = "NEXT_DIR"
 	TuiModeNormal       TUIMode = "NORMAL"
 	TuiModeParent       TUIMode = "PARENT"
-	TuiModePreviousDir  TUIMode = "PREVIOUS_DIR"
 	TuiModeQuit         TUIMode = "QUIT"
 	TuiModeRemove       TUIMode = "REMOVE"
 	TuiModeRename       TUIMode = "RENAME"
@@ -66,20 +62,17 @@ const (
 )
 
 var TuiModes = TUIModes{
-	TuiModeAddFile:     TuiModeAddFile,
-	TuiModeCd:          TuiModeCd,
-	TuiModeCommand:     TuiModeCommand,
-	TuiModeCopy:        TuiModeCopy,
-	TuiModeFilter:      TuiModeFilter,
-	TuiModeHelp:        TuiModeHelp,
-	TuiModeMkdir:       TuiModeMkdir,
-	TuiModeNextDir:     TuiModeNextDir,
-	TuiModeNormal:      TuiModeNormal,
-	TuiModeParent:      TuiModeParent,
-	TuiModePreviousDir: TuiModePreviousDir,
-	TuiModeRemove:      TuiModeRemove,
-	TuiModeRename:      TuiModeRename,
-	TuiModeGoto:        TuiModeGoto,
+	TuiModeAddFile: TuiModeAddFile,
+	TuiModeCd:      TuiModeCd,
+	TuiModeCommand: TuiModeCommand,
+	TuiModeCopy:    TuiModeCopy,
+	TuiModeFilter:  TuiModeFilter,
+	TuiModeHelp:    TuiModeHelp,
+	TuiModeMkdir:   TuiModeMkdir,
+	TuiModeNormal:  TuiModeNormal,
+	TuiModeRemove:  TuiModeRemove,
+	TuiModeRename:  TuiModeRename,
+	TuiModeGoto:    TuiModeGoto,
 }
 
 type (
@@ -162,6 +155,14 @@ type Model struct {
 	allFiles   []filesystem.FileInfo
 	files      []filesystem.FileInfo
 	currentDir string
+
+	// Directory navigation history (similar to a web browser's back/forward).
+	// dirBackStack holds previously visited directories; the most recent entry
+	// is at the end of the slice.
+	dirBackStack []string
+	// dirForwardStack holds directories we can move forward to after going
+	// back. The most recent "forward" target is at the end of the slice.
+	dirForwardStack []string
 
 	activeModal ModalKind
 

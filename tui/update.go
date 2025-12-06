@@ -178,9 +178,18 @@ func (m *Model) ApplyFilter() {
 	m.UpdatePreview()
 }
 
-// ChangeDirectory updates the model to point at a new current directory and
-// reloads the file list.
-func (m *Model) ChangeDirectory(dir string) {
+// changeDirectoryInternal updates the model to point at a new current
+// directory and reloads the file list. When trackHistory is true, the
+// previous directory is pushed onto the "back" stack and the "forward"
+// stack is cleared, mirroring typical browser navigation behaviour.
+func (m *Model) changeDirectoryInternal(dir string, trackHistory bool) {
+	// Record history before we actually change directories.
+	if trackHistory && m.currentDir != "" && m.currentDir != dir {
+		m.dirBackStack = append(m.dirBackStack, m.currentDir)
+		// Any new navigation invalidates the "forward" history.
+		m.dirForwardStack = nil
+	}
+
 	files, err := filesystem.ListDirectory(dir)
 	if err != nil {
 		m.rightViewport.SetContent("Error reading directory:\n" + err.Error())
@@ -205,6 +214,65 @@ func (m *Model) ChangeDirectory(dir string) {
 
 	// And recompute the preview for the new directory/selection.
 	m.UpdatePreview()
+}
+
+// ChangeDirectory is the public helper used throughout the TUI when the user
+// explicitly navigates to a new directory (e.g. via Enter, :cd, parent, etc.).
+// It records the change in the navigation history so that PreviousDir/NextDir
+// can traverse it.
+func (m *Model) ChangeDirectory(dir string) {
+	m.changeDirectoryInternal(dir, true)
+}
+
+// ReloadDirectory reloads the current directory without adding a new history
+// entry. This is used when commands request a simple refresh of the listing.
+func (m *Model) ReloadDirectory() {
+	if m.currentDir == "" {
+		return
+	}
+	m.changeDirectoryInternal(m.currentDir, false)
+}
+
+// NavigatePreviousDir moves to the previously visited directory, if any.
+// It updates both the back and forward stacks so that repeated invocations
+// allow walking backward through the navigation history.
+func (m *Model) NavigatePreviousDir() {
+	if len(m.dirBackStack) == 0 {
+		return
+	}
+
+	// Pop the last entry from the back stack.
+	lastIdx := len(m.dirBackStack) - 1
+	prevDir := m.dirBackStack[lastIdx]
+	m.dirBackStack = m.dirBackStack[:lastIdx]
+
+	// Current directory becomes a "forward" target.
+	if m.currentDir != "" && m.currentDir != prevDir {
+		m.dirForwardStack = append(m.dirForwardStack, m.currentDir)
+	}
+
+	// Do not record this as a new history entry; we're traversing history.
+	m.changeDirectoryInternal(prevDir, false)
+}
+
+// NavigateNextDir moves forward in the directory history, if possible.
+func (m *Model) NavigateNextDir() {
+	if len(m.dirForwardStack) == 0 {
+		return
+	}
+
+	// Pop the last entry from the forward stack.
+	lastIdx := len(m.dirForwardStack) - 1
+	nextDir := m.dirForwardStack[lastIdx]
+	m.dirForwardStack = m.dirForwardStack[:lastIdx]
+
+	// Current directory becomes part of the "back" history.
+	if m.currentDir != "" && m.currentDir != nextDir {
+		m.dirBackStack = append(m.dirBackStack, m.currentDir)
+	}
+
+	// Do not record this as a new history entry; we're traversing history.
+	m.changeDirectoryInternal(nextDir, false)
 }
 
 // filterByViewMode filters the given file list according to the current view

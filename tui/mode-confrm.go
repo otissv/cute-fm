@@ -29,7 +29,8 @@ func (m Model) ConfirmMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 		if res.Cwd != "" && res.Cwd != m.currentDir {
 			m.ChangeDirectory(res.Cwd)
 		} else if res.Refresh {
-			m.ChangeDirectory(m.currentDir)
+			// Refresh the current directory without recording history.
+			m.ReloadDirectory()
 		}
 
 		ActiveTuiMode = PreviousTuiMode

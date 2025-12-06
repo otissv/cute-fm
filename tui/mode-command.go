@@ -86,8 +86,9 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if res.Cwd != "" && res.Cwd != m.currentDir {
 				m.ChangeDirectory(res.Cwd)
 			} else if res.Refresh {
-				// Re-list the current directory when requested by the command.
-				m.ChangeDirectory(m.currentDir)
+				// Re-list the current directory when requested by the command
+				// without creating an extra history entry.
+				m.ReloadDirectory()
 			}
 
 			// Update view mode and re-apply filters so the file list view
