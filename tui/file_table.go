@@ -61,13 +61,13 @@ func (d FileItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 
 	isSelected := index == m.Index()
 	// Compute a Vim-style line number:
-	//   - The currently selected row shows its absolute position (1-based).
+	//   - The currently selected row shows 0.
 	//   - All other rows show the absolute distance from the selection.
 	displayIndex := index + 1
 	current := m.Index()
 	if current >= 0 {
 		if index == current {
-			displayIndex = index + 1
+			displayIndex = 0
 		} else {
 			diff := index - current
 			if diff < 0 {
