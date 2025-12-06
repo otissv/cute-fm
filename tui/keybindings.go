@@ -112,21 +112,6 @@ func GetKeyBindings() Keybindings {
 			Description: "Change directory.",
 			Category:    KeybindingCategories.Navigation.Name,
 		},
-		PageDown: Keybinding{
-			On:          []string{"pgdown"},
-			Description: "Move selection one page down.",
-			Category:    KeybindingCategories.Navigation.Name,
-		},
-		PageUp: Keybinding{
-			On:          []string{"pgup"},
-			Description: "Move selection one page up.",
-			Category:    KeybindingCategories.Navigation.Name,
-		},
-		Parent: Keybinding{
-			On:          []string{"backspace", "backspace2"},
-			Description: "Change directory to parent directory.",
-			Category:    KeybindingCategories.Navigation.Name,
-		},
 		Command: Keybinding{
 			On:          []string{":"},
 			Description: "Enter Commands.",
@@ -207,11 +192,27 @@ func GetKeyBindings() Keybindings {
 			Description: "Go to next directory in history.",
 			Category:    KeybindingCategories.Navigation.Name,
 		},
-		Paste: Keybinding{
-			On:          []string{"v"},
-			Description: "Paste file or directory.",
-			Category:    KeybindingCategories.Editing.Name,
+		PageDown: Keybinding{
+			On:          []string{"pgdown"},
+			Description: "Move selection one page down.",
+			Category:    KeybindingCategories.Navigation.Name,
 		},
+		PageUp: Keybinding{
+			On:          []string{"pgup"},
+			Description: "Move selection one page up.",
+			Category:    KeybindingCategories.Navigation.Name,
+		},
+		Parent: Keybinding{
+			On:          []string{"backspace"},
+			Description: "Change directory to parent directory.",
+			Category:    KeybindingCategories.Navigation.Name,
+		},
+		// leave for slipt view
+		// Paste: Keybinding{
+		// 	On:          []string{"v"},
+		// 	Description: "Paste file or directory.",
+		// 	Category:    KeybindingCategories.Editing.Name,
+		// },
 		Preview: Keybinding{
 			On:          []string{"w"},
 			Description: "Preview file or folder.",

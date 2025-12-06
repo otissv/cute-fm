@@ -17,7 +17,7 @@ func HelpModal(m tui.Model) *lipgloss.Layer {
 	helpContent := strings.TrimSpace(buildHelpContent())
 	scrollOffset := m.GetHelpScrollOffset()
 
-	modalWidth := 80
+	modalWidth := 90
 	modalHeight := height / 2
 
 	fw := FloatingWindow{
