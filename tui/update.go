@@ -39,45 +39,49 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		if ActiveTuiMode == TuiModeQuit {
-			return m.QuitMode(msg)
+		if ActiveTuiMode == TuiModeAddFile {
+			return m.UtilityMode(msg, "touch")
 		}
 
-		if ActiveTuiMode == TuiModeNormal {
-			return m.NormalMode(msg)
-		}
-
-		if ActiveTuiMode == TuiModeHelp {
-			return m.HelpMode(msg)
-		}
-
-		if ActiveTuiMode == TuiModeFilter {
-			return m.FilterMode(msg)
-		}
-
-		if ActiveTuiMode == TuiModeSelect {
-			return m.SelectMode(msg)
+		if ActiveTuiMode == TuiModeCd {
+			return m.UtilityMode(msg, "cd")
 		}
 
 		if ActiveTuiMode == TuiModeCommand {
 			return m.CommandMode(msg)
 		}
 
-		if ActiveTuiMode == TuiModeAddFile {
-			m.UtilityMode(msg, "touch")
+		if ActiveTuiMode == TuiModeCopy {
+			return m.UtilityMode(msg, "cp")
+		}
+
+		if ActiveTuiMode == TuiModeFilter {
+			return m.FilterMode(msg)
+		}
+
+		if ActiveTuiMode == TuiModeHelp {
+			return m.HelpMode(msg)
 		}
 
 		if ActiveTuiMode == TuiModeMkdir {
 			return m.UtilityMode(msg, "mkdir")
 		}
+		if ActiveTuiMode == TuiModeMove {
+			return m.UtilityMode(msg, "mv")
+		}
 
-		if ActiveTuiMode == TuiModeMkdir {
-			return m.UtilityMode(msg, "mkdir")
+		if ActiveTuiMode == TuiModeNormal {
+			return m.NormalMode(msg)
+		}
+
+		if ActiveTuiMode == TuiModeQuit {
+			return m.QuitMode(msg)
 		}
 
 		if ActiveTuiMode == TuiModeRemove {
 			return m.ConfirmMode(msg, "rm -r")
 		}
+
 	}
 
 	return m, nil

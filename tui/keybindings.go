@@ -148,12 +148,12 @@ func GetKeyBindings() Keybindings {
 			Category:    KeybindingCategories.Filter.Name,
 		},
 		GoToStart: Keybinding{
-			On:          []string{"g"},
+			On:          []string{"g", "home"},
 			Description: "Goto start",
 			Category:    KeybindingCategories.Navigation.Name,
 		},
 		GoToEnd: Keybinding{
-			On:          []string{"G"},
+			On:          []string{"G", "end"},
 			Description: "Goto end",
 			Category:    KeybindingCategories.Navigation.Name,
 		},

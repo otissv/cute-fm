@@ -99,6 +99,20 @@ func (m Model) View() tea.View {
 	var canvas *lipgloss.Canvas
 	switch ActiveTuiMode {
 
+	case TuiModeAddFile:
+		commandLayer := m.CommandModal(m, CommandModalArgs{
+			Title:       "Add New File",
+			Placeholder: "Enter file name...",
+		})
+		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
+
+	case TuiModeCd:
+		commandLayer := m.CommandModal(m, CommandModalArgs{
+			Title:       "Change Directory",
+			Placeholder: "Enter directory...",
+		})
+		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
+
 	case TuiModeCommand:
 		commandLayer := m.CommandModal(m, CommandModalArgs{
 			Title:       "Command",
@@ -106,10 +120,10 @@ func (m Model) View() tea.View {
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
-	case TuiModeAddFile:
+	case TuiModeCopy:
 		commandLayer := m.CommandModal(m, CommandModalArgs{
-			Title:       "Add New File",
-			Placeholder: "Enter file name...",
+			Title:       "Copy",
+			Placeholder: "Enter desination...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
@@ -124,17 +138,23 @@ func (m Model) View() tea.View {
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
-	case TuiModeRemove:
-		modalLayer := m.DialogModal(m, DialogModalArgs{
-			Title:   "Remove",
-			Content: "Are you sure you want to remove\n\nYes (y) No (n)",
+	case TuiModeMove:
+		commandLayer := m.CommandModal(m, CommandModalArgs{
+			Title:       "Move",
+			Placeholder: "Enter desination...",
 		})
-		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
+		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case TuiModeQuit:
 		modalLayer := m.DialogModal(m, DialogModalArgs{
 			Title:   "Quit",
 			Content: "Press q to quit\n\nor\n\n press ESC to cancel",
+		})
+		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
+	case TuiModeRemove:
+		modalLayer := m.DialogModal(m, DialogModalArgs{
+			Title:   "Remove",
+			Content: "Are you sure you want to remove\n\nYes (y) No (n)",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 

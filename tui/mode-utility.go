@@ -33,9 +33,20 @@ func (m Model) UtilityMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 
 	// Confirm command on Enter.
 	case bindings.Enter.Matches(keyMsg.String()):
+
 		inputValue := strings.TrimSpace(m.commandInput.Value())
+
 		if inputValue != "" {
-			res, _ := m.ExecuteCommand(command + " " + inputValue)
+			line := command + " " + inputValue
+			selectedEntry := m.GetSelectedEntry()
+
+			// For copy and move operations, automatically include the selected path
+			// as the source and use the input as the destination.
+			if (command == "cp" || command == "mv") && selectedEntry != nil {
+				line = command + " " + selectedEntry.Path + " " + inputValue
+			}
+
+			res, _ := m.ExecuteCommand(line)
 
 			if res.Cwd != "" && res.Cwd != m.currentDir {
 				m.ChangeDirectory(res.Cwd)

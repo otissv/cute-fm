@@ -26,7 +26,6 @@ type TUIMode string
 type TUIModes struct {
 	TuiModeNormal  TUIMode
 	TuiModeAddFile TUIMode
-	TuiModeCd      TUIMode
 	TuiModeCommand TUIMode
 	TuiModeFilter  TUIMode
 	TuiModeHelp    TUIMode
@@ -35,10 +34,13 @@ type TUIModes struct {
 	TuiModeRemove  TUIMode
 	TuiModeSelect  TUIMode
 
-	TuiModeMove   TUIMode
-	TuiModeCopy   TUIMode
-	TuiModeParent TUIMode
-	TuiModeRename TUIMode
+	TuiModeCd          TUIMode
+	TuiModeMove        TUIMode
+	TuiModeCopy        TUIMode
+	TuiModeParent      TUIMode
+	TuiModeRename      TUIMode
+	TuiModePreviousDir TUIMode
+	TuiModeNextDir     TUIMode
 }
 
 const (
@@ -46,31 +48,35 @@ const (
 	TuiModeAutoComplete TUIMode = "AUTOCOMPLETE"
 	TuiModeCd           TUIMode = "CD"
 	TuiModeCommand      TUIMode = "COMMAND"
+	TuiModeCopy         TUIMode = "COPY"
 	TuiModeFilter       TUIMode = "FILTER"
 	TuiModeHelp         TUIMode = "HELP"
 	TuiModeMkdir        TUIMode = "MKDIR"
+	TuiModeMove         TUIMode = "MOVE"
+	TuiModeNextDir      TUIMode = "NEXT_DIR"
 	TuiModeNormal       TUIMode = "NORMAL"
-	TuiModeParent       TUIMode = "TUIMODEPARENT"
+	TuiModeParent       TUIMode = "PARENT"
+	TuiModePreviousDir  TUIMode = "PREVIOUS_DIR"
 	TuiModeQuit         TUIMode = "QUIT"
 	TuiModeRemove       TUIMode = "REMOVE"
-	TuiModeMove         TUIMode = "MOVE"
-	TuiModeCopy         TUIMode = "COPY"
 	TuiModeRename       TUIMode = "RENAME"
 	TuiModeSelect       TUIMode = "SELECT"
 )
 
 var TuiModes = TUIModes{
-	TuiModeAddFile: TuiModeAddFile,
-	TuiModeCd:      TuiModeCd,
-	TuiModeCommand: TuiModeCommand,
-	TuiModeCopy:    TuiModeCopy,
-	TuiModeFilter:  TuiModeFilter,
-	TuiModeHelp:    TuiModeHelp,
-	TuiModeMkdir:   TuiModeMkdir,
-	TuiModeNormal:  TuiModeNormal,
-	TuiModeParent:  TuiModeParent,
-	TuiModeRemove:  TuiModeRemove,
-	TuiModeRename:  TuiModeRename,
+	TuiModeAddFile:     TuiModeAddFile,
+	TuiModeCd:          TuiModeCd,
+	TuiModeCommand:     TuiModeCommand,
+	TuiModeCopy:        TuiModeCopy,
+	TuiModeFilter:      TuiModeFilter,
+	TuiModeHelp:        TuiModeHelp,
+	TuiModeMkdir:       TuiModeMkdir,
+	TuiModeNextDir:     TuiModeNextDir,
+	TuiModeNormal:      TuiModeNormal,
+	TuiModeParent:      TuiModeParent,
+	TuiModePreviousDir: TuiModePreviousDir,
+	TuiModeRemove:      TuiModeRemove,
+	TuiModeRename:      TuiModeRename,
 }
 
 type (

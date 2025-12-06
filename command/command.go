@@ -258,7 +258,7 @@ func cmdMv(env Environment, args []string) (Result, error) {
 	return Result{Output: fmt.Sprintf("mv: %s -> %s", src, dst), Refresh: true}, nil
 }
 
-// cmdCp implements a basic "cp <source> <destination>" for regular files.
+// cmdCp implements "cp <source> <destination>" for files and directories.
 func cmdCp(env Environment, args []string) (Result, error) {
 	if len(args) < 2 {
 		return Result{}, fmt.Errorf("cp: missing operand")
@@ -271,8 +271,18 @@ func cmdCp(env Environment, args []string) (Result, error) {
 	if err != nil {
 		return Result{}, fmt.Errorf("cp: %w", err)
 	}
+
+	// If source is a directory, recursively copy it (cp -R style).
 	if info.IsDir() {
-		return Result{}, fmt.Errorf("cp: copying directories is not supported yet")
+		// If destination exists and is a directory, copy into a subdirectory
+		// named after the source's base name.
+		if dInfo, err := os.Stat(dst); err == nil && dInfo.IsDir() {
+			dst = filepath.Join(dst, filepath.Base(src))
+		}
+		if err := copyDirRecursive(src, dst); err != nil {
+			return Result{}, fmt.Errorf("cp: %w", err)
+		}
+		return Result{Output: fmt.Sprintf("cp: %s -> %s", src, dst), Refresh: true}, nil
 	}
 
 	// If destination is an existing directory, copy into it.
@@ -280,23 +290,75 @@ func cmdCp(env Environment, args []string) (Result, error) {
 		dst = filepath.Join(dst, filepath.Base(src))
 	}
 
-	in, err := os.Open(src)
-	if err != nil {
-		return Result{}, fmt.Errorf("cp: %w", err)
-	}
-	defer in.Close()
-
-	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, info.Mode())
-	if err != nil {
-		return Result{}, fmt.Errorf("cp: %w", err)
-	}
-	defer out.Close()
-
-	if _, err := io.Copy(out, in); err != nil {
+	if err := copyFile(src, dst, info.Mode()); err != nil {
 		return Result{}, fmt.Errorf("cp: %w", err)
 	}
 
 	return Result{Output: fmt.Sprintf("cp: %s -> %s", src, dst), Refresh: true}, nil
+}
+
+// copyFile copies a single file from src to dst using the given file mode.
+func copyFile(src, dst string, mode os.FileMode) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	if _, err := io.Copy(out, in); err != nil {
+		return err
+	}
+	return nil
+}
+
+// copyDirRecursive recursively copies the contents of src directory into dst.
+func copyDirRecursive(src, dst string) error {
+	info, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("source is not a directory: %s", src)
+	}
+
+	// Create destination directory (including parents) with same permissions.
+	if err := os.MkdirAll(dst, info.Mode()); err != nil {
+		return err
+	}
+
+	entries, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
+
+		if entry.IsDir() {
+			if err := copyDirRecursive(srcPath, dstPath); err != nil {
+				return err
+			}
+			continue
+		}
+
+		fi, err := entry.Info()
+		if err != nil {
+			return err
+		}
+
+		if err := copyFile(srcPath, dstPath, fi.Mode()); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // cmdLn implements a simple "ln <source> <destination>" using hard links.

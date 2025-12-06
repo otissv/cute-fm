@@ -57,6 +57,19 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
+	// Copy file or folder
+	case bindings.Copy.Matches(keyMsg.String()):
+		if ActiveTuiMode != TuiModeCopy {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = TuiModeCopy
+
+			m.commandInput.SetValue("")
+			m.commandInput.Focus()
+		} else {
+			ActiveTuiMode = PreviousTuiMode
+		}
+		return m, nil
+
 	// Change file list to directoties only view
 	case bindings.Directories.Matches(keyMsg.String()):
 		ActiveFileListMode = "ld"
@@ -109,11 +122,24 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.UpdatePreview()
 		return m, nil
 
-		// Add new directory
+	// Add new directory
 	case bindings.Mkdir.Matches(keyMsg.String()):
 		if ActiveTuiMode != TuiModeMkdir {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = TuiModeMkdir
+
+			m.commandInput.SetValue("")
+			m.commandInput.Focus()
+		} else {
+			ActiveTuiMode = PreviousTuiMode
+		}
+		return m, nil
+
+	// move file or folder
+	case bindings.Move.Matches(keyMsg.String()):
+		if ActiveTuiMode != TuiModeMove {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = TuiModeMove
 
 			m.commandInput.SetValue("")
 			m.commandInput.Focus()
