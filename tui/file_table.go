@@ -60,11 +60,29 @@ func (d FileItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 	}
 
 	isSelected := index == m.Index()
-	line := d.renderFileRow(fi.Info, isSelected, index)
+	// Compute a Vim-style line number:
+	//   - The currently selected row shows its absolute position (1-based).
+	//   - All other rows show the absolute distance from the selection.
+	displayIndex := index + 1
+	current := m.Index()
+	if current >= 0 {
+		if index == current {
+			displayIndex = index + 1
+		} else {
+			diff := index - current
+			if diff < 0 {
+				diff = -diff
+			}
+			displayIndex = diff
+		}
+	}
+
+	line := d.renderFileRow(fi.Info, isSelected, displayIndex)
 	_, _ = io.WriteString(w, line)
 }
 
 // renderFileRow renders a single file row with all columns styled.
+// index is the precomputed display index (already relative/absolute as desired).
 func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool, index int) string {
 	const (
 		colIndex = 5
@@ -114,8 +132,8 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool,
 	permTextRaw := renderPermissions(theme, fi, bgColor)
 	permText := padCellWithBG(permTextRaw, colPerms, bgColor)
 
-	// 1-based index so it matches Vim-style counts used for navigation.
-	indexText := padCellWithBG(indexStyle.Render(fmt.Sprintf("%d", index+1)), colIndex, bgColor)
+	// Index column: value is already prepared by the caller (relative/absolute).
+	indexText := padCellWithBG(indexStyle.Render(fmt.Sprintf("%d", index)), colIndex, bgColor)
 	userText := padCellWithBG(userStyle.Render(user), colUser, bgColor)
 	groupText := padCellWithBG(groupStyle.Render(group), colGroup, bgColor)
 	sizeText := padCellWithBG(sizeStyle.Render(size), colSize, bgColor)

@@ -207,7 +207,9 @@ func (m *Model) previewDirectory(path string) string {
 
 	var b strings.Builder
 	for i, entry := range entries {
-		line := delegate.renderFileRow(entry, false, i)
+		// In the preview, there is no "current selection", so just show
+		// simple 1-based absolute numbering.
+		line := delegate.renderFileRow(entry, false, i+1)
 		b.WriteString(line)
 		b.WriteByte('\n')
 	}
