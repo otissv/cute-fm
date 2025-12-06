@@ -85,6 +85,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.QuitMode(msg)
 		}
 
+		if ActiveTuiMode == TuiModeRename {
+			return m.UtilityMode(msg, "rename")
+		}
+
 		if ActiveTuiMode == TuiModeRemove {
 			return m.ConfirmMode(msg, "rm -r")
 		}

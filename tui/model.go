@@ -24,22 +24,21 @@ const (
 type TUIMode string
 
 type TUIModes struct {
-	TuiModeNormal  TUIMode
 	TuiModeAddFile TUIMode
+	TuiModeCd      TUIMode
 	TuiModeCommand TUIMode
+	TuiModeCopy    TUIMode
 	TuiModeFilter  TUIMode
+	TuiModeGoto    TUIMode
 	TuiModeHelp    TUIMode
 	TuiModeMkdir   TUIMode
+	TuiModeMove    TUIMode
+	TuiModeNextDir TUIMode
+	TuiModeNormal  TUIMode
 	TuiModeQuit    TUIMode
 	TuiModeRemove  TUIMode
-	TuiModeSelect  TUIMode
-	TuiModeMove    TUIMode
-	TuiModeCd      TUIMode
-	TuiModeCopy    TUIMode
-	TuiModeGoto    TUIMode
-
 	TuiModeRename  TUIMode
-	TuiModeNextDir TUIMode
+	TuiModeSelect  TUIMode
 }
 
 const (
@@ -49,6 +48,7 @@ const (
 	TuiModeCommand      TUIMode = "COMMAND"
 	TuiModeCopy         TUIMode = "COPY"
 	TuiModeFilter       TUIMode = "FILTER"
+	TuiModeGoto         TUIMode = "GOTO"
 	TuiModeHelp         TUIMode = "HELP"
 	TuiModeMkdir        TUIMode = "MKDIR"
 	TuiModeMove         TUIMode = "MOVE"
@@ -58,7 +58,6 @@ const (
 	TuiModeRemove       TUIMode = "REMOVE"
 	TuiModeRename       TUIMode = "RENAME"
 	TuiModeSelect       TUIMode = "SELECT"
-	TuiModeGoto         TUIMode = "GOTO"
 )
 
 var TuiModes = TUIModes{
@@ -67,12 +66,12 @@ var TuiModes = TUIModes{
 	TuiModeCommand: TuiModeCommand,
 	TuiModeCopy:    TuiModeCopy,
 	TuiModeFilter:  TuiModeFilter,
+	TuiModeGoto:    TuiModeGoto,
 	TuiModeHelp:    TuiModeHelp,
 	TuiModeMkdir:   TuiModeMkdir,
 	TuiModeNormal:  TuiModeNormal,
 	TuiModeRemove:  TuiModeRemove,
 	TuiModeRename:  TuiModeRename,
-	TuiModeGoto:    TuiModeGoto,
 }
 
 type (

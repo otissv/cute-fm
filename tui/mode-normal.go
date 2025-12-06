@@ -242,6 +242,19 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	// Move file or folder
+	case bindings.Rename.Matches(key):
+		if ActiveTuiMode != TuiModeRename {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = TuiModeRename
+
+			m.commandInput.SetValue("")
+			m.commandInput.Focus()
+		} else {
+			ActiveTuiMode = PreviousTuiMode
+		}
+		return m, nil
+
 	// Enter select mode
 	case bindings.Select.Matches(key):
 		if ActiveTuiMode != TuiModeSelect {

@@ -3,6 +3,8 @@ package tui
 import (
 	"strings"
 
+	"cute/console"
+
 	tea "charm.land/bubbletea/v2"
 )
 
@@ -44,6 +46,12 @@ func (m Model) UtilityMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 			// as the source and use the input as the destination.
 			if (command == "cp" || command == "mv") && selectedEntry != nil {
 				line = command + " " + selectedEntry.Path + " " + inputValue
+			}
+
+			if command == "rename" {
+				line = "mv " + selectedEntry.Name + " " + inputValue
+
+				console.Log("%s", line)
 			}
 
 			res, _ := m.ExecuteCommand(line)

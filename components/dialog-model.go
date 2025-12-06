@@ -17,7 +17,7 @@ func DialogModal(m tui.Model, args tui.DialogModalArgs) *lipgloss.Layer {
 		Width:   40,
 		Height:  6,
 		Style:   DefaultFloatingStyle(theme).Align(lipgloss.Center),
-		Title:   "Quit",
+		Title:   args.Title,
 	}
 
 	modalContent := fw.View(width, height)

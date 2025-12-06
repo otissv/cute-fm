@@ -162,12 +162,20 @@ func (m Model) View() tea.View {
 			Content: "Press q to quit\n\nor\n\n press ESC to cancel",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
+
 	case TuiModeRemove:
 		modalLayer := m.DialogModal(m, DialogModalArgs{
 			Title:   "Remove",
 			Content: "Are you sure you want to remove\n\nYes (y) No (n)",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
+
+	case TuiModeRename:
+		commandLayer := m.CommandModal(m, CommandModalArgs{
+			Title:       "Remane",
+			Placeholder: "New name...",
+		})
+		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	default:
 		canvas = lipgloss.NewCanvas(baseLayer)

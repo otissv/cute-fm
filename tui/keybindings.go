@@ -202,6 +202,11 @@ func GetKeyBindings() Keybindings {
 			Description: "Create a new directory.",
 			Category:    KeybindingCategories.Editing.Name,
 		},
+		NextDir: Keybinding{
+			On:          []string{"right", "l"},
+			Description: "Go to next directory in history.",
+			Category:    KeybindingCategories.Navigation.Name,
+		},
 		Paste: Keybinding{
 			On:          []string{"v"},
 			Description: "Paste file or directory.",
@@ -211,12 +216,6 @@ func GetKeyBindings() Keybindings {
 			On:          []string{"w"},
 			Description: "Preview file or folder.",
 			Category:    KeybindingCategories.Views.Name,
-		},
-
-		NextDir: Keybinding{
-			On:          []string{"right", "l"},
-			Description: "Go to next directory in history.",
-			Category:    KeybindingCategories.Navigation.Name,
 		},
 		PreviousDir: Keybinding{
 			On:          []string{"left", "h"},
@@ -249,7 +248,6 @@ func GetKeyBindings() Keybindings {
 			Description: "Select files or directories.",
 			Category:    KeybindingCategories.Editing.Name,
 		},
-
 		Undo: Keybinding{
 			On:          []string{"z"},
 			Description: "Undo.",
