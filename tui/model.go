@@ -148,8 +148,8 @@ type Model struct {
 	// runtimeConfig holds the Lua-backed configuration (theme and commands).
 	runtimeConfig *config.RuntimeConfig
 
-	fileList      list.Model // Bubbles list for file listing
-	rightViewport viewport.Model
+	fileList         list.Model // Bubbles list for file listing
+	fileInfoViewport viewport.Model
 
 	allFiles   []filesystem.FileInfo
 	files      []filesystem.FileInfo
@@ -275,7 +275,7 @@ func (m Model) GetLayoutRows() []string {
 }
 
 func (m Model) GetPreviewViewport() viewport.Model {
-	return m.rightViewport
+	return m.fileInfoViewport
 }
 
 func (m Model) GetSearchInput() textinput.Model {

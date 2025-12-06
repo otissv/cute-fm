@@ -27,7 +27,7 @@ func (m Model) View() tea.View {
 		Height: 1,
 	})
 
-	rightViewportView := m.Preview(
+	fileInfoViewportView := m.Preview(
 		m, ComponentArgs{
 			Width:  m.viewportWidth,
 			Height: m.viewportHeight,
@@ -79,16 +79,16 @@ func (m Model) View() tea.View {
 		filePanelRows...,
 	)
 
-	previewPanel := lipgloss.JoinVertical(
+	rightPanel := lipgloss.JoinVertical(
 		lipgloss.Left,
 		previewTabs,
-		rightViewportView,
+		fileInfoViewportView,
 	)
 
 	viewports := lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		filePanel,
-		previewPanel,
+		rightPanel,
 	)
 
 	m.layoutRows = []string{

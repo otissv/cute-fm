@@ -57,6 +57,6 @@ func (m *Model) CalcLayout() {
 	m.UpdateFileListDelegate(listContentWidth)
 
 	// Update right viewport dimensions (height is the content height).
-	m.rightViewport.SetWidth(m.viewportWidth)
-	m.rightViewport.SetHeight(viewportContentHeight)
+	m.fileInfoViewport.SetWidth(m.viewportWidth)
+	m.fileInfoViewport.SetHeight(viewportContentHeight)
 }

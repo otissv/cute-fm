@@ -132,7 +132,7 @@ func (m *Model) applyRelativeGoto(inputValue string) bool {
 	}
 
 	m.fileList.Select(target)
-	m.UpdatePreview()
+	m.UpdateFileInfoPanel()
 
 	return true
 }

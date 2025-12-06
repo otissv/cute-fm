@@ -27,7 +27,7 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 
 	// Update right viewport (second row, right column)
-	m.rightViewport, cmd = m.rightViewport.Update(msg)
+	m.fileInfoViewport, cmd = m.fileInfoViewport.Update(msg)
 	cmds = append(cmds, cmd)
 
 	// Update history matches when input changes
@@ -104,11 +104,11 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if res.Output != "" {
-				m.rightViewport.SetContent(res.Output)
+				m.fileInfoViewport.SetContent(res.Output)
 			}
 
 			if err != nil && res.Output == "" {
-				m.rightViewport.SetContent(err.Error())
+				m.fileInfoViewport.SetContent(err.Error())
 			}
 
 			if res.Quit {

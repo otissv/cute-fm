@@ -16,8 +16,8 @@ import (
 // file list; otherwise the current working directory is used.
 func InitialModel(startDir string) Model {
 	// Initialize right viewport for the second row
-	rightViewport := viewport.New()
-	rightViewport.SetContent("Right Panel\n\nThis is the right viewport.\nIt will display file previews.")
+	fileInfoViewport := viewport.New()
+	fileInfoViewport.SetContent("Right Panel\n\nThis is the right viewport.\nIt will display file previews.")
 
 	// Determine initial directory for the file list.
 	currentDir := startDir
@@ -58,7 +58,7 @@ func InitialModel(startDir string) Model {
 		runtimeConfig:      runtimeCfg,
 		jumpTo:             "",
 		fileList:           fileList,
-		rightViewport:      rightViewport,
+		fileInfoViewport:   fileInfoViewport,
 		allFiles:           files,
 		files:              files,
 		currentDir:         currentDir,
@@ -93,7 +93,7 @@ func InitialModel(startDir string) Model {
 	ActiveFileListMode = FileListModeList
 
 	// Initialize preview for the initial selection, if any.
-	m.UpdatePreview()
+	m.UpdateFileInfoPanel()
 
 	return m
 }

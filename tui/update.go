@@ -179,7 +179,7 @@ func (m *Model) ApplyFilter() {
 	}
 
 	// Update preview for the new selection after filtering.
-	m.UpdatePreview()
+	m.UpdateFileInfoPanel()
 }
 
 // changeDirectoryInternal updates the model to point at a new current
@@ -196,7 +196,7 @@ func (m *Model) changeDirectoryInternal(dir string, trackHistory bool) {
 
 	files, err := filesystem.ListDirectory(dir)
 	if err != nil {
-		m.rightViewport.SetContent("Error reading directory:\n" + err.Error())
+		m.fileInfoViewport.SetContent("Error reading directory:\n" + err.Error())
 		return
 	}
 
@@ -217,7 +217,7 @@ func (m *Model) changeDirectoryInternal(dir string, trackHistory bool) {
 	m.ApplyFilter()
 
 	// And recompute the preview for the new directory/selection.
-	m.UpdatePreview()
+	m.UpdateFileInfoPanel()
 }
 
 // ChangeDirectory is the public helper used throughout the TUI when the user

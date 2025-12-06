@@ -115,7 +115,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// numeric count prefix so that a stray digit doesn't cause the cursor
 		// to "jump" or effectively page.
 		m.fileList.CursorDown()
-		m.UpdatePreview()
+		m.UpdateFileInfoPanel()
 		return m, nil
 
 	// Navigate into the selected directory.
@@ -161,13 +161,13 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Move cursor to end of file list
 	case bindings.GoToEnd.Matches(keyMsg.String()):
 		m.fileList.GoToEnd()
-		m.UpdatePreview()
+		m.UpdateFileInfoPanel()
 		return m, nil
 
 		// Move cursor to start of file list
 	case bindings.GoToStart.Matches(keyMsg.String()):
 		m.fileList.GoToStart()
-		m.UpdatePreview()
+		m.UpdateFileInfoPanel()
 		return m, nil
 
 	// Move file or folder
@@ -221,7 +221,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Toggle preview
 	case bindings.Preview.Matches(key):
 		m.previewEnabled = !m.previewEnabled
-		m.UpdatePreview()
+		m.UpdateFileInfoPanel()
 		return m, nil
 
 	// Quit application
@@ -269,7 +269,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// numeric count prefix so that a stray digit doesn't cause the cursor
 		// to "jump" or effectively page.
 		m.fileList.CursorUp()
-		m.UpdatePreview()
+		m.UpdateFileInfoPanel()
 		return m, nil
 
 		// Page down in file list (with optional count)
@@ -277,7 +277,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for i := 0; i < count; i++ {
 			m.fileList.NextPage()
 		}
-		m.UpdatePreview()
+		m.UpdateFileInfoPanel()
 		return m, nil
 
 	// Page up in file list (with optional count)
@@ -285,7 +285,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for i := 0; i < count; i++ {
 			m.fileList.PrevPage()
 		}
-		m.UpdatePreview()
+		m.UpdateFileInfoPanel()
 		return m, nil
 	}
 
