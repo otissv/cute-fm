@@ -27,6 +27,18 @@ func (m Model) HelpMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		bindings.Cancel.Matches(keyMsg.String()):
 		ActiveTuiMode = PreviousTuiMode
 		return m, nil
+
+	// Scroll help content up
+	case bindings.Up.Matches(keyMsg.String()):
+		if m.helpScrollOffset > 0 {
+			m.helpScrollOffset--
+		}
+		return m, nil
+
+	// Scroll help content down
+	case bindings.Down.Matches(keyMsg.String()):
+		m.helpScrollOffset++
+		return m, nil
 	}
 
 	return m, nil

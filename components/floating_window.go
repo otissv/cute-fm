@@ -10,11 +10,12 @@ import (
 )
 
 type FloatingWindow struct {
-	Content tui.ViewPrimitive
-	Width   int
-	Height  int
-	Title   string
-	Style   lipgloss.Style
+	Content      tui.ViewPrimitive
+	Width        int
+	Height       int
+	Title        string
+	Style        lipgloss.Style
+	ScrollOffset int
 }
 
 func DefaultFloatingStyle(theme theming.Theme) lipgloss.Style {
@@ -45,6 +46,49 @@ func (fw FloatingWindow) View(outerWidth, outerHeight int) string {
 	}
 
 	contentView := fw.Content.View()
+
+	// Apply vertical scrolling based on ScrollOffset. We slice the content
+	// lines before rendering the box so the border and padding remain intact.
+	if fw.Height > 0 {
+		lines := strings.Split(contentView, "\n")
+		if len(lines) > 0 {
+			totalLines := len(lines)
+
+			start := fw.ScrollOffset
+			if start < 0 {
+				start = 0
+			}
+			if start >= totalLines {
+				start = totalLines - 1
+			}
+
+			end := start + fw.Height
+			if end > totalLines {
+				end = totalLines
+			}
+
+			canScrollUp := start > 0
+			canScrollDown := end < totalLines
+
+			visible := lines[start:end]
+
+			// Add simple scroll indicators to the first/last visible lines
+			// without changing the total number of lines, so the box height
+			// remains stable.
+			if len(visible) > 0 {
+				if canScrollUp {
+					visible[0] = "↑\n" + visible[0]
+				}
+				if canScrollDown {
+					lastIdx := len(visible) - 1
+					visible[lastIdx] = visible[lastIdx] + "\n↓"
+				}
+			}
+
+			contentView = strings.Join(visible, "\n")
+		}
+	}
+
 	box := style.Render(contentView)
 
 	// If there's no title, just return the styled box.

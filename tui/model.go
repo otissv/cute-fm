@@ -131,6 +131,9 @@ type Model struct {
 	layoutRows     []string
 	titleText      string
 
+	// Help modal scroll state
+	helpScrollOffset int
+
 	// Terminal / preview state
 	terminalType       string
 	lastPreviewedPath  string
@@ -271,6 +274,10 @@ func (m Model) GetViewportHeight() int {
 
 func (m Model) GetViewportWidth() int {
 	return m.viewportWidth
+}
+
+func (m Model) GetHelpScrollOffset() int {
+	return m.helpScrollOffset
 }
 
 func (m Model) IsSearchBarOpen() bool {
