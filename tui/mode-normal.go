@@ -23,11 +23,14 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Vim-style numeric prefix: accumulate digits which will be applied
 	// to the next navigation command in the file list.
 	//
+	// NOTE: if a digit key is also configured as a dedicated "Goto" binding,
+	// we must *not* swallow it here; otherwise the Goto handler below would
+	// never see the key press and the mode would never change.
+	//
 	// Examples:
 	//   "5↓"  -> move 5 entries down
 	//   "10↑" -> move 10 entries up
-	//   "42G" -> jump to entry 42 (1-based, clamped)
-	if len(key) == 1 && unicode.IsDigit(rune(key[0])) {
+	if len(key) == 1 && unicode.IsDigit(rune(key[0])) && !bindings.Goto.Matches(key) {
 		d := int(key[0] - '0')
 		m.countPrefix = m.countPrefix*10 + d
 		return m, nil
@@ -143,42 +146,28 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-	// Move cursor to end of file list (or "nG" style jump)
-	case bindings.GoToEnd.Matches(key):
-		// With a numeric prefix, behave like Vim's "nG": jump to the
-		// given (1-based) entry number. Without a prefix, go to the end.
-		if m.countPrefix > 0 && len(m.files) > 0 {
-			target := m.countPrefix - 1
-			if target < 0 {
-				target = 0
-			}
-			if target >= len(m.files) {
-				target = len(m.files) - 1
-			}
-			m.fileList.Select(target)
-		} else {
-			m.fileList.GoToEnd()
+	// Enter Goto mode
+	case bindings.Goto.Matches(key):
+		if ActiveTuiMode != TuiModeGoto {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = TuiModeGoto
+
+			m.jumpTo = key
+			m.commandInput.SetValue(key)
+			m.commandInput.Focus()
+			return m, nil
 		}
+
+		// Move cursor to end of file list
+	case bindings.GoToEnd.Matches(keyMsg.String()):
+		m.fileList.GoToEnd()
 		m.UpdatePreview()
 		return m, nil
 
-	// Move cursor to start of file list
-	case bindings.GoToStart.Matches(key):
+		// Move cursor to start of file list
+	case bindings.GoToStart.Matches(keyMsg.String()):
 		m.fileList.GoToStart()
 		m.UpdatePreview()
-		return m, nil
-
-	// Add new directory
-	case bindings.Mkdir.Matches(key):
-		if ActiveTuiMode != TuiModeMkdir {
-			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeMkdir
-
-			m.commandInput.SetValue("")
-			m.commandInput.Focus()
-		} else {
-			ActiveTuiMode = PreviousTuiMode
-		}
 		return m, nil
 
 	// Move file or folder

@@ -7,6 +7,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"cute/command"
+	"cute/console"
 	"cute/filesystem"
 )
 
@@ -39,6 +40,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
+
+		console.Log("Mode: %s, Key Pressed: %s", ActiveTuiMode, msg.String())
 		if ActiveTuiMode == TuiModeAddFile {
 			return m.UtilityMode(msg, "touch")
 		}
@@ -57,6 +60,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if ActiveTuiMode == TuiModeFilter {
 			return m.FilterMode(msg)
+		}
+
+		if ActiveTuiMode == TuiModeGoto {
+			return m.GotoMode(msg)
 		}
 
 		if ActiveTuiMode == TuiModeHelp {

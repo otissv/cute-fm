@@ -33,10 +33,11 @@ type TUIModes struct {
 	TuiModeQuit    TUIMode
 	TuiModeRemove  TUIMode
 	TuiModeSelect  TUIMode
+	TuiModeMove    TUIMode
+	TuiModeCd      TUIMode
+	TuiModeCopy    TUIMode
+	TuiModeGoto    TUIMode
 
-	TuiModeCd          TUIMode
-	TuiModeMove        TUIMode
-	TuiModeCopy        TUIMode
 	TuiModeParent      TUIMode
 	TuiModeRename      TUIMode
 	TuiModePreviousDir TUIMode
@@ -61,6 +62,7 @@ const (
 	TuiModeRemove       TUIMode = "REMOVE"
 	TuiModeRename       TUIMode = "RENAME"
 	TuiModeSelect       TUIMode = "SELECT"
+	TuiModeGoto         TUIMode = "GOTO"
 )
 
 var TuiModes = TUIModes{
@@ -77,6 +79,7 @@ var TuiModes = TUIModes{
 	TuiModePreviousDir: TuiModePreviousDir,
 	TuiModeRemove:      TuiModeRemove,
 	TuiModeRename:      TuiModeRename,
+	TuiModeGoto:        TuiModeGoto,
 }
 
 type (
@@ -142,6 +145,8 @@ type Model struct {
 
 	searchInput  textinput.Model
 	commandInput textinput.Model
+
+	jumpTo string
 
 	// countPrefix stores a pending numeric prefix for Vim-style
 	// navigation (e.g. "10j" / "3↓" in the file list).

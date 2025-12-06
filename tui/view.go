@@ -17,9 +17,11 @@ func (m Model) View() tea.View {
 			Width:  m.viewportWidth,
 			Height: m.viewportHeight,
 		})
+
 	headerView := m.Header(m, ComponentArgs{
 		Width: m.width,
 	})
+
 	previewTabs := m.PreviewTabs(m, ComponentArgs{
 		Width:  m.viewportWidth,
 		Height: 1,
@@ -30,6 +32,7 @@ func (m Model) View() tea.View {
 			Width:  m.viewportWidth,
 			Height: m.viewportHeight,
 		})
+
 	searchBar := m.SearchBar(
 		m, ComponentArgs{
 			Width:  m.viewportWidth,
@@ -39,23 +42,31 @@ func (m Model) View() tea.View {
 	currentDir := m.CurrentDir(m, ComponentArgs{
 		Height: 1,
 	})
+
 	tuiMode := m.TuiMode(m, ComponentArgs{
 		Height: 1,
 	})
+
 	viewModeText := m.ViewModeText(
 		m, ComponentArgs{
 			Width:  10,
 			Height: 1,
 		})
 
+	defaultStatus := []string{tuiMode, viewModeText, currentDir}
+
+	statusBarItem := defaultStatus
+
+	if ActiveTuiMode == TuiModeGoto {
+		statusBarItem = []string{tuiMode, m.jumpTo}
+	}
+
 	statusBar := m.StatusBar(
 		m, ComponentArgs{
 			Width:  m.width,
 			Height: 1,
 		},
-		tuiMode,
-		viewModeText,
-		currentDir,
+		statusBarItem...,
 	)
 
 	filePanelRows := []string{

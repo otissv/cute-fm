@@ -68,6 +68,7 @@ type Keybindings struct {
 	Filter       Keybinding
 	GoToEnd      Keybinding
 	GoToStart    Keybinding
+	Goto         Keybinding
 	Help         Keybinding
 	HiddenFiles  Keybinding
 	List         Keybinding
@@ -79,8 +80,8 @@ type Keybindings struct {
 	Paste        Keybinding
 	Preview      Keybinding
 	Quit         Keybinding
-	Remove       Keybinding
 	Redo         Keybinding
+	Remove       Keybinding
 	Rename       Keybinding
 	Select       Keybinding
 	Undo         Keybinding
@@ -140,7 +141,7 @@ func GetKeyBindings() Keybindings {
 			Category:    KeybindingCategories.Views.Name,
 		},
 		Down: Keybinding{
-			On:          []string{"down"},
+			On:          []string{"down", "j"},
 			Description: "Move selection down.",
 			Category:    KeybindingCategories.Navigation.Name,
 		},
@@ -158,6 +159,12 @@ func GetKeyBindings() Keybindings {
 			On:          []string{"f"},
 			Description: "Filter directory content.",
 			Category:    KeybindingCategories.Filter.Name,
+		},
+
+		Goto: Keybinding{
+			On:          []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"},
+			Description: "Enter goto mode to jump to a selection",
+			Category:    KeybindingCategories.Navigation.Name,
 		},
 		GoToStart: Keybinding{
 			On:          []string{"g", "home"},
@@ -190,7 +197,7 @@ func GetKeyBindings() Keybindings {
 			Category:    KeybindingCategories.Editing.Name,
 		},
 		Mkdir: Keybinding{
-			On:          []string{"k"},
+			On:          []string{"crtl+a"},
 			Description: "Create a new directory.",
 			Category:    KeybindingCategories.Editing.Name,
 		},
@@ -225,7 +232,7 @@ func GetKeyBindings() Keybindings {
 			Category:    KeybindingCategories.General.Name,
 		},
 		Select: Keybinding{
-			On:          []string{"s"},
+			On:          []string{"ctrl+s"},
 			Description: "Select files or directories.",
 			Category:    KeybindingCategories.Editing.Name,
 		},
@@ -236,7 +243,7 @@ func GetKeyBindings() Keybindings {
 			Category:    KeybindingCategories.General.Name,
 		},
 		Up: Keybinding{
-			On:          []string{"up", "h"},
+			On:          []string{"up", "k"},
 			Description: "Move selection up.",
 			Category:    KeybindingCategories.Navigation.Name,
 		},

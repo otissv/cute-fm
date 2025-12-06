@@ -54,9 +54,9 @@ func InitialModel(startDir string) Model {
 	fileList.Styles.NoItems = fileList.Styles.NoItems.Foreground(nil)
 
 	m := Model{
-		configDir:     cfgDir,
-		runtimeConfig: runtimeCfg,
-
+		configDir:          cfgDir,
+		runtimeConfig:      runtimeCfg,
+		jumpTo:             "",
 		fileList:           fileList,
 		rightViewport:      rightViewport,
 		allFiles:           files,
