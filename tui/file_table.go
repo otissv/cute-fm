@@ -27,13 +27,20 @@ func (i FileItem) FilterValue() string {
 type FileItemDelegate struct {
 	theme      theming.Theme
 	totalWidth int
+	// columns defines which FileInfo columns should be rendered for each row,
+	// in order, excluding the leading index column which is always shown.
+	columns []filesystem.FileInfoColumn
 }
 
 // NewFileItemDelegate creates a new delegate for rendering file items.
-func NewFileItemDelegate(theme theming.Theme, width int) FileItemDelegate {
+func NewFileItemDelegate(theme theming.Theme, width int, columns []filesystem.FileInfoColumn) FileItemDelegate {
+	if len(columns) == 0 {
+		columns = filesystem.ColumnNames
+	}
 	return FileItemDelegate{
 		theme:      theme,
 		totalWidth: width,
+		columns:    columns,
 	}
 }
 
@@ -147,14 +154,26 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool,
 	}
 	nameText := nameStyle.Render(name)
 
+	// Build the list of columns to render based on the delegate configuration.
 	lineCols := []string{
-		indexText,
-		permText,
-		sizeText,
-		userText,
-		groupText,
-		timeText,
-		nameText,
+		indexText, // always show index
+	}
+
+	for _, col := range d.columns {
+		switch col {
+		case filesystem.ColumnPermissions:
+			lineCols = append(lineCols, permText)
+		case filesystem.ColumnSize:
+			lineCols = append(lineCols, sizeText)
+		case filesystem.ColumnUser:
+			lineCols = append(lineCols, userText)
+		case filesystem.ColumnGroup:
+			lineCols = append(lineCols, groupText)
+		case filesystem.ColumnDateModified:
+			lineCols = append(lineCols, timeText)
+		case filesystem.ColumnName:
+			lineCols = append(lineCols, nameText)
+		}
 	}
 
 	sep := " "

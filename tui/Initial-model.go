@@ -37,7 +37,7 @@ func InitialModel(startDir string) Model {
 	files := loadDirectory(currentDir)
 
 	// Create the bubbles list with file items.
-	delegate := NewFileItemDelegate(runtimeCfg.Theme, 0)
+	delegate := NewFileItemDelegate(runtimeCfg.Theme, 0, filesystem.ColumnNames)
 	items := FileInfosToItems(files)
 	fileList := list.New(items, delegate, 0, 0)
 
@@ -113,7 +113,7 @@ func loadDirectory(dir string) []filesystem.FileInfo {
 
 // UpdateFileListDelegate updates the delegate with a new width.
 func (m *Model) UpdateFileListDelegate(width int) {
-	delegate := NewFileItemDelegate(m.theme, width)
+	delegate := NewFileItemDelegate(m.theme, width, m.columnVisibility)
 	m.fileList.SetDelegate(delegate)
 }
 

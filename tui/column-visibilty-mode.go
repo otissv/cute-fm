@@ -47,20 +47,37 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		col := filesystem.ColumnNames[cur]
 
-		// Toggle presence of col in the columnVisibility slice.
-		found := false
-		newCols := make([]filesystem.FileInfoColumn, 0, len(m.columnVisibility))
+		// Toggle presence of col in the columnVisibility set, but always rebuild
+		// the slice in the canonical ColumnNames order so column order remains
+		// stable regardless of toggle sequence.
+		visible := make(map[filesystem.FileInfoColumn]bool, len(filesystem.ColumnNames))
 		for _, c := range m.columnVisibility {
-			if c == col {
-				found = true
-				continue // drop to "unselect"
-			}
-			newCols = append(newCols, c)
+			visible[c] = true
 		}
-		if !found {
-			newCols = append(newCols, col)
+
+		if visible[col] {
+			delete(visible, col)
+		} else {
+			visible[col] = true
+		}
+
+		// Rebuild in canonical order.
+		newCols := make([]filesystem.FileInfoColumn, 0, len(visible))
+		for _, c := range filesystem.ColumnNames {
+			if visible[c] {
+				newCols = append(newCols, c)
+			}
 		}
 		m.columnVisibility = newCols
+
+		// Rebuild the file list delegate so the visible columns update
+		// immediately to reflect the new selection.
+		listContentWidth := m.viewportWidth - 2
+		if listContentWidth < 1 {
+			listContentWidth = 1
+		}
+		delegate := NewFileItemDelegate(m.theme, listContentWidth, m.columnVisibility)
+		m.fileList.SetDelegate(delegate)
 
 		return m, nil
 
