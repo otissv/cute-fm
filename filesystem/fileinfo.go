@@ -2,10 +2,12 @@ package filesystem
 
 import (
 	"fmt"
+	"mime"
 	"os"
 	"os/user"
 	"path/filepath"
 	"sort"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -23,6 +25,10 @@ type FileInfo struct {
 	// Type is a high-level classification used for coloring, e.g.:
 	// "directory", "symlink", "socket", "pipe", "device", "executable", "regular".
 	Type string
+	// MimeType is the best-effort MIME type for the entry, such as
+	// "text/plain" or "image/png". Directories are reported as
+	// "inode/directory".
+	MimeType string
 }
 
 // FileInfoColumn is an identifier for a column that can be shown for a FileInfo.
@@ -33,6 +39,7 @@ type FileInfoColumn string
 const (
 	ColumnPermissions  FileInfoColumn = "Permissions"
 	ColumnSize         FileInfoColumn = "Size"
+	ColumnMimeType     FileInfoColumn = "Type"
 	ColumnUser         FileInfoColumn = "User"
 	ColumnGroup        FileInfoColumn = "Group"
 	ColumnDateModified FileInfoColumn = "DateModified"
@@ -42,6 +49,7 @@ const (
 var ColumnNames = []FileInfoColumn{
 	ColumnPermissions,
 	ColumnSize,
+	ColumnMimeType,
 	ColumnUser,
 	ColumnGroup,
 	ColumnDateModified,
@@ -113,6 +121,9 @@ func ListDirectory(dirPath string) ([]FileInfo, error) {
 		// Determine file type for colorization.
 		fileType := classifyFileType(info, entry.IsDir())
 
+		// Best-effort MIME type detection for the new "Type" column.
+		mimeType := detectMimeType(entry.Name(), entry.IsDir())
+
 		fileInfo := FileInfo{
 			Permissions:  permissions,
 			Size:         size,
@@ -123,6 +134,7 @@ func ListDirectory(dirPath string) ([]FileInfo, error) {
 			IsDir:        entry.IsDir(),
 			Path:         fullPath,
 			Type:         fileType,
+			MimeType:     mimeType,
 		}
 
 		fileInfos = append(fileInfos, fileInfo)
@@ -142,6 +154,25 @@ func ListDirectory(dirPath string) ([]FileInfo, error) {
 	})
 
 	return fileInfos, nil
+}
+
+// detectMimeType returns a best-effort MIME type for the given entry name.
+// Directories are always reported as "inode/directory". For regular files we
+// consult the standard library's extension-based lookup and fall back to
+// "application/octet-stream" when no mapping is known.
+func detectMimeType(name string, isDir bool) string {
+	if isDir {
+		return "inode/directory"
+	}
+
+	ext := strings.ToLower(filepath.Ext(name))
+	if ext != "" {
+		if mt := mime.TypeByExtension(ext); mt != "" {
+			return mt
+		}
+	}
+
+	return "application/octet-stream"
 }
 
 // classifyFileType classifies a file into a high-level type used for styling.

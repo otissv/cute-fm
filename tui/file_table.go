@@ -17,6 +17,7 @@ const (
 	colIndex = 5
 	colPerms = 11
 	colSize  = 6
+	colType  = 16
 	colUser  = 8
 	colGroup = 8
 	colDate  = 14
@@ -103,6 +104,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool,
 	theme := d.theme
 
 	size := fi.Size
+	mime := strings.Split(fi.MimeType, "/")[1]
 	user := fi.User
 	group := fi.Group
 	date := fi.DateModified
@@ -113,6 +115,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool,
 	userStyle := theming.StyleFromSpec(theme.FieldColors["user"])
 	groupStyle := theming.StyleFromSpec(theme.FieldColors["group"])
 	sizeStyle := theming.StyleFromSpec(theme.FieldColors["size"])
+	typeStyle := theming.StyleFromSpec(theme.FieldColors["type"])
 	timeStyle := theming.StyleFromSpec(theme.FieldColors["time"])
 
 	// Background color for the row.
@@ -124,6 +127,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool,
 		userStyle = userStyle.Background(bg)
 		groupStyle = groupStyle.Background(bg)
 		sizeStyle = sizeStyle.Background(bg)
+		typeStyle = typeStyle.Background(bg)
 		timeStyle = timeStyle.Background(bg)
 	} else {
 		bgColor = theme.FileList.Background
@@ -132,6 +136,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool,
 		userStyle = userStyle.Background(bg)
 		groupStyle = groupStyle.Background(bg)
 		sizeStyle = sizeStyle.Background(bg)
+		typeStyle = typeStyle.Background(bg)
 		timeStyle = timeStyle.Background(bg)
 	}
 
@@ -144,6 +149,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool,
 	userText := padCellWithBG(userStyle.Render(user), colUser, bgColor)
 	groupText := padCellWithBG(groupStyle.Render(group), colGroup, bgColor)
 	sizeText := padCellWithBG(sizeStyle.Render(size), colSize, bgColor)
+	typeText := padCellWithBG(typeStyle.Render(mime), colType, bgColor)
 	timeText := padCellWithBG(timeStyle.Render(date), colDate, bgColor)
 
 	// File name color based on file type.
@@ -165,6 +171,8 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool,
 			lineCols = append(lineCols, permText)
 		case filesystem.ColumnSize:
 			lineCols = append(lineCols, sizeText)
+		case filesystem.ColumnMimeType:
+			lineCols = append(lineCols, typeText)
 		case filesystem.ColumnUser:
 			lineCols = append(lineCols, userText)
 		case filesystem.ColumnGroup:
@@ -306,6 +314,7 @@ func RenderFileHeaderRow(theme theming.Theme, totalWidth int, columns []filesyst
 		colIndex = 5
 		colPerms = 11
 		colSize  = 6
+		colType  = 16
 		colUser  = 8
 		colGroup = 8
 		colDate  = 14
@@ -320,6 +329,7 @@ func RenderFileHeaderRow(theme theming.Theme, totalWidth int, columns []filesyst
 	indexText := padCellWithBG(baseStyle.Render(" "), colIndex, bgColor)
 	permsText := padCellWithBG(baseStyle.Render("Permissions"), colPerms, bgColor)
 	sizeText := padCellWithBG(baseStyle.Render("Size"), colSize, bgColor)
+	typeText := padCellWithBG(baseStyle.Render("Type"), colType, bgColor)
 	userText := padCellWithBG(baseStyle.Render("User"), colUser, bgColor)
 	groupText := padCellWithBG(baseStyle.Render("Group"), colGroup, bgColor)
 	dateText := padCellWithBG(baseStyle.Render("Last Modified"), colDate, bgColor)
@@ -333,6 +343,8 @@ func RenderFileHeaderRow(theme theming.Theme, totalWidth int, columns []filesyst
 			lineCols = append(lineCols, permsText)
 		case filesystem.ColumnSize:
 			lineCols = append(lineCols, sizeText)
+		case filesystem.ColumnMimeType:
+			lineCols = append(lineCols, typeText)
 		case filesystem.ColumnUser:
 			lineCols = append(lineCols, userText)
 		case filesystem.ColumnGroup:

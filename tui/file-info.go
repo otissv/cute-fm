@@ -46,11 +46,14 @@ func renderFileInfoPanel(fi filesystem.FileInfo) string {
 
 	fmt.Fprintf(&b, "File info\n\n")
 	fmt.Fprintf(&b, "Name: %s\n", fi.Name)
+
 	if fi.Path != "" {
 		fmt.Fprintf(&b, "Path: %s\n", fi.Path)
 	}
 	fmt.Fprintf(&b, "Type: %s\n", fi.Type)
-
+	if fi.MimeType != "" {
+		fmt.Fprintf(&b, "MIME: %s\n", fi.MimeType)
+	}
 	fmt.Fprintf(&b, "Size: %s\n", fi.Size)
 	fmt.Fprintf(&b, "Owner: %s\n", fi.User)
 	fmt.Fprintf(&b, "Group: %s\n", fi.Group)
