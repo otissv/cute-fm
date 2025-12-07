@@ -18,16 +18,16 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch {
 	// Move cursor up within the column list.
 	case bindings.Up.Matches(keyMsg.String()):
-		if m.columnVisibilityCursor > 0 {
-			m.columnVisibilityCursor--
+		if m.menuCursor > 0 {
+			m.menuCursor--
 		}
 		return m, nil
 
 	// Move cursor down within the column list.
 	case bindings.Down.Matches(keyMsg.String()):
 		maxIdx := len(filesystem.ColumnNames) - 1
-		if m.columnVisibilityCursor < maxIdx {
-			m.columnVisibilityCursor++
+		if m.menuCursor < maxIdx {
+			m.menuCursor++
 		}
 		return m, nil
 
@@ -37,7 +37,7 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		cur := m.columnVisibilityCursor
+		cur := m.menuCursor
 		if cur < 0 {
 			cur = 0
 		}
@@ -89,6 +89,9 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.Select.Matches(keyMsg.String()) ||
 		bindings.Cancel.Matches(keyMsg.String()):
 		ActiveTuiMode = TuiModeNormal
+
+		// reset menu cusor
+		m.menuCursor = 0
 		return m, nil
 	}
 

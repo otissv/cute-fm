@@ -133,7 +133,9 @@ func (m Model) View() tea.View {
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case TuiModeColumnVisibiliy:
-		modalLayer := m.ColoumnVisibiltyModal(m)
+		modalLayer := m.ColumnModal(m, ColumnModelArgs{
+			Title: "Column Visibilty",
+		})
 		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 
 	case TuiModeCommand:
@@ -190,7 +192,9 @@ func (m Model) View() tea.View {
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case TuiModeSort:
-		modalLayer := m.SortModal(m)
+		modalLayer := m.ColumnModal(m, ColumnModelArgs{
+			Title: "Sort Columns",
+		})
 		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 
 	default:

@@ -38,8 +38,7 @@ func main() {
 	m.HelpModal = components.HelpModal
 	m.CommandModal = components.CommandModal
 	m.DialogModal = components.DialogModal
-	m.ColoumnVisibiltyModal = components.ColoumnVisibiltyModal
-	m.SortModal = components.SortModal
+	m.ColumnModal = components.ColumnModal
 
 	// Create a new Bubble Tea program
 	p := tea.NewProgram(m)

@@ -2,7 +2,10 @@ package tui
 
 import (
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 
@@ -178,6 +181,9 @@ func (m *Model) ApplyFilter() {
 		m.files = filtered
 	}
 
+	// Apply the active column-based sorting to the filtered list.
+	m.applySorting()
+
 	// Update the list with new items.
 	items := FileInfosToItems(m.files)
 	m.fileList.SetItems(items)
@@ -327,4 +333,108 @@ func filterByViewMode(files []filesystem.FileInfo) []filesystem.FileInfo {
 	}
 
 	return out
+}
+
+// parseHumanSize converts a human-readable size string (e.g. "1.3k", "5.7M")
+// into an approximate byte count suitable for numeric comparisons. It mirrors
+// the format produced by filesystem.formatSize, which uses base-10 units.
+func parseHumanSize(s string) int64 {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return 0
+	}
+
+	// Detect optional unit suffix.
+	n := len(s)
+	last := s[n-1]
+
+	mult := float64(1)
+	switch last {
+	case 'k', 'K':
+		mult = 1_000
+		s = s[:n-1]
+	case 'M':
+		mult = 1_000_000
+		s = s[:n-1]
+	case 'G':
+		mult = 1_000_000_000
+		s = s[:n-1]
+	case 'T':
+		mult = 1_000_000_000_000
+		s = s[:n-1]
+	}
+
+	val, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0
+	}
+	return int64(val * mult)
+}
+
+// parseDateModified parses the formatted DateModified string ("02 Jan 15:04")
+// back into a time.Time value for chronological comparisons. Because the
+// original format omits the year, we assume the current year when constructing
+// the timestamp.
+func parseDateModified(s string) time.Time {
+	const layout = "02 Jan 15:04"
+	t, err := time.Parse(layout, s)
+	if err != nil {
+		return time.Time{}
+	}
+
+	now := time.Now()
+	return time.Date(now.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, now.Location())
+}
+
+// applySorting sorts m.files in-place according to the current SortColumnBy
+// configuration on the model. When no sort column is set, the slice is left
+// unchanged.
+func (m *Model) applySorting() {
+	if len(m.files) == 0 {
+		return
+	}
+
+	sortBy := m.sortColumnBy
+	if sortBy.column == "" {
+		return
+	}
+
+	sort.SliceStable(m.files, func(i, j int) bool {
+		a := m.files[i]
+		b := m.files[j]
+
+		var less bool
+
+		switch sortBy.column {
+		case filesystem.ColumnPermissions:
+			less = a.Permissions < b.Permissions
+		case filesystem.ColumnSize:
+			less = parseHumanSize(a.Size) < parseHumanSize(b.Size)
+		case filesystem.ColumnMimeType:
+			less = a.MimeType < b.MimeType
+		case filesystem.ColumnUser:
+			less = strings.ToLower(a.User) < strings.ToLower(b.User)
+		case filesystem.ColumnGroup:
+			less = strings.ToLower(a.Group) < strings.ToLower(b.Group)
+		case filesystem.ColumnDateModified:
+			less = parseDateModified(a.DateModified).Before(parseDateModified(b.DateModified))
+		case filesystem.ColumnName:
+			// Preserve the existing "directories first" behaviour when sorting
+			// by name so the default view remains intuitive.
+			if a.IsDir && !b.IsDir {
+				return true
+			}
+			if !a.IsDir && b.IsDir {
+				return false
+			}
+			less = strings.ToLower(a.Name) < strings.ToLower(b.Name)
+		default:
+			less = strings.ToLower(a.Name) < strings.ToLower(b.Name)
+		}
+
+		if sortBy.direction == SortingDesc {
+			return !less
+		}
+		return less
+	})
 }

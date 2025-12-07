@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"cute/filesystem"
+
 	tea "charm.land/bubbletea/v2"
 )
 
@@ -13,15 +15,73 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
+	key := keyMsg.String()
+
 	switch {
+	// Move cursor up within the column list.
+	case bindings.Up.Matches(key):
+		if m.menuCursor > 0 {
+			m.menuCursor--
+		}
+		return m, nil
+
+	// Move cursor down within the column list.
+	case bindings.Down.Matches(key):
+		maxIdx := len(filesystem.ColumnNames) - 1
+		if m.menuCursor < maxIdx {
+			m.menuCursor++
+		}
+		return m, nil
+
 	// Quit application
-	case bindings.Quit.Matches(keyMsg.String()):
+	case bindings.Quit.Matches(key):
 		SetQuitMode()
 		return m, nil
-	// Enter normal mode
-	case bindings.Select.Matches(keyMsg.String()) ||
-		bindings.Cancel.Matches(keyMsg.String()):
+
+	// Apply sorting based on the currently focused column and return to normal mode.
+	case bindings.Select.Matches(key):
+		if len(filesystem.ColumnNames) == 0 {
+			return m, nil
+		}
+
+		cur := m.menuCursor
+		if cur < 0 {
+			cur = 0
+		}
+		if cur >= len(filesystem.ColumnNames) {
+			cur = len(filesystem.ColumnNames) - 1
+		}
+
+		col := filesystem.ColumnNames[cur]
+
+		// Toggle sort direction when selecting the same column; otherwise start
+		// with ascending order for a newly selected column.
+		if m.sortColumnBy.column == col {
+			if m.sortColumnBy.direction == SortingAsc {
+				m.sortColumnBy.direction = SortingDesc
+			} else {
+				m.sortColumnBy.direction = SortingAsc
+			}
+		} else {
+			m.sortColumnBy.column = col
+			m.sortColumnBy.direction = SortingAsc
+		}
+
+		// Re-apply filters so the active file list is re-sorted.
+		m.ApplyFilter()
+
 		ActiveTuiMode = TuiModeNormal
+
+		// reset menu cursor
+		m.menuCursor = 0
+		return m, nil
+
+	// Cancel sorting and return to normal mode without changing the sort.
+	case bindings.Cancel.Matches(key):
+		ActiveTuiMode = TuiModeNormal
+
+		// reset menu cursor
+		m.menuCursor = 0
 		return m, nil
 	}
 

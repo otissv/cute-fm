@@ -54,7 +54,11 @@ func InitialModel(startDir string) Model {
 	fileList.Styles.NoItems = fileList.Styles.NoItems.Foreground(nil)
 
 	m := Model{
-		allFiles:           files,
+		allFiles: files,
+		sortColumnBy: SortColumnBy{
+			column:    filesystem.ColumnName,
+			direction: SortingAsc,
+		},
 		configDir:          cfgDir,
 		currentDir:         currentDir,
 		fileInfoViewport:   fileInfoViewport,
@@ -81,7 +85,7 @@ func InitialModel(startDir string) Model {
 			filesystem.ColumnDateModified,
 			filesystem.ColumnName,
 		},
-		columnVisibilityCursor: 0,
+		menuCursor: 0,
 	}
 
 	// Initialize the search input

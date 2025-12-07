@@ -41,43 +41,68 @@ type TUIModes struct {
 	TuiModeSort            TUIMode
 }
 
+type SortColumnByDirection string
+
+type SortColumnBy struct {
+	column    filesystem.FileInfoColumn
+	direction SortColumnByDirection
+}
+
+// Column returns the currently selected sort column.
+func (s SortColumnBy) Column() filesystem.FileInfoColumn {
+	return s.column
+}
+
+// Direction returns the current sort direction for the column.
+func (s SortColumnBy) Direction() SortColumnByDirection {
+	return s.direction
+}
+
 const (
-	TuiModeAddFile         TUIMode = "ADD_FILE"
-	TuiModeAutoComplete    TUIMode = "AUTOCOMPLETE"
-	TuiModeCd              TUIMode = "CD"
-	TuiModeColumnVisibiliy TUIMode = "COLUMN_VISIBILIY"
-	TuiModeCommand         TUIMode = "COMMAND"
-	TuiModeCopy            TUIMode = "COPY"
-	TuiModeFilter          TUIMode = "FILTER"
-	TuiModeGoto            TUIMode = "GOTO"
-	TuiModeHelp            TUIMode = "HELP"
-	TuiModeMkdir           TUIMode = "MKDIR"
-	TuiModeMove            TUIMode = "MOVE"
-	TuiModeNormal          TUIMode = "NORMAL"
-	TuiModeParent          TUIMode = "PARENT"
-	TuiModeQuit            TUIMode = "QUIT"
-	TuiModeRemove          TUIMode = "REMOVE"
-	TuiModeRename          TUIMode = "RENAME"
-	TuiModeSelect          TUIMode = "SELECT"
-	TuiModeSort            TUIMode = "SORT"
+	TuiModeAddFile         TUIMode               = "ADD_FILE"
+	TuiModeAutoComplete    TUIMode               = "AUTOCOMPLETE"
+	TuiModeCd              TUIMode               = "CD"
+	TuiModeColumnVisibiliy TUIMode               = "COLUMN_VISIBILIY"
+	TuiModeCommand         TUIMode               = "COMMAND"
+	TuiModeCopy            TUIMode               = "COPY"
+	TuiModeFilter          TUIMode               = "FILTER"
+	TuiModeGoto            TUIMode               = "GOTO"
+	TuiModeHelp            TUIMode               = "HELP"
+	TuiModeMkdir           TUIMode               = "MKDIR"
+	TuiModeMove            TUIMode               = "MOVE"
+	TuiModeNormal          TUIMode               = "NORMAL"
+	TuiModeParent          TUIMode               = "PARENT"
+	TuiModeQuit            TUIMode               = "QUIT"
+	TuiModeRemove          TUIMode               = "REMOVE"
+	TuiModeRename          TUIMode               = "RENAME"
+	TuiModeSelect          TUIMode               = "SELECT"
+	TuiModeSort            TUIMode               = "SORT"
+	SortingAsc             SortColumnByDirection = "ASC"
+	SortingDesc            SortColumnByDirection = "DESC"
 )
 
-var TuiModes = TUIModes{
-	TuiModeAddFile:         TuiModeAddFile,
-	TuiModeCd:              TuiModeCd,
-	TuiModeColumnVisibiliy: TuiModeColumnVisibiliy,
-	TuiModeCommand:         TuiModeCommand,
-	TuiModeCopy:            TuiModeCopy,
-	TuiModeFilter:          TuiModeFilter,
-	TuiModeGoto:            TuiModeGoto,
-	TuiModeHelp:            TuiModeHelp,
-	TuiModeMkdir:           TuiModeMkdir,
-	TuiModeNormal:          TuiModeNormal,
-	TuiModeRemove:          TuiModeRemove,
-	TuiModeRename:          TuiModeRename,
-	TuiModeSelect:          TuiModeSelect,
-	TuiModeSort:            TuiModeSort,
-}
+var (
+	ActiveFileListMode         = FileListModeList
+	ActiveTuiMode      TUIMode = "NORMAL"
+	PreviousTuiMode    TUIMode = "NORMAL"
+
+	TuiModes = TUIModes{
+		TuiModeAddFile:         TuiModeAddFile,
+		TuiModeCd:              TuiModeCd,
+		TuiModeColumnVisibiliy: TuiModeColumnVisibiliy,
+		TuiModeCommand:         TuiModeCommand,
+		TuiModeCopy:            TuiModeCopy,
+		TuiModeFilter:          TuiModeFilter,
+		TuiModeGoto:            TuiModeGoto,
+		TuiModeHelp:            TuiModeHelp,
+		TuiModeMkdir:           TuiModeMkdir,
+		TuiModeNormal:          TuiModeNormal,
+		TuiModeRemove:          TuiModeRemove,
+		TuiModeRename:          TuiModeRename,
+		TuiModeSelect:          TuiModeSelect,
+		TuiModeSort:            TuiModeSort,
+	}
+)
 
 type (
 	FileListMode  string
@@ -110,6 +135,18 @@ type CommandModalArgs struct {
 	Placeholder string
 }
 
+type MenuCursor struct {
+	Selected   string
+	Unselected string
+	Prompt     string
+}
+type MenuArgs struct {
+	Choices     []string
+	Cursor      int
+	Selected    map[string]string
+	CursorTypes MenuCursor
+}
+
 type DialogArgs struct {
 	X int
 	Y int
@@ -118,6 +155,13 @@ type DialogArgs struct {
 type DialogModalArgs struct {
 	Title   string
 	Content string
+}
+
+type ColumnModelArgs struct {
+	Title      string
+	Selected   string
+	Unselected string
+	Prompt     string
 }
 
 type SelectedEntry struct {
@@ -130,12 +174,6 @@ type SelectedEntry struct {
 	// Type is the classified file type string ("directory", "regular", ...).
 	Type string
 }
-
-var (
-	ActiveFileListMode = FileListModeList
-	ActiveTuiMode      TUIMode
-	PreviousTuiMode    TUIMode
-)
 
 type Model struct {
 	configDir string
@@ -190,12 +228,12 @@ type Model struct {
 	layoutRows     []string
 	titleText      string
 
+	menuCursor       int
+	columnVisibility []filesystem.FileInfoColumn
+	sortColumnBy     SortColumnBy
+
 	// Help modal scroll state
 	helpScrollOffset int
-
-	// Column visibility modal state
-	columnVisibilityCursor int
-	columnVisibility       []filesystem.FileInfoColumn
 
 	// Terminal / preview state
 	terminalType       string
@@ -216,11 +254,10 @@ type Model struct {
 	ViewModeText func(m Model, args ComponentArgs) string
 
 	// Modals
-	ColoumnVisibiltyModal func(m Model) *lipgloss.Layer
-	CommandModal          func(m Model, args CommandModalArgs) *lipgloss.Layer
-	DialogModal           func(m Model, args DialogModalArgs) *lipgloss.Layer
-	HelpModal             func(m Model) *lipgloss.Layer
-	SortModal             func(m Model) *lipgloss.Layer
+	ColumnModal  func(m Model, args ColumnModelArgs) *lipgloss.Layer
+	CommandModal func(m Model, args CommandModalArgs) *lipgloss.Layer
+	DialogModal  func(m Model, args DialogModalArgs) *lipgloss.Layer
+	HelpModal    func(m Model) *lipgloss.Layer
 }
 
 func (m Model) Init() tea.Cmd {
@@ -347,10 +384,15 @@ func (m Model) GetColumnVisibility() []filesystem.FileInfoColumn {
 	return m.columnVisibility
 }
 
-// GetColumnVisibilityCursor returns the current cursor index in the
+// GetMenuCursor returns the current cursor index in the
 // column-visibility modal.
-func (m Model) GetColumnVisibilityCursor() int {
-	return m.columnVisibilityCursor
+func (m Model) GetMenuCursor() int {
+	return m.menuCursor
+}
+
+// GetSortColumnBy returns the current sort column and direction.
+func (m Model) GetSortColumnBy() SortColumnBy {
+	return m.sortColumnBy
 }
 
 func (m Model) IsSearchBarOpen() bool {
