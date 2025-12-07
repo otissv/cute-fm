@@ -50,6 +50,12 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}()
 
 	switch {
+
+	// Change to sudo mode
+	case bindings.Sudo.Matches(key):
+		m.isSudo = !m.isSudo
+		return m, nil
+
 	// Add file
 	case bindings.AddFile.Matches(key):
 		if ActiveTuiMode != TuiModeAddFile {
@@ -88,6 +94,17 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.historyIndex = -1
 
 			return m, nil
+		}
+
+		// Open column visibility modal
+	case bindings.ColumnVisibiliy.Matches(key):
+		if ActiveTuiMode != TuiModeColumnVisibiliy {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = TuiModeColumnVisibiliy
+
+			return m, nil
+		} else {
+			ActiveTuiMode = PreviousTuiMode
 		}
 
 	// Copy file or folder
@@ -261,6 +278,17 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = TuiModeSelect
 			return m, nil
+		}
+
+		// Open sort modal
+	case bindings.Sort.Matches(key):
+		if ActiveTuiMode != TuiModeSort {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = TuiModeSort
+
+			return m, nil
+		} else {
+			ActiveTuiMode = PreviousTuiMode
 		}
 
 	case bindings.ToggleRightPanel.Matches(key):

@@ -21,7 +21,7 @@ func HelpModal(m tui.Model) *lipgloss.Layer {
 	modalHeight := height / 2
 
 	fw := FloatingWindow{
-		Content:      textView(helpContent),
+		Content:      viewPrimitive(helpContent),
 		Width:        modalWidth,
 		Height:       modalHeight,
 		Style:        DefaultFloatingStyle(theme),

@@ -42,8 +42,7 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	// Enter normal mode
-	case bindings.Command.Matches(keyMsg.String()) ||
-		bindings.Cancel.Matches(keyMsg.String()):
+	case bindings.Cancel.Matches(keyMsg.String()):
 		ActiveTuiMode = PreviousTuiMode
 		return m, nil
 

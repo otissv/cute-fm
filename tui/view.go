@@ -22,11 +22,6 @@ func (m Model) View() tea.View {
 		Width: m.width,
 	})
 
-	previewTabs := m.PreviewTabs(m, ComponentArgs{
-		Width:  m.viewportWidth,
-		Height: 1,
-	})
-
 	fileInfoViewportView := m.Preview(
 		m, ComponentArgs{
 			Width:  m.viewportWidth,
@@ -47,6 +42,10 @@ func (m Model) View() tea.View {
 		Height: 1,
 	})
 
+	sudoMode := m.SudoMode(m, ComponentArgs{
+		Height: 1,
+	})
+
 	viewModeText := m.ViewModeText(
 		m, ComponentArgs{
 			Width:  10,
@@ -59,6 +58,10 @@ func (m Model) View() tea.View {
 
 	if ActiveTuiMode == TuiModeGoto {
 		statusBarItem = []string{tuiMode, m.jumpTo}
+	}
+
+	if m.isSudo {
+		statusBarItem = append([]string{sudoMode}, statusBarItem...)
 	}
 
 	statusBar := m.StatusBar(
@@ -86,7 +89,6 @@ func (m Model) View() tea.View {
 	if m.showRightPanel {
 		rightPanel = lipgloss.JoinVertical(
 			lipgloss.Left,
-			previewTabs,
 			fileInfoViewportView,
 		)
 	}
@@ -129,6 +131,10 @@ func (m Model) View() tea.View {
 			Placeholder: "Enter directory...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
+
+	case TuiModeColumnVisibiliy:
+		modalLayer := m.ColoumnVisibiltyModal(m)
+		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 
 	case TuiModeCommand:
 		commandLayer := m.CommandModal(m, CommandModalArgs{
@@ -182,6 +188,10 @@ func (m Model) View() tea.View {
 			Placeholder: "New name...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
+
+	case TuiModeSort:
+		modalLayer := m.SortModal(m)
+		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 
 	default:
 		canvas = lipgloss.NewCanvas(baseLayer)

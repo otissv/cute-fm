@@ -25,6 +25,29 @@ type FileInfo struct {
 	Type string
 }
 
+// FileInfoColumn is an identifier for a column that can be shown for a FileInfo.
+// Using a dedicated type avoids sprinkling raw strings like "Permissions" or
+// "Size" throughout the codebase.
+type FileInfoColumn string
+
+const (
+	ColumnPermissions  FileInfoColumn = "Permissions"
+	ColumnSize         FileInfoColumn = "Size"
+	ColumnUser         FileInfoColumn = "User"
+	ColumnGroup        FileInfoColumn = "Group"
+	ColumnDateModified FileInfoColumn = "DateModified"
+	ColumnName         FileInfoColumn = "Name"
+)
+
+var ColumnNames = []FileInfoColumn{
+	ColumnPermissions,
+	ColumnSize,
+	ColumnUser,
+	ColumnGroup,
+	ColumnDateModified,
+	ColumnName,
+}
+
 // ListDirectory lists the contents of a directory and returns file information
 // Returns a slice of FileInfo structs sorted by name (directories first)
 func ListDirectory(dirPath string) ([]FileInfo, error) {

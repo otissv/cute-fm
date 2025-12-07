@@ -13,7 +13,7 @@ func DialogModal(m tui.Model, args tui.DialogModalArgs) *lipgloss.Layer {
 	width, height := m.GetSize()
 
 	fw := FloatingWindow{
-		Content: textView(args.Content),
+		Content: viewPrimitive(args.Content),
 		Width:   40,
 		Height:  6,
 		Style:   DefaultFloatingStyle(theme).Align(lipgloss.Center),

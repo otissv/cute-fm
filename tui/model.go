@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"time"
-
 	"charm.land/bubbles/v2/list"
 	"charm.land/bubbles/v2/textinput"
 	"charm.land/bubbles/v2/viewport"
@@ -24,54 +22,61 @@ const (
 type TUIMode string
 
 type TUIModes struct {
-	TuiModeAddFile TUIMode
-	TuiModeCd      TUIMode
-	TuiModeCommand TUIMode
-	TuiModeCopy    TUIMode
-	TuiModeFilter  TUIMode
-	TuiModeGoto    TUIMode
-	TuiModeHelp    TUIMode
-	TuiModeMkdir   TUIMode
-	TuiModeMove    TUIMode
-	TuiModeNextDir TUIMode
-	TuiModeNormal  TUIMode
-	TuiModeQuit    TUIMode
-	TuiModeRemove  TUIMode
-	TuiModeRename  TUIMode
-	TuiModeSelect  TUIMode
+	TuiModeAddFile         TUIMode
+	TuiModeCd              TUIMode
+	TuiModeColumnVisibiliy TUIMode
+	TuiModeCommand         TUIMode
+	TuiModeCopy            TUIMode
+	TuiModeFilter          TUIMode
+	TuiModeGoto            TUIMode
+	TuiModeHelp            TUIMode
+	TuiModeMkdir           TUIMode
+	TuiModeMove            TUIMode
+	TuiModeNextDir         TUIMode
+	TuiModeNormal          TUIMode
+	TuiModeQuit            TUIMode
+	TuiModeRemove          TUIMode
+	TuiModeRename          TUIMode
+	TuiModeSelect          TUIMode
+	TuiModeSort            TUIMode
 }
 
 const (
-	TuiModeAddFile      TUIMode = "ADD_FILE"
-	TuiModeAutoComplete TUIMode = "AUTOCOMPLETE"
-	TuiModeCd           TUIMode = "CD"
-	TuiModeCommand      TUIMode = "COMMAND"
-	TuiModeCopy         TUIMode = "COPY"
-	TuiModeFilter       TUIMode = "FILTER"
-	TuiModeGoto         TUIMode = "GOTO"
-	TuiModeHelp         TUIMode = "HELP"
-	TuiModeMkdir        TUIMode = "MKDIR"
-	TuiModeMove         TUIMode = "MOVE"
-	TuiModeNormal       TUIMode = "NORMAL"
-	TuiModeParent       TUIMode = "PARENT"
-	TuiModeQuit         TUIMode = "QUIT"
-	TuiModeRemove       TUIMode = "REMOVE"
-	TuiModeRename       TUIMode = "RENAME"
-	TuiModeSelect       TUIMode = "SELECT"
+	TuiModeAddFile         TUIMode = "ADD_FILE"
+	TuiModeAutoComplete    TUIMode = "AUTOCOMPLETE"
+	TuiModeCd              TUIMode = "CD"
+	TuiModeColumnVisibiliy TUIMode = "COLUMN_VISIBILIY"
+	TuiModeCommand         TUIMode = "COMMAND"
+	TuiModeCopy            TUIMode = "COPY"
+	TuiModeFilter          TUIMode = "FILTER"
+	TuiModeGoto            TUIMode = "GOTO"
+	TuiModeHelp            TUIMode = "HELP"
+	TuiModeMkdir           TUIMode = "MKDIR"
+	TuiModeMove            TUIMode = "MOVE"
+	TuiModeNormal          TUIMode = "NORMAL"
+	TuiModeParent          TUIMode = "PARENT"
+	TuiModeQuit            TUIMode = "QUIT"
+	TuiModeRemove          TUIMode = "REMOVE"
+	TuiModeRename          TUIMode = "RENAME"
+	TuiModeSelect          TUIMode = "SELECT"
+	TuiModeSort            TUIMode = "SORT"
 )
 
 var TuiModes = TUIModes{
-	TuiModeAddFile: TuiModeAddFile,
-	TuiModeCd:      TuiModeCd,
-	TuiModeCommand: TuiModeCommand,
-	TuiModeCopy:    TuiModeCopy,
-	TuiModeFilter:  TuiModeFilter,
-	TuiModeGoto:    TuiModeGoto,
-	TuiModeHelp:    TuiModeHelp,
-	TuiModeMkdir:   TuiModeMkdir,
-	TuiModeNormal:  TuiModeNormal,
-	TuiModeRemove:  TuiModeRemove,
-	TuiModeRename:  TuiModeRename,
+	TuiModeAddFile:         TuiModeAddFile,
+	TuiModeCd:              TuiModeCd,
+	TuiModeColumnVisibiliy: TuiModeColumnVisibiliy,
+	TuiModeCommand:         TuiModeCommand,
+	TuiModeCopy:            TuiModeCopy,
+	TuiModeFilter:          TuiModeFilter,
+	TuiModeGoto:            TuiModeGoto,
+	TuiModeHelp:            TuiModeHelp,
+	TuiModeMkdir:           TuiModeMkdir,
+	TuiModeNormal:          TuiModeNormal,
+	TuiModeRemove:          TuiModeRemove,
+	TuiModeRename:          TuiModeRename,
+	TuiModeSelect:          TuiModeSelect,
+	TuiModeSort:            TuiModeSort,
 }
 
 type (
@@ -139,6 +144,7 @@ type Model struct {
 	commandInput textinput.Model
 
 	showRightPanel bool
+	isSudo         bool
 
 	jumpTo string
 
@@ -187,15 +193,15 @@ type Model struct {
 	// Help modal scroll state
 	helpScrollOffset int
 
+	// Column visibility modal state
+	columnVisibilityCursor int
+	columnVisibility       []filesystem.FileInfoColumn
+
 	// Terminal / preview state
 	terminalType       string
 	lastPreviewedPath  string
 	imagePreviewActive bool
 	previewEnabled     bool
-
-	// Debounced image preview
-	imagePreviewTimer *time.Timer
-	pendingImagePath  string
 
 	// Components
 	CurrentDir   func(m Model, args ComponentArgs) string
@@ -205,13 +211,16 @@ type Model struct {
 	PreviewTabs  func(m Model, args ComponentArgs) string
 	SearchBar    func(m Model, args ComponentArgs) string
 	StatusBar    func(m Model, args ComponentArgs, items ...string) string
+	SudoMode     func(m Model, args ComponentArgs) string
 	TuiMode      func(m Model, args ComponentArgs) string
 	ViewModeText func(m Model, args ComponentArgs) string
 
 	// Modals
-	HelpModal    func(m Model) *lipgloss.Layer
-	CommandModal func(m Model, args CommandModalArgs) *lipgloss.Layer
-	DialogModal  func(m Model, args DialogModalArgs) *lipgloss.Layer
+	ColoumnVisibiltyModal func(m Model) *lipgloss.Layer
+	CommandModal          func(m Model, args CommandModalArgs) *lipgloss.Layer
+	DialogModal           func(m Model, args DialogModalArgs) *lipgloss.Layer
+	HelpModal             func(m Model) *lipgloss.Layer
+	SortModal             func(m Model) *lipgloss.Layer
 }
 
 func (m Model) Init() tea.Cmd {
@@ -331,6 +340,17 @@ func (m Model) GetViewportWidth() int {
 
 func (m Model) GetHelpScrollOffset() int {
 	return m.helpScrollOffset
+}
+
+// GetColumnVisibility returns the currently selected columns for the file list.
+func (m Model) GetColumnVisibility() []filesystem.FileInfoColumn {
+	return m.columnVisibility
+}
+
+// GetColumnVisibilityCursor returns the current cursor index in the
+// column-visibility modal.
+func (m Model) GetColumnVisibilityCursor() int {
+	return m.columnVisibilityCursor
 }
 
 func (m Model) IsSearchBarOpen() bool {

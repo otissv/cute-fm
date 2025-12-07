@@ -50,6 +50,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.UtilityMode(msg, "cd")
 		}
 
+		if ActiveTuiMode == TuiModeColumnVisibiliy {
+			return m.ColumnVisibiliyMode(msg)
+		}
+
 		if ActiveTuiMode == TuiModeCommand {
 			return m.CommandMode(msg)
 		}
@@ -93,17 +97,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.ConfirmMode(msg, "rm -r")
 		}
 
+		if ActiveTuiMode == TuiModeSort {
+			return m.SortMode(msg)
+		}
 	}
 
 	return m, nil
 }
 
 func (m *Model) ExecuteCommand(line string) (command.Result, error) {
-	if line != "" {
-		m.AppendCommandHistory(line)
-		// Reload history to include the new command
-		m.commandHistory = m.LoadCommandHistory()
+	if line == "" {
+		return command.Result{}, nil
 	}
+
+	m.AppendCommandHistory(line)
+	// Reload history to include the new command
+	m.commandHistory = m.LoadCommandHistory()
 
 	env := m.GetCommandEnvironment()
 

@@ -29,15 +29,17 @@ func main() {
 	m.Header = components.Header
 	m.StatusBar = components.StatusBar
 	m.ViewModeText = components.ViewModeText
-	m.PreviewTabs = components.PreviewTabs
 	m.Preview = components.Preview
 	m.FileListView = components.FileList
 	m.TuiMode = components.TuiMode
+	m.SudoMode = components.SudoMode
 
 	// Inject UI modals.
 	m.HelpModal = components.HelpModal
 	m.CommandModal = components.CommandModal
 	m.DialogModal = components.DialogModal
+	m.ColoumnVisibiltyModal = components.ColoumnVisibiltyModal
+	m.SortModal = components.SortModal
 
 	// Create a new Bubble Tea program
 	p := tea.NewProgram(m)

@@ -10,16 +10,17 @@ import (
 )
 
 var (
-	color0 = "#1E1E1E"
-	color1 = "#F0EDED"
-	color2 = "#F25D94"
-	color3 = "#FFF1A8"
-	color4 = "#FF9BC0"
-	color5 = "#FAD2E1"
-	color6 = "#7CFFD2"
-	color7 = "#E37CFF"
-	color8 = "#A8D2FF"
-	color9 = "#2072D5"
+	color0  = "#1E1E1E"
+	color1  = "#F0EDED"
+	color2  = "#F25D94"
+	color3  = "#FFF1A8"
+	color4  = "#FF9BC0"
+	color5  = "#FAD2E1"
+	color6  = "#7CFFD2"
+	color7  = "#E37CFF"
+	color8  = "#A8D2FF"
+	color9  = "#2072D5"
+	color10 = "#F00F00"
 
 	background              = ""
 	foreground              = color1
@@ -73,6 +74,8 @@ var (
 	quitModeBackground      = "#000000"
 	quitModeForeground      = "#F0EDED"
 	dialogTitle             = color9
+	sudoBackground          = color10
+	sudoForeground          = color1
 )
 
 type Style struct {
@@ -161,6 +164,7 @@ type Theme struct {
 	StatusBar      Style
 	ViewMode       StyleColor
 	TuiMode        TuiMode
+	SudoMode       StyleColor
 }
 
 // DefaultTheme returns a sane fallback theme used when the config
@@ -274,6 +278,11 @@ func DefaultTheme() Theme {
 		Selection: StyleColor{
 			Background: "#3B3B3B",
 			Foreground: background,
+		},
+
+		SudoMode: StyleColor{
+			Background: sudoBackground,
+			Foreground: sudoForeground,
 		},
 
 		TuiMode: TuiMode{

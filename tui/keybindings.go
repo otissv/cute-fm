@@ -60,6 +60,7 @@ type Keybindings struct {
 	Cancel           Keybinding
 	Cd               Keybinding
 	Command          Keybinding
+	ColumnVisibiliy  Keybinding
 	Copy             Keybinding
 	Directories      Keybinding
 	Down             Keybinding
@@ -86,6 +87,8 @@ type Keybindings struct {
 	Remove           Keybinding
 	Rename           Keybinding
 	Select           Keybinding
+	Sort             Keybinding
+	Sudo             Keybinding
 	ToggleRightPanel Keybinding
 	Undo             Keybinding
 	Up               Keybinding
@@ -117,6 +120,11 @@ func GetKeyBindings() Keybindings {
 			On:          []string{":"},
 			Description: "Enter Commands.",
 			Category:    KeybindingCategories.Command.Name,
+		},
+		ColumnVisibiliy: Keybinding{
+			On:          []string{"["},
+			Description: "Show and hide columns",
+			Category:    KeybindingCategories.General.Name,
 		},
 		Copy: Keybinding{
 			On:          []string{"y"},
@@ -224,7 +232,6 @@ func GetKeyBindings() Keybindings {
 			Description: "Go to previous directory in history.",
 			Category:    KeybindingCategories.Navigation.Name,
 		},
-
 		Quit: Keybinding{
 			On:          []string{"q"},
 			Description: "Quit the application.",
@@ -246,9 +253,19 @@ func GetKeyBindings() Keybindings {
 			Category:    KeybindingCategories.General.Name,
 		},
 		Select: Keybinding{
-			On:          []string{"ctrl+s"},
-			Description: "Select files or directories.",
+			On:          []string{"space"},
+			Description: "Select item.",
 			Category:    KeybindingCategories.Editing.Name,
+		},
+		Sort: Keybinding{
+			On:          []string{"]"},
+			Description: "Enter sudo mode",
+			Category:    KeybindingCategories.General.Name,
+		},
+		Sudo: Keybinding{
+			On:          []string{"u"},
+			Description: "Sort file list colomns",
+			Category:    KeybindingCategories.General.Name,
 		},
 		ToggleRightPanel: Keybinding{
 			On:          []string{"t"},

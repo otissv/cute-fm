@@ -6,15 +6,6 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-// textView is a minimal implementation of tui.ViewPrimitive that just renders
-// the given string. This lets us render the command input directly without an
-// extra viewport layer.
-type textView string
-
-func (t textView) View() string {
-	return string(t)
-}
-
 // CommandBar renders the bottom command bar using only the public TUI model
 // interface, so this component can live outside the tui package.
 func CommandModal(m tui.Model, args tui.CommandModalArgs) *lipgloss.Layer {
@@ -48,7 +39,7 @@ func CommandModal(m tui.Model, args tui.CommandModalArgs) *lipgloss.Layer {
 	}
 
 	fw := FloatingWindow{
-		Content: textView(commandInputView),
+		Content: viewPrimitive(commandInputView),
 		Width:   modalWidth,
 		Height:  4,
 		Style:   DefaultFloatingStyle(theme),
