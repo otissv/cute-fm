@@ -22,60 +22,60 @@ var (
 	color9  = "#2072D5"
 	color10 = "#F00F00"
 
-	background              = ""
-	foreground              = color1
-	borderColor             = color2
-	primary                 = color2
-	secondary               = color3
-	placeholder             = "#33282E"
-	viewModBackground       = background
-	viewModForeground       = foreground
-	commandBarBackground    = background
-	commandBarBorder        = borderColor
-	commandBarForeground    = foreground
-	commandBarPlaceholder   = "#A8A7A7"
-	currentDirBackground    = background
-	currentDirForeground    = foreground
-	fieldGroup              = color3
-	fieldNlink              = foreground
-	fieldSize               = color4
-	fieldTime               = foreground
-	fieldUser               = color3
-	fileListBackground      = background
-	fileListForeGround      = foreground
-	fileListBorder          = background
-	fileTypeDevice          = color5
-	fileTypeDirectory       = color8
-	fileTypeExecutable      = color4
-	fileTypePipe            = color6
-	fileTypeRegular         = foreground
-	fileTypeSocket          = color3
-	fileTypeSymlink         = color5
-	permExec                = color4
-	permNone                = foreground
-	permRead                = color6
-	permWrite               = color5
-	searchBackground        = background
-	searchBorder            = background
-	searchForeground        = foreground
-	headerBackground        = background
-	previewBackground       = background
-	previewBorderBackground = ""
-	previewForeground       = foreground
-	previewBorder           = borderColor
-	normalModeBackground    = color4
-	normalModeForeground    = color0
-	commandModeBackground   = color7
-	commandModeForeground   = color0
-	filterModeBackground    = color4
-	filterModeForeground    = color0
-	helpModeBackground      = color6
-	helpModeForeground      = color0
-	quitModeBackground      = "#000000"
-	quitModeForeground      = "#F0EDED"
-	dialogTitle             = color9
-	sudoBackground          = color10
-	sudoForeground          = color1
+	background               = ""
+	foreground               = color1
+	borderColor              = color2
+	primary                  = color2
+	secondary                = color3
+	placeholder              = "#33282E"
+	viewModBackground        = background
+	viewModForeground        = foreground
+	commandBarBackground     = background
+	commandBarBorder         = borderColor
+	commandBarForeground     = foreground
+	commandBarPlaceholder    = "#A8A7A7"
+	leftCurrentDirBackground = background
+	leftCurrentDirForeground = foreground
+	fieldGroup               = color3
+	fieldNlink               = foreground
+	fieldSize                = color4
+	fieldTime                = foreground
+	fieldUser                = color3
+	fileListBackground       = background
+	fileListForeGround       = foreground
+	fileListBorder           = background
+	fileTypeDevice           = color5
+	fileTypeDirectory        = color8
+	fileTypeExecutable       = color4
+	fileTypePipe             = color6
+	fileTypeRegular          = foreground
+	fileTypeSocket           = color3
+	fileTypeSymlink          = color5
+	permExec                 = color4
+	permNone                 = foreground
+	permRead                 = color6
+	permWrite                = color5
+	searchBackground         = background
+	searchBorder             = background
+	searchForeground         = foreground
+	headerBackground         = background
+	previewBackground        = background
+	previewBorderBackground  = ""
+	previewForeground        = foreground
+	previewBorder            = borderColor
+	normalModeBackground     = color4
+	normalModeForeground     = color0
+	commandModeBackground    = color7
+	commandModeForeground    = color0
+	filterModeBackground     = color4
+	filterModeForeground     = color0
+	helpModeBackground       = color6
+	helpModeForeground       = color0
+	quitModeBackground       = "#000000"
+	quitModeForeground       = "#F0EDED"
+	dialogTitle              = color9
+	sudoBackground           = color10
+	sudoForeground           = color1
 )
 
 type Style struct {
@@ -162,9 +162,9 @@ type Theme struct {
 	SearchBar      BarStyle
 	Selection      StyleColor
 	StatusBar      Style
-	ViewMode       StyleColor
-	TuiMode        TuiMode
 	SudoMode       StyleColor
+	TuiMode        TuiMode
+	ViewMode       StyleColor
 }
 
 // DefaultTheme returns a sane fallback theme used when the config
@@ -200,8 +200,8 @@ func DefaultTheme() Theme {
 		},
 
 		CurrentDir: StyleColor{
-			Background: currentDirBackground,
-			Foreground: currentDirForeground,
+			Background: leftCurrentDirBackground,
+			Foreground: leftCurrentDirForeground,
 		},
 
 		FileList: Style{

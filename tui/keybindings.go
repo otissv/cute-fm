@@ -55,43 +55,46 @@ var KeybindingCategories = KeybindingCategory{
 }
 
 type Keybindings struct {
-	AddFile          Keybinding
-	AutoComplete     Keybinding
-	Cancel           Keybinding
-	Cd               Keybinding
-	Command          Keybinding
-	ColumnVisibiliy  Keybinding
-	Copy             Keybinding
-	Directories      Keybinding
-	Down             Keybinding
-	Enter            Keybinding
-	Files            Keybinding
-	Filter           Keybinding
-	GoToEnd          Keybinding
-	GoToStart        Keybinding
-	Goto             Keybinding
-	Help             Keybinding
-	HiddenFiles      Keybinding
-	List             Keybinding
-	Mkdir            Keybinding
-	Move             Keybinding
-	NextDir          Keybinding
-	PageDown         Keybinding
-	PageUp           Keybinding
-	Parent           Keybinding
-	Paste            Keybinding
-	Preview          Keybinding
-	PreviousDir      Keybinding
-	Quit             Keybinding
-	Redo             Keybinding
-	Remove           Keybinding
-	Rename           Keybinding
-	Select           Keybinding
-	Sort             Keybinding
-	Sudo             Keybinding
-	ToggleRightPanel Keybinding
-	Undo             Keybinding
-	Up               Keybinding
+	AddFile                 Keybinding
+	AutoComplete            Keybinding
+	Cancel                  Keybinding
+	Cd                      Keybinding
+	Command                 Keybinding
+	ColumnVisibiliy         Keybinding
+	Copy                    Keybinding
+	Directories             Keybinding
+	Down                    Keybinding
+	Enter                   Keybinding
+	FileInfoPanel           Keybinding
+	FileListPanel           Keybinding
+	Files                   Keybinding
+	Filter                  Keybinding
+	GoToEnd                 Keybinding
+	GoToStart               Keybinding
+	Goto                    Keybinding
+	Help                    Keybinding
+	HiddenFiles             Keybinding
+	List                    Keybinding
+	Mkdir                   Keybinding
+	Move                    Keybinding
+	NextDir                 Keybinding
+	PageDown                Keybinding
+	PageUp                  Keybinding
+	Parent                  Keybinding
+	Paste                   Keybinding
+	PreviewPanel            Keybinding
+	PreviousDir             Keybinding
+	Quit                    Keybinding
+	Redo                    Keybinding
+	Remove                  Keybinding
+	Rename                  Keybinding
+	Select                  Keybinding
+	Sort                    Keybinding
+	Sudo                    Keybinding
+	SwitchBetweenSplitPanel Keybinding
+	ToggleRightPanel        Keybinding
+	Undo                    Keybinding
+	Up                      Keybinding
 }
 
 func GetKeyBindings() Keybindings {
@@ -145,6 +148,16 @@ func GetKeyBindings() Keybindings {
 			On:          []string{"enter"},
 			Description: "Execute a command.",
 			Category:    KeybindingCategories.General.Name,
+		},
+		FileInfoPanel: Keybinding{
+			On:          []string{"ctrl+i"},
+			Description: "Execute a command.",
+			Category:    KeybindingCategories.Views.Name,
+		},
+		FileListPanel: Keybinding{
+			On:          []string{"ctrl+e"},
+			Description: "Execute a command.",
+			Category:    KeybindingCategories.Views.Name,
 		},
 		Files: Keybinding{
 			On:          []string{"ctrl+f"},
@@ -222,8 +235,8 @@ func GetKeyBindings() Keybindings {
 		// 	Description: "Paste file or directory.",
 		// 	Category:    KeybindingCategories.Editing.Name,
 		// },
-		Preview: Keybinding{
-			On:          []string{"w"},
+		PreviewPanel: Keybinding{
+			On:          []string{"ctrl+w"},
 			Description: "Preview file or folder.",
 			Category:    KeybindingCategories.Views.Name,
 		},
@@ -267,10 +280,15 @@ func GetKeyBindings() Keybindings {
 			Description: "Sort file list colomns",
 			Category:    KeybindingCategories.General.Name,
 		},
+		SwitchBetweenSplitPanel: Keybinding{
+			On:          []string{"T"},
+			Description: "Toggle beright panel.",
+			Category:    KeybindingCategories.Views.Name,
+		},
 		ToggleRightPanel: Keybinding{
 			On:          []string{"t"},
 			Description: "Toggle right panel.",
-			Category:    KeybindingCategories.General.Name,
+			Category:    KeybindingCategories.Views.Name,
 		},
 		Undo: Keybinding{
 			On:          []string{"z"},

@@ -146,6 +146,18 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+	// Open file info split panel;
+	case bindings.FileInfoPanel.Matches(key):
+		m.activeSplitPanel = FileInfoSplitPanelType
+		m.isSplitPanelOpen = false
+		return m, nil
+
+	// Open file list split panel
+	case bindings.FileListPanel.Matches(key):
+		m.activeSplitPanel = FileListSplitPanelType
+		m.isSplitPanelOpen = true
+		return m, nil
+
 	// Change file list to files-only view
 	case bindings.Files.Matches(key):
 		ActiveFileListMode = "lf"
@@ -216,8 +228,8 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Navigate to the parent directory.
 	case bindings.Parent.Matches(key):
-		parent := filepath.Dir(m.currentDir)
-		if parent != "" && parent != m.currentDir {
+		parent := filepath.Dir(m.leftCurrentDir)
+		if parent != "" && parent != m.leftCurrentDir {
 			m.ChangeDirectory(parent)
 		} else {
 			// Even if we're at the root (Dir("/") == "/"), attempt to
@@ -235,10 +247,10 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.NavigateNextDir()
 		return m, nil
 
-	// Toggle preview
-	case bindings.Preview.Matches(key):
-		m.previewEnabled = !m.previewEnabled
-		m.UpdateFileInfoPanel()
+	// Open preview split panel
+	case bindings.PreviewPanel.Matches(key):
+		m.activeSplitPanel = PreviewPanelType
+		m.isSplitPanelOpen = false
 		return m, nil
 
 	// Quit application
@@ -290,6 +302,17 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			ActiveTuiMode = PreviousTuiMode
 		}
+
+		// Open preview split panel
+	case bindings.SwitchBetweenSplitPanel.Matches(key):
+		if m.isSplitPanelOpen {
+			if m.activeViewport == LeftViewportType {
+				m.activeViewport = RightViewportType
+			} else {
+				m.activeViewport = LeftViewportType
+			}
+		}
+		return m, nil
 
 	case bindings.ToggleRightPanel.Matches(key):
 		m.showRightPanel = !m.showRightPanel

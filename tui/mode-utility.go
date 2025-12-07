@@ -56,7 +56,7 @@ func (m Model) UtilityMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 
 			res, _ := m.ExecuteCommand(line)
 
-			if res.Cwd != "" && res.Cwd != m.currentDir {
+			if res.Cwd != "" && res.Cwd != m.leftCurrentDir {
 				m.ChangeDirectory(res.Cwd)
 			} else if res.Refresh {
 				// Refresh the current directory without recording history.

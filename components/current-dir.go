@@ -8,7 +8,7 @@ import (
 
 func CurrentDir(m tui.Model, args tui.ComponentArgs) string {
 	theme := m.GetTheme()
-	currentDir := m.GetCurrentDir()
+	leftCurrentDir := m.GetCurrentDir()
 
 	return lipgloss.NewStyle().
 		AlignHorizontal(lipgloss.Center).
@@ -19,5 +19,5 @@ func CurrentDir(m tui.Model, args tui.ComponentArgs) string {
 		PaddingRight(1).
 		PaddingTop(0).
 		Height(args.Height).
-		Render(currentDir)
+		Render(leftCurrentDir)
 }

@@ -12,14 +12,12 @@ import (
 	"cute/theming"
 )
 
-type ModalKind string
-
-const (
-	ModalNone ModalKind = "None"
-	ModalHelp ModalKind = "Help"
+type (
+	ModalKind          string
+	SplitPanelType     string
+	TUIMode            string
+	ActiveViewportType string
 )
-
-type TUIMode string
 
 type TUIModes struct {
 	TuiModeAddFile         TUIMode
@@ -41,69 +39,6 @@ type TUIModes struct {
 	TuiModeSort            TUIMode
 }
 
-type SortColumnByDirection string
-
-type SortColumnBy struct {
-	column    filesystem.FileInfoColumn
-	direction SortColumnByDirection
-}
-
-// Column returns the currently selected sort column.
-func (s SortColumnBy) Column() filesystem.FileInfoColumn {
-	return s.column
-}
-
-// Direction returns the current sort direction for the column.
-func (s SortColumnBy) Direction() SortColumnByDirection {
-	return s.direction
-}
-
-const (
-	TuiModeAddFile         TUIMode               = "ADD_FILE"
-	TuiModeAutoComplete    TUIMode               = "AUTOCOMPLETE"
-	TuiModeCd              TUIMode               = "CD"
-	TuiModeColumnVisibiliy TUIMode               = "COLUMN_VISIBILIY"
-	TuiModeCommand         TUIMode               = "COMMAND"
-	TuiModeCopy            TUIMode               = "COPY"
-	TuiModeFilter          TUIMode               = "FILTER"
-	TuiModeGoto            TUIMode               = "GOTO"
-	TuiModeHelp            TUIMode               = "HELP"
-	TuiModeMkdir           TUIMode               = "MKDIR"
-	TuiModeMove            TUIMode               = "MOVE"
-	TuiModeNormal          TUIMode               = "NORMAL"
-	TuiModeParent          TUIMode               = "PARENT"
-	TuiModeQuit            TUIMode               = "QUIT"
-	TuiModeRemove          TUIMode               = "REMOVE"
-	TuiModeRename          TUIMode               = "RENAME"
-	TuiModeSelect          TUIMode               = "SELECT"
-	TuiModeSort            TUIMode               = "SORT"
-	SortingAsc             SortColumnByDirection = "ASC"
-	SortingDesc            SortColumnByDirection = "DESC"
-)
-
-var (
-	ActiveFileListMode         = FileListModeList
-	ActiveTuiMode      TUIMode = "NORMAL"
-	PreviousTuiMode    TUIMode = "NORMAL"
-
-	TuiModes = TUIModes{
-		TuiModeAddFile:         TuiModeAddFile,
-		TuiModeCd:              TuiModeCd,
-		TuiModeColumnVisibiliy: TuiModeColumnVisibiliy,
-		TuiModeCommand:         TuiModeCommand,
-		TuiModeCopy:            TuiModeCopy,
-		TuiModeFilter:          TuiModeFilter,
-		TuiModeGoto:            TuiModeGoto,
-		TuiModeHelp:            TuiModeHelp,
-		TuiModeMkdir:           TuiModeMkdir,
-		TuiModeNormal:          TuiModeNormal,
-		TuiModeRemove:          TuiModeRemove,
-		TuiModeRename:          TuiModeRename,
-		TuiModeSelect:          TuiModeSelect,
-		TuiModeSort:            TuiModeSort,
-	}
-)
-
 type (
 	FileListMode  string
 	FileListModes struct {
@@ -114,12 +49,6 @@ type (
 	}
 )
 
-const (
-	FileListModeList FileListMode = "ll"
-	FileListModeFile FileListMode = "lf"
-	FileListModeDir  FileListMode = "ld"
-)
-
 type ViewPrimitive interface {
 	View() string
 }
@@ -127,6 +56,12 @@ type ViewPrimitive interface {
 type ComponentArgs struct {
 	Width  int
 	Height int
+}
+
+type FileListComponentArgs struct {
+	Width          int
+	Height         int
+	SplitPanelType ActiveViewportType
 }
 
 type CommandModalArgs struct {
@@ -175,16 +110,97 @@ type SelectedEntry struct {
 	Type string
 }
 
+type SortColumnByDirection string
+
+type SortColumnBy struct {
+	column    filesystem.FileInfoColumn
+	direction SortColumnByDirection
+}
+
+// Column returns the currently selected sort column.
+func (s SortColumnBy) Column() filesystem.FileInfoColumn {
+	return s.column
+}
+
+// Direction returns the current sort direction for the column.
+func (s SortColumnBy) Direction() SortColumnByDirection {
+	return s.direction
+}
+
+const (
+	TuiModeAddFile         TUIMode = "ADD_FILE"
+	TuiModeAutoComplete    TUIMode = "AUTOCOMPLETE"
+	TuiModeCd              TUIMode = "CD"
+	TuiModeColumnVisibiliy TUIMode = "COLUMN_VISIBILIY"
+	TuiModeCommand         TUIMode = "COMMAND"
+	TuiModeCopy            TUIMode = "COPY"
+	TuiModeFilter          TUIMode = "FILTER"
+	TuiModeGoto            TUIMode = "GOTO"
+	TuiModeHelp            TUIMode = "HELP"
+	TuiModeMkdir           TUIMode = "MKDIR"
+	TuiModeMove            TUIMode = "MOVE"
+	TuiModeNormal          TUIMode = "NORMAL"
+	TuiModeParent          TUIMode = "PARENT"
+	TuiModeQuit            TUIMode = "QUIT"
+	TuiModeRemove          TUIMode = "REMOVE"
+	TuiModeRename          TUIMode = "RENAME"
+	TuiModeSelect          TUIMode = "SELECT"
+	TuiModeSort            TUIMode = "SORT"
+
+	ModalNone ModalKind = "None"
+	ModalHelp ModalKind = "Help"
+
+	SortingAsc  SortColumnByDirection = "ASC"
+	SortingDesc SortColumnByDirection = "DESC"
+
+	PreviewPanelType       SplitPanelType = "PREVIEW"
+	FileInfoSplitPanelType SplitPanelType = "FILE_INFO"
+	FileListSplitPanelType SplitPanelType = "FILE_LIST"
+
+	LeftViewportType  ActiveViewportType = "LEFT"
+	RightViewportType ActiveViewportType = "RIGHT"
+
+	FileListModeList FileListMode = "ll"
+	FileListModeFile FileListMode = "lf"
+	FileListModeDir  FileListMode = "ld"
+)
+
+var (
+	ActiveFileListMode         = FileListModeList
+	ActiveTuiMode      TUIMode = "NORMAL"
+	PreviousTuiMode    TUIMode = "NORMAL"
+
+	TuiModes = TUIModes{
+		TuiModeAddFile:         TuiModeAddFile,
+		TuiModeCd:              TuiModeCd,
+		TuiModeColumnVisibiliy: TuiModeColumnVisibiliy,
+		TuiModeCommand:         TuiModeCommand,
+		TuiModeCopy:            TuiModeCopy,
+		TuiModeFilter:          TuiModeFilter,
+		TuiModeGoto:            TuiModeGoto,
+		TuiModeHelp:            TuiModeHelp,
+		TuiModeMkdir:           TuiModeMkdir,
+		TuiModeNormal:          TuiModeNormal,
+		TuiModeRemove:          TuiModeRemove,
+		TuiModeRename:          TuiModeRename,
+		TuiModeSelect:          TuiModeSelect,
+		TuiModeSort:            TuiModeSort,
+	}
+)
+
 type Model struct {
-	configDir string
+	configDir        string
+	activeModal      ModalKind
+	activeSplitPanel SplitPanelType
+	activeViewport   ActiveViewportType
+	showRightPanel   bool
+	isSudo           bool
+	jumpTo           string
+	isSearchBarOpen  bool
+	isSplitPanelOpen bool
 
 	searchInput  textinput.Model
 	commandInput textinput.Model
-
-	showRightPanel bool
-	isSudo         bool
-
-	jumpTo string
 
 	// countPrefix stores a pending numeric prefix for Vim-style
 	// navigation (e.g. "10j" / "3↓" in the file list).
@@ -197,9 +213,10 @@ type Model struct {
 	fileList         list.Model // Bubbles list for file listing
 	fileInfoViewport viewport.Model
 
-	allFiles   []filesystem.FileInfo
-	files      []filesystem.FileInfo
-	currentDir string
+	allFiles        []filesystem.FileInfo
+	files           []filesystem.FileInfo
+	leftCurrentDir  string
+	rightCurrentDir string
 
 	// Directory navigation history (similar to a web browser's back/forward).
 	// dirBackStack holds previously visited directories; the most recent entry
@@ -209,11 +226,7 @@ type Model struct {
 	// back. The most recent "forward" target is at the end of the slice.
 	dirForwardStack []string
 
-	activeModal ModalKind
-
 	theme theming.Theme
-
-	isSearchBarOpen bool
 
 	// Command history for auto-complete
 	commandHistory []string
@@ -236,14 +249,11 @@ type Model struct {
 	helpScrollOffset int
 
 	// Terminal / preview state
-	terminalType       string
-	lastPreviewedPath  string
-	imagePreviewActive bool
-	previewEnabled     bool
+	terminalType string
 
 	// Components
 	CurrentDir   func(m Model, args ComponentArgs) string
-	FileListView func(m Model, args ComponentArgs) string
+	FileListView func(m Model, args FileListComponentArgs) string
 	Header       func(m Model, args ComponentArgs) string
 	Preview      func(m Model, args ComponentArgs) string
 	PreviewTabs  func(m Model, args ComponentArgs) string
@@ -295,7 +305,11 @@ func (m Model) GetConfigDir() string {
 }
 
 func (m Model) GetCurrentDir() string {
-	return m.currentDir
+	return m.leftCurrentDir
+}
+
+func (m Model) GetRightCurrentDir() string {
+	return m.rightCurrentDir
 }
 
 func (m Model) GetFileList() list.Model {
@@ -351,18 +365,6 @@ func (m Model) GetTerminalType() string {
 	return m.terminalType
 }
 
-// GetLastPreviewedPath returns the last file path we generated a preview for.
-func (m Model) GetLastPreviewedPath() string {
-	return m.lastPreviewedPath
-}
-
-// IsImagePreviewActive reports whether the current preview is expected to be
-// rendered as an image (e.g. via Kitty graphics) rather than text content in
-// the right viewport.
-func (m Model) IsImagePreviewActive() bool {
-	return m.imagePreviewActive
-}
-
 func (m Model) GetTitleText() string {
 	return m.titleText
 }
@@ -399,9 +401,14 @@ func (m Model) IsSearchBarOpen() bool {
 	return m.isSearchBarOpen
 }
 
-// IsPreviewEnabled reports whether rich previews (text/image) are enabled for
-// the right-hand panel. When disabled, the panel shows simple file
-// information/properties instead.
-func (m Model) IsPreviewEnabled() bool {
-	return m.previewEnabled
+func (m Model) GetActiveSplitPanel() SplitPanelType {
+	return m.activeSplitPanel
+}
+
+func (m Model) GetActiveViewport() ActiveViewportType {
+	return m.activeViewport
+}
+
+func (m Model) GetIsSplitPanelOpen() bool {
+	return m.isSplitPanelOpen
 }

@@ -20,12 +20,12 @@ func InitialModel(startDir string) Model {
 	fileInfoViewport.SetContent("Right Panel\n\nThis is the right viewport.\nIt will display file previews.")
 
 	// Determine initial directory for the file list.
-	currentDir := startDir
-	if currentDir == "" {
+	leftCurrentDir := startDir
+	if leftCurrentDir == "" {
 		var err error
-		currentDir, err = os.Getwd()
+		leftCurrentDir, err = os.Getwd()
 		if err != nil {
-			currentDir = "."
+			leftCurrentDir = "."
 		}
 	}
 	cfgDir := getConfigDir()
@@ -34,7 +34,7 @@ func InitialModel(startDir string) Model {
 	runtimeCfg := config.LoadRuntimeConfig(cfgDir)
 
 	// Load the initial directory.
-	files := loadDirectory(currentDir)
+	files := loadDirectory(leftCurrentDir)
 
 	// Create the bubbles list with file items.
 	delegate := NewFileItemDelegate(runtimeCfg.Theme, 0, filesystem.ColumnNames)
@@ -54,30 +54,30 @@ func InitialModel(startDir string) Model {
 	fileList.Styles.NoItems = fileList.Styles.NoItems.Foreground(nil)
 
 	m := Model{
-		allFiles: files,
+		allFiles:         files,
+		activeSplitPanel: FileInfoSplitPanelType,
+		activeViewport:   LeftViewportType,
 		sortColumnBy: SortColumnBy{
 			column:    filesystem.ColumnName,
 			direction: SortingAsc,
 		},
-		configDir:          cfgDir,
-		currentDir:         currentDir,
-		fileInfoViewport:   fileInfoViewport,
-		fileList:           fileList,
-		files:              files,
-		imagePreviewActive: false,
-		jumpTo:             "",
-		lastPreviewedPath:  "",
-		layout:             "",
-		layoutRows:         []string{""},
-		previewEnabled:     false,
-		runtimeConfig:      runtimeCfg,
-		showRightPanel:     true,
-		isSudo:             false,
-		terminalType:       string(detectTerminalType()),
-		theme:              runtimeCfg.Theme,
-		titleText:          "The Cute File Manager",
-		viewportHeight:     0,
-		viewportWidth:      0,
+		configDir:        cfgDir,
+		leftCurrentDir:   leftCurrentDir,
+		fileInfoViewport: fileInfoViewport,
+		fileList:         fileList,
+		files:            files,
+		jumpTo:           "",
+		layout:           "",
+		layoutRows:       []string{""},
+		runtimeConfig:    runtimeCfg,
+		showRightPanel:   true,
+		isSudo:           false,
+		isSplitPanelOpen: false,
+		terminalType:     string(detectTerminalType()),
+		theme:            runtimeCfg.Theme,
+		titleText:        "The Cute File Manager",
+		viewportHeight:   0,
+		viewportWidth:    0,
 		columnVisibility: []filesystem.FileInfoColumn{
 			filesystem.ColumnPermissions,
 			filesystem.ColumnUser,
@@ -89,7 +89,7 @@ func InitialModel(startDir string) Model {
 	}
 
 	// Initialize the search input
-	m.searchInput = m.SearchInput(">", "Filter...")
+	m.searchInput = m.SearchInput("> ", "Filter...")
 
 	// Initialize the command input
 	m.commandInput = m.CommandInput("", "")

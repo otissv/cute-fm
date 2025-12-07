@@ -2,7 +2,6 @@ package tui
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"cute/filesystem"
@@ -15,27 +14,20 @@ func (m *Model) UpdateFileInfoPanel() {
 	// If there are no files, clear the preview.
 	if len(m.files) == 0 {
 		m.fileInfoViewport.SetContent("")
-		m.lastPreviewedPath = ""
 		return
 	}
 
 	idx := m.fileList.Index()
 	if idx < 0 || idx >= len(m.files) {
 		m.fileInfoViewport.SetContent("")
-		m.lastPreviewedPath = ""
 		return
 	}
 
 	fi := m.files[idx]
-	path := fi.Path
-	if path == "" {
-		path = filepath.Join(m.currentDir, fi.Name)
-	}
 
 	// Always show simple file info/properties in the right-hand panel instead
 	// of rich text/image previews.
 	m.fileInfoViewport.SetContent(renderFileInfoPanel(fi))
-	m.lastPreviewedPath = path
 }
 
 // renderFileInfoPanel renders basic file information and properties for the

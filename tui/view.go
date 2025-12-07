@@ -12,21 +12,9 @@ func (m Model) View() tea.View {
 		return v
 	}
 
-	leftViewportView := m.FileListView(
-		m, ComponentArgs{
-			Width:  m.viewportWidth,
-			Height: m.viewportHeight,
-		})
-
 	headerView := m.Header(m, ComponentArgs{
 		Width: m.width,
 	})
-
-	fileInfoViewportView := m.Preview(
-		m, ComponentArgs{
-			Width:  m.viewportWidth,
-			Height: m.viewportHeight,
-		})
 
 	searchBar := m.SearchBar(
 		m, ComponentArgs{
@@ -34,7 +22,7 @@ func (m Model) View() tea.View {
 			Height: 1,
 		})
 
-	currentDir := m.CurrentDir(m, ComponentArgs{
+	leftCurrentDir := m.CurrentDir(m, ComponentArgs{
 		Height: 1,
 	})
 
@@ -52,16 +40,16 @@ func (m Model) View() tea.View {
 			Height: 1,
 		})
 
-	defaultStatus := []string{tuiMode, viewModeText, currentDir}
+	leftStatus := []string{tuiMode, viewModeText, leftCurrentDir}
 
-	statusBarItem := defaultStatus
+	leftStatusBarItem := leftStatus
 
 	if ActiveTuiMode == TuiModeGoto {
-		statusBarItem = []string{tuiMode, m.jumpTo}
+		leftStatusBarItem = []string{tuiMode, m.jumpTo}
 	}
 
 	if m.isSudo {
-		statusBarItem = append([]string{sudoMode}, statusBarItem...)
+		leftStatusBarItem = append([]string{sudoMode}, leftStatusBarItem...)
 	}
 
 	statusBar := m.StatusBar(
@@ -69,33 +57,66 @@ func (m Model) View() tea.View {
 			Width:  m.width,
 			Height: 1,
 		},
-		statusBarItem...,
+		leftStatusBarItem...,
 	)
 
-	filePanelRows := []string{
+	fileListView1 := m.FileListView(
+		m, FileListComponentArgs{
+			Width:          m.viewportWidth,
+			Height:         m.viewportHeight,
+			SplitPanelType: LeftViewportType,
+		})
+
+	fileListView2 := m.FileListView(
+		m, FileListComponentArgs{
+			Width:          m.viewportWidth,
+			Height:         m.viewportHeight,
+			SplitPanelType: RightViewportType,
+		})
+
+	filePanel1Rows := []string{
 		searchBar,
-		leftViewportView,
+		fileListView1,
 	}
 
-	filePanel := lipgloss.JoinVertical(
+	filePanel2Rows := []string{
+		searchBar,
+		fileListView2,
+	}
+
+	leftPanel := lipgloss.JoinVertical(
 		lipgloss.Left,
-		filePanelRows...,
+		filePanel1Rows...,
 	)
+
+	fileInfoViewportView := m.Preview(
+		m, ComponentArgs{
+			Width:  m.viewportWidth,
+			Height: m.viewportHeight,
+		})
 
 	rightPanel := lipgloss.JoinVertical(
 		lipgloss.Left,
 	)
 
 	if m.showRightPanel {
-		rightPanel = lipgloss.JoinVertical(
-			lipgloss.Left,
-			fileInfoViewportView,
-		)
+		switch m.activeSplitPanel {
+		case FileInfoSplitPanelType:
+			rightPanel = lipgloss.JoinVertical(
+				lipgloss.Left,
+				fileInfoViewportView,
+			)
+		case FileListSplitPanelType:
+			rightPanel = lipgloss.JoinVertical(
+				lipgloss.Left,
+				filePanel2Rows...,
+			)
+		}
 	}
 
 	viewports := lipgloss.JoinHorizontal(
 		lipgloss.Top,
-		filePanel,
+		leftPanel,
 		rightPanel,
 	)
 

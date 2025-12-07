@@ -6,9 +6,11 @@ import (
 	"cute/tui"
 )
 
-func FileList(m tui.Model, args tui.ComponentArgs) string {
+func FileList(m tui.Model, args tui.FileListComponentArgs) string {
 	theme := m.GetTheme()
 	fileList := m.GetFileList()
+	activeViewport := m.GetActiveViewport()
+	isSplitPanelOpen := m.GetIsSplitPanelOpen()
 
 	// Content width is viewport width minus left/right borders.
 	contentWidth := args.Width - 2
@@ -30,12 +32,27 @@ func FileList(m tui.Model, args tui.ComponentArgs) string {
 		body,
 	)
 
-	return lipgloss.NewStyle().
+	baseStyle := lipgloss.NewStyle().
 		Background(lipgloss.Color(theme.FileList.Background)).
 		BorderBackground(lipgloss.Color(theme.FileList.Background)).
-		BorderForeground(lipgloss.Color(theme.FileList.Border)).
+		BorderStyle(lipgloss.RoundedBorder()).
 		Foreground(lipgloss.Color(theme.FileList.Foreground)).
 		Height(args.Height).
 		Width(args.Width).
+		BorderTop(false).
+		BorderBottom(false).
+		BorderLeft(false).
+		BorderRight(false)
+
+	if activeViewport == args.SplitPanelType && isSplitPanelOpen {
+		baseStyle = baseStyle.
+			BorderForeground(lipgloss.Color(theme.BorderColor)).
+			BorderTop(true).
+			BorderBottom(true).
+			BorderLeft(true).
+			BorderRight(true)
+	}
+
+	return baseStyle.
 		Render(inner)
 }

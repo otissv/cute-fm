@@ -82,7 +82,7 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			res, err := m.ExecuteCommand(line)
 
 			// Apply environment changes.
-			if res.Cwd != "" && res.Cwd != m.currentDir {
+			if res.Cwd != "" && res.Cwd != m.leftCurrentDir {
 				m.ChangeDirectory(res.Cwd)
 			} else if res.Refresh {
 				// Re-list the current directory when requested by the command

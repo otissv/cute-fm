@@ -133,7 +133,7 @@ func (m *Model) GetSelectedEntry() *command.SelectedEntry {
 	fi := m.files[selectedIdx]
 	path := fi.Path
 	if path == "" {
-		path = filepath.Join(m.currentDir, fi.Name)
+		path = filepath.Join(m.leftCurrentDir, fi.Name)
 	}
 
 	return &command.SelectedEntry{
@@ -148,7 +148,7 @@ func (m *Model) GetSelectedEntry() *command.SelectedEntry {
 // current model state, including the currently selected entry (if any).
 func (m *Model) GetCommandEnvironment() command.Environment {
 	return command.Environment{
-		Cwd:      m.currentDir,
+		Cwd:      m.leftCurrentDir,
 		Config:   m.runtimeConfig,
 		Selected: m.GetSelectedEntry(),
 	}
@@ -203,8 +203,8 @@ func (m *Model) ApplyFilter() {
 // stack is cleared, mirroring typical browser navigation behaviour.
 func (m *Model) changeDirectoryInternal(dir string, trackHistory bool) {
 	// Record history before we actually change directories.
-	if trackHistory && m.currentDir != "" && m.currentDir != dir {
-		m.dirBackStack = append(m.dirBackStack, m.currentDir)
+	if trackHistory && m.leftCurrentDir != "" && m.leftCurrentDir != dir {
+		m.dirBackStack = append(m.dirBackStack, m.leftCurrentDir)
 		// Any new navigation invalidates the "forward" history.
 		m.dirForwardStack = nil
 	}
@@ -215,7 +215,7 @@ func (m *Model) changeDirectoryInternal(dir string, trackHistory bool) {
 		return
 	}
 
-	m.currentDir = dir
+	m.leftCurrentDir = dir
 	m.allFiles = files
 	m.files = files
 
@@ -246,10 +246,10 @@ func (m *Model) ChangeDirectory(dir string) {
 // ReloadDirectory reloads the current directory without adding a new history
 // entry. This is used when commands request a simple refresh of the listing.
 func (m *Model) ReloadDirectory() {
-	if m.currentDir == "" {
+	if m.leftCurrentDir == "" {
 		return
 	}
-	m.changeDirectoryInternal(m.currentDir, false)
+	m.changeDirectoryInternal(m.leftCurrentDir, false)
 }
 
 // NavigatePreviousDir moves to the previously visited directory, if any.
@@ -266,8 +266,8 @@ func (m *Model) NavigatePreviousDir() {
 	m.dirBackStack = m.dirBackStack[:lastIdx]
 
 	// Current directory becomes a "forward" target.
-	if m.currentDir != "" && m.currentDir != prevDir {
-		m.dirForwardStack = append(m.dirForwardStack, m.currentDir)
+	if m.leftCurrentDir != "" && m.leftCurrentDir != prevDir {
+		m.dirForwardStack = append(m.dirForwardStack, m.leftCurrentDir)
 	}
 
 	// Do not record this as a new history entry; we're traversing history.
@@ -286,8 +286,8 @@ func (m *Model) NavigateNextDir() {
 	m.dirForwardStack = m.dirForwardStack[:lastIdx]
 
 	// Current directory becomes part of the "back" history.
-	if m.currentDir != "" && m.currentDir != nextDir {
-		m.dirBackStack = append(m.dirBackStack, m.currentDir)
+	if m.leftCurrentDir != "" && m.leftCurrentDir != nextDir {
+		m.dirBackStack = append(m.dirBackStack, m.leftCurrentDir)
 	}
 
 	// Do not record this as a new history entry; we're traversing history.

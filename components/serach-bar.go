@@ -17,8 +17,8 @@ func SearchBar(m tui.Model, args tui.ComponentArgs) string {
 		BorderForeground(lipgloss.Color(theme.SearchBar.Border)).
 		BorderTop(false).
 		BorderBottom(false).
-		BorderLeft(true).
-		BorderRight(true).
+		BorderLeft(false).
+		BorderRight(false).
 		BorderStyle(lipgloss.NormalBorder()).
 		Height(args.Height).
 		Width(args.Width).
