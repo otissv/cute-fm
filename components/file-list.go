@@ -16,7 +16,12 @@ func FileList(m tui.Model, args tui.ComponentArgs) string {
 		contentWidth = 1
 	}
 
-	header := tui.RenderFileHeaderRow(theme, contentWidth, m.GetColumnVisibility())
+	header := tui.RenderFileHeaderRow(tui.FileHeaderRowArgs{
+		Theme:        theme,
+		TotalWidth:   contentWidth,
+		Columns:      m.GetColumnVisibility(),
+		SortColumnBy: m.GetSortColumnBy(),
+	})
 	body := fileList.View()
 
 	inner := lipgloss.JoinVertical(

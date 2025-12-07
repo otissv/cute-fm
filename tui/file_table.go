@@ -307,9 +307,16 @@ func FileInfosToItems(files []filesystem.FileInfo) []list.Item {
 	return items
 }
 
+type FileHeaderRowArgs struct {
+	Theme        theming.Theme
+	TotalWidth   int
+	Columns      []filesystem.FileInfoColumn
+	SortColumnBy SortColumnBy
+}
+
 // RenderFileHeaderRow renders a single header row for the file list, aligned
 // with the same columns and widths used for file rows.
-func RenderFileHeaderRow(theme theming.Theme, totalWidth int, columns []filesystem.FileInfoColumn) string {
+func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 	const (
 		colIndex = 5
 		colPerms = 11
@@ -320,24 +327,55 @@ func RenderFileHeaderRow(theme theming.Theme, totalWidth int, columns []filesyst
 		colDate  = 14
 	)
 
-	bgColor := theme.FileList.Background
+	bgColor := args.Theme.FileList.Background
 	bg := lipgloss.Color(bgColor)
 
 	baseStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color(theming.DefaultTheme().Foreground))
 
+	permsHeading := "Permissions"
+	sizeHeading := "Size"
+	typeHeading := "Type"
+	userHeading := "User"
+	groupHeading := "Group"
+	dateHeading := "Date Modified"
+	nameHeading := "Name"
+
+	sortByDirection := "↓ "
+
+	if args.SortColumnBy.direction == "desc" {
+		sortByDirection = "↑ "
+	}
+
+	switch args.SortColumnBy.column {
+	case filesystem.ColumnPermissions:
+		permsHeading = sortByDirection + permsHeading
+	case filesystem.ColumnSize:
+		sizeHeading = sortByDirection + sizeHeading
+	case filesystem.ColumnMimeType:
+		typeHeading = sortByDirection + typeHeading
+	case filesystem.ColumnUser:
+		userHeading = sortByDirection + userHeading
+	case filesystem.ColumnGroup:
+		groupHeading = sortByDirection + groupHeading
+	case filesystem.ColumnDateModified:
+		dateHeading = sortByDirection + dateHeading
+	case filesystem.ColumnName:
+		nameHeading = sortByDirection + nameHeading
+	}
+
 	indexText := padCellWithBG(baseStyle.Render(" "), colIndex, bgColor)
-	permsText := padCellWithBG(baseStyle.Render("Permissions"), colPerms, bgColor)
-	sizeText := padCellWithBG(baseStyle.Render("Size"), colSize, bgColor)
-	typeText := padCellWithBG(baseStyle.Render("Type"), colType, bgColor)
-	userText := padCellWithBG(baseStyle.Render("User"), colUser, bgColor)
-	groupText := padCellWithBG(baseStyle.Render("Group"), colGroup, bgColor)
-	dateText := padCellWithBG(baseStyle.Render("Last Modified"), colDate, bgColor)
-	nameText := baseStyle.Render("Name") // last column can flow to the right
+	permsText := padCellWithBG(baseStyle.Render(permsHeading), colPerms, bgColor)
+	sizeText := padCellWithBG(baseStyle.Render(sizeHeading), colSize, bgColor)
+	typeText := padCellWithBG(baseStyle.Render(typeHeading), colType, bgColor)
+	userText := padCellWithBG(baseStyle.Render(userHeading), colUser, bgColor)
+	groupText := padCellWithBG(baseStyle.Render(groupHeading), colGroup, bgColor)
+	dateText := padCellWithBG(baseStyle.Render(dateHeading), colDate, bgColor)
+	nameText := baseStyle.Render(nameHeading) // last column can flow to the right
 
 	lineCols := []string{indexText} // index column always present
 
-	for _, col := range columns {
+	for _, col := range args.Columns {
 		switch col {
 		case filesystem.ColumnPermissions:
 			lineCols = append(lineCols, permsText)
@@ -360,10 +398,10 @@ func RenderFileHeaderRow(theme theming.Theme, totalWidth int, columns []filesyst
 	line := strings.Join(lineCols, sep)
 
 	// Pad out to totalWidth so the background fills the entire content area.
-	if totalWidth > 0 && bgColor != "" {
+	if args.TotalWidth > 0 && bgColor != "" {
 		lineWidth := lipgloss.Width(line)
-		if lineWidth < totalWidth {
-			missing := totalWidth - lineWidth
+		if lineWidth < args.TotalWidth {
+			missing := args.TotalWidth - lineWidth
 			spaceStyle := lipgloss.NewStyle().Background(bg)
 			pad := spaceStyle.Render(" ")
 
