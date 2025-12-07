@@ -13,6 +13,15 @@ import (
 	"cute/theming"
 )
 
+const (
+	colIndex = 5
+	colPerms = 11
+	colSize  = 6
+	colUser  = 8
+	colGroup = 8
+	colDate  = 14
+)
+
 // FileItem wraps filesystem.FileInfo to implement the list.Item interface.
 type FileItem struct {
 	Info filesystem.FileInfo
@@ -91,15 +100,6 @@ func (d FileItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 // renderFileRow renders a single file row with all columns styled.
 // index is the precomputed display index (already relative/absolute as desired).
 func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool, index int) string {
-	const (
-		colIndex = 5
-		colPerms = 11
-		colSize  = 6
-		colUser  = 8
-		colGroup = 8
-		colDate  = 14
-	)
-
 	theme := d.theme
 
 	size := fi.Size
@@ -297,4 +297,71 @@ func FileInfosToItems(files []filesystem.FileInfo) []list.Item {
 		items[i] = FileItem{Info: f}
 	}
 	return items
+}
+
+// RenderFileHeaderRow renders a single header row for the file list, aligned
+// with the same columns and widths used for file rows.
+func RenderFileHeaderRow(theme theming.Theme, totalWidth int, columns []filesystem.FileInfoColumn) string {
+	const (
+		colIndex = 5
+		colPerms = 11
+		colSize  = 6
+		colUser  = 8
+		colGroup = 8
+		colDate  = 14
+	)
+
+	bgColor := theme.FileList.Background
+	bg := lipgloss.Color(bgColor)
+
+	baseStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(theming.DefaultTheme().Foreground))
+
+	indexText := padCellWithBG(baseStyle.Render(" "), colIndex, bgColor)
+	permsText := padCellWithBG(baseStyle.Render("Permissions"), colPerms, bgColor)
+	sizeText := padCellWithBG(baseStyle.Render("Size"), colSize, bgColor)
+	userText := padCellWithBG(baseStyle.Render("User"), colUser, bgColor)
+	groupText := padCellWithBG(baseStyle.Render("Group"), colGroup, bgColor)
+	dateText := padCellWithBG(baseStyle.Render("Last Modified"), colDate, bgColor)
+	nameText := baseStyle.Render("Name") // last column can flow to the right
+
+	lineCols := []string{indexText} // index column always present
+
+	for _, col := range columns {
+		switch col {
+		case filesystem.ColumnPermissions:
+			lineCols = append(lineCols, permsText)
+		case filesystem.ColumnSize:
+			lineCols = append(lineCols, sizeText)
+		case filesystem.ColumnUser:
+			lineCols = append(lineCols, userText)
+		case filesystem.ColumnGroup:
+			lineCols = append(lineCols, groupText)
+		case filesystem.ColumnDateModified:
+			lineCols = append(lineCols, dateText)
+		case filesystem.ColumnName:
+			lineCols = append(lineCols, nameText)
+		}
+	}
+
+	sep := lipgloss.NewStyle().Background(bg).Render(" ")
+	line := strings.Join(lineCols, sep)
+
+	// Pad out to totalWidth so the background fills the entire content area.
+	if totalWidth > 0 && bgColor != "" {
+		lineWidth := lipgloss.Width(line)
+		if lineWidth < totalWidth {
+			missing := totalWidth - lineWidth
+			spaceStyle := lipgloss.NewStyle().Background(bg)
+			pad := spaceStyle.Render(" ")
+
+			var tail strings.Builder
+			for i := 0; i < missing; i++ {
+				tail.WriteString(pad)
+			}
+			line += tail.String()
+		}
+	}
+
+	return line
 }
