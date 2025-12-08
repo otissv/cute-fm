@@ -290,11 +290,12 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
-	// Enter select mode
+	// Enter select mode and mark the current row.
 	case bindings.Select.Matches(key):
 		if ActiveTuiMode != TuiModeSelect {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = TuiModeSelect
+			(&m).toggleCurrentSelection()
 			return m, nil
 		}
 

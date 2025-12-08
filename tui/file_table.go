@@ -14,18 +14,20 @@ import (
 )
 
 const (
-	colIndex = 5
-	colPerms = 11
-	colSize  = 6
-	colType  = 16
-	colUser  = 8
-	colGroup = 8
-	colDate  = 14
+	colMarker = 5
+	colIndex  = 5
+	colPerms  = 11
+	colSize   = 6
+	colType   = 16
+	colUser   = 8
+	colGroup  = 8
+	colDate   = 14
 )
 
 // FileItem wraps filesystem.FileInfo to implement the list.Item interface.
 type FileItem struct {
-	Info filesystem.FileInfo
+	Info   filesystem.FileInfo
+	Marked bool
 }
 
 // FilterValue returns the file name for filtering.
@@ -76,7 +78,8 @@ func (d FileItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 		return
 	}
 
-	isSelected := index == m.Index()
+	isCursor := index == m.Index()
+	isMarked := fi.Marked
 	// Compute a Vim-style line number:
 	//   - The currently selected row shows 0.
 	//   - All other rows show the absolute distance from the selection.
@@ -94,13 +97,13 @@ func (d FileItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 		}
 	}
 
-	line := d.renderFileRow(fi.Info, isSelected, displayIndex)
+	line := d.renderFileRow(fi.Info, isCursor, isMarked, displayIndex)
 	_, _ = io.WriteString(w, line)
 }
 
 // renderFileRow renders a single file row with all columns styled.
 // index is the precomputed display index (already relative/absolute as desired).
-func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool, index int) string {
+func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, isMarked bool, index int) string {
 	theme := d.theme
 
 	size := fi.Size
@@ -119,18 +122,19 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool,
 	timeStyle := theming.StyleFromSpec(theme.FieldColors["time"])
 
 	// Background color for the row.
-	bgColor := ""
-	if isSelected && theme.Selection.Background != "" {
+	// In select mode, the cursor row uses FileList.Marked as its background.
+	// Otherwise, fall back to the generic Selection background when available,
+	// or the file-list background.
+	bgColor := theme.FileList.Background
+
+	if isMarked {
+		bgColor = theme.FileList.Marked
+	}
+	if isCursor {
 		bgColor = theme.Selection.Background
-		bg := lipgloss.Color(bgColor)
-		indexStyle = indexStyle.Background(bg)
-		userStyle = userStyle.Background(bg)
-		groupStyle = groupStyle.Background(bg)
-		sizeStyle = sizeStyle.Background(bg)
-		typeStyle = typeStyle.Background(bg)
-		timeStyle = timeStyle.Background(bg)
-	} else {
-		bgColor = theme.FileList.Background
+	}
+
+	if bgColor != "" {
 		bg := lipgloss.Color(bgColor)
 		indexStyle = indexStyle.Background(bg)
 		userStyle = userStyle.Background(bg)
@@ -161,9 +165,28 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isSelected bool,
 	nameText := nameStyle.Render(name)
 
 	// Build the list of columns to render based on the delegate configuration.
-	lineCols := []string{
-		indexText, // always show index
+	lineCols := []string{}
+
+	// Optional selection marker column in select mode.
+	if ActiveTuiMode == TuiModeSelect {
+		markerContent := "[   ]"
+		if isMarked {
+			markerContent = "[ x ]"
+		}
+
+		markerStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color(theme.FileList.Foreground))
+
+		if bgColor != "" {
+			markerStyle = markerStyle.Background(lipgloss.Color(bgColor))
+		}
+
+		markerText := padCellWithBG(markerStyle.Render(markerContent), colMarker, bgColor)
+		lineCols = append(lineCols, markerText)
 	}
+
+	// Index column: always present.
+	lineCols = append(lineCols, indexText)
 
 	for _, col := range d.columns {
 		switch col {
@@ -299,10 +322,14 @@ func padCellWithBG(content string, w int, bgColor string) string {
 }
 
 // FileInfosToItems converts a slice of FileInfo to a slice of list.Item.
-func FileInfosToItems(files []filesystem.FileInfo) []list.Item {
+func FileInfosToItems(files []filesystem.FileInfo, marked map[string]bool) []list.Item {
 	items := make([]list.Item, len(files))
 	for i, f := range files {
-		items[i] = FileItem{Info: f}
+		if marked != nil && marked[f.Path] {
+			items[i] = FileItem{Info: f, Marked: true}
+		} else {
+			items[i] = FileItem{Info: f, Marked: false}
+		}
 	}
 	return items
 }
@@ -317,16 +344,6 @@ type FileHeaderRowArgs struct {
 // RenderFileHeaderRow renders a single header row for the file list, aligned
 // with the same columns and widths used for file rows.
 func RenderFileHeaderRow(args FileHeaderRowArgs) string {
-	const (
-		colIndex = 5
-		colPerms = 11
-		colSize  = 6
-		colType  = 16
-		colUser  = 8
-		colGroup = 8
-		colDate  = 14
-	)
-
 	bgColor := args.Theme.FileList.Background
 	bg := lipgloss.Color(bgColor)
 
@@ -373,7 +390,18 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 	dateText := padCellWithBG(baseStyle.Render(dateHeading), colDate, bgColor)
 	nameText := baseStyle.Render(nameHeading) // last column can flow to the right
 
-	lineCols := []string{indexText} // index column always present
+	lineCols := []string{}
+
+	// Optional selection marker header column in select mode.
+	if ActiveTuiMode == TuiModeSelect {
+		markerStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color(args.Theme.FileList.Foreground))
+		markerText := padCellWithBG(markerStyle.Render("[   ]"), colMarker, bgColor)
+		lineCols = append(lineCols, markerText)
+	}
+
+	// Index column always present.
+	lineCols = append(lineCols, indexText)
 
 	for _, col := range args.Columns {
 		switch col {

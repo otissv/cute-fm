@@ -20,13 +20,12 @@ func (m *Model) CalcLayout() {
 	//
 	// Only the main viewports row should grow/shrink with the terminal height.
 	const (
-		headerRows  = 2 // Header typically renders on 2 lines (title + padding).
-		statusRows  = 2 // Status bar row.
-		commandRows = 2 // Command bar row at the bottom.
+		headerRow = 3
+		statusRow = 3
 	)
 
 	// Viewport style height: remaining height after the fixed rows.
-	viewportHeight := m.height - (headerRows + statusRows + commandRows)
+	viewportHeight := m.height - (headerRow + statusRow + 1)
 	if viewportHeight < 3 {
 		viewportHeight = 3 // Minimum: 1 content + 2 borders
 	}

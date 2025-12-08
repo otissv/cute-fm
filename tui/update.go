@@ -84,6 +84,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.UtilityMode(msg, "mv")
 		}
 
+		if ActiveTuiMode == TuiModeSelect {
+			return m.SelectMode(msg)
+		}
+
 		if ActiveTuiMode == TuiModeNormal {
 			return m.NormalMode(msg)
 		}
@@ -190,8 +194,8 @@ func (m *Model) ApplyFilter() {
 	// Apply the active column-based sorting to the filtered list.
 	m.applySorting(pane)
 
-	// Update the list with new items.
-	items := FileInfosToItems(pane.files)
+	// Update the list with new items, preserving any existing marks.
+	items := FileInfosToItems(pane.files, pane.marked)
 	pane.fileList.SetItems(items)
 
 	// Reset selection to first item if we have items.
@@ -226,9 +230,11 @@ func (m *Model) changeDirectoryInternal(dir string, trackHistory bool) {
 	pane.currentDir = dir
 	pane.allFiles = files
 	pane.files = files
+	// Reset marks when changing directory.
+	pane.marked = make(map[string]bool)
 
 	// Update the list with new items.
-	items := FileInfosToItems(files)
+	items := FileInfosToItems(files, pane.marked)
 	pane.fileList.SetItems(items)
 
 	// Select the first item if we have items.

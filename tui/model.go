@@ -128,6 +128,9 @@ type filePane struct {
 	dirBackStack    []string
 	dirForwardStack []string
 	columns         []filesystem.FileInfoColumn
+	// marked tracks which file paths are currently marked for actions (multi-select)
+	// independently of the cursor row. The key is the full filesystem path.
+	marked map[string]bool
 }
 
 // Column returns the currently selected sort column.
@@ -148,7 +151,7 @@ const (
 	TuiModeCommand         TUIMode = "COMMAND"
 	TuiModeCopy            TUIMode = "COPY"
 	TuiModeFilter          TUIMode = "FILTER"
-	TuiModeGoto            TUIMode = "GOTO"
+	TuiModeGoto            TUIMode = "Goto row:"
 	TuiModeHelp            TUIMode = "HELP"
 	TuiModeMkdir           TUIMode = "MKDIR"
 	TuiModeMove            TUIMode = "MOVE"

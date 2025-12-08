@@ -51,6 +51,7 @@ var (
 	fileTypeRegular          = foreground
 	fileTypeSocket           = color3
 	fileTypeSymlink          = color5
+	fileListMarked           = color9
 	permExec                 = color4
 	permNone                 = foreground
 	permRead                 = color6
@@ -92,6 +93,18 @@ type Style struct {
 type StyleColor struct {
 	Background string
 	Foreground string
+}
+
+type FileListStyle struct {
+	Background       string
+	BorderBackground string
+	Foreground       string
+	PaddingTop       int
+	PaddingBottom    int
+	PaddingLeft      int
+	PaddingRight     int
+	Border           string
+	Marked           string
 }
 
 type DialogStyle struct {
@@ -154,7 +167,7 @@ type Theme struct {
 	CurrentDir     StyleColor
 	Dialog         DialogStyle
 	FieldColors    map[string]string
-	FileList       Style
+	FileList       FileListStyle
 	FileTypeColors map[string]string
 	Header         StyleColor
 	Permissions    PermissionsStyle
@@ -204,7 +217,7 @@ func DefaultTheme() Theme {
 			Foreground: leftCurrentDirForeground,
 		},
 
-		FileList: Style{
+		FileList: FileListStyle{
 			Background:    fileListBackground,
 			Foreground:    fileListForeGround,
 			PaddingBottom: 1,
@@ -212,6 +225,7 @@ func DefaultTheme() Theme {
 			PaddingLeft:   1,
 			PaddingRight:  1,
 			PaddingTop:    0,
+			Marked:        fileListMarked,
 		},
 
 		FileTypeColors: map[string]string{

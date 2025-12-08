@@ -38,7 +38,7 @@ func InitialModel(startDir string) Model {
 
 	// Create the bubbles lists with file items for both panes.
 	delegate := NewFileItemDelegate(runtimeCfg.Theme, 0, filesystem.ColumnNames)
-	items := FileInfosToItems(files)
+	items := FileInfosToItems(files, nil)
 
 	newList := func() list.Model {
 		l := list.New(items, delegate, 0, 0)
@@ -82,6 +82,7 @@ func InitialModel(startDir string) Model {
 			files:      files,
 			fileList:   leftList,
 			columns:    defaultColumns,
+			marked:     make(map[string]bool),
 		},
 		// Start the right pane in the same directory; it can diverge later.
 		rightPane: filePane{
@@ -90,6 +91,7 @@ func InitialModel(startDir string) Model {
 			files:      files,
 			fileList:   rightList,
 			columns:    defaultColumns,
+			marked:     make(map[string]bool),
 		},
 		jumpTo:          "",
 		layout:          "",
