@@ -128,18 +128,21 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Move cursor down in file list (with optional count)
 	case bindings.Down.Matches(key):
+		pane := m.activePane()
+
 		// Arrow keys should move one row at a time, nano-style. Ignore any
 		// numeric count prefix so that a stray digit doesn't cause the cursor
 		// to "jump" or effectively page.
-		m.fileList.CursorDown()
+		pane.fileList.CursorDown()
 		m.UpdateFileInfoPanel()
 		return m, nil
 
 	// Navigate into the selected directory.
 	case bindings.Enter.Matches(key):
-		selectedIdx := m.fileList.Index()
-		if selectedIdx >= 0 && selectedIdx < len(m.files) {
-			fi := m.files[selectedIdx]
+		pane := m.activePane()
+		selectedIdx := pane.fileList.Index()
+		if selectedIdx >= 0 && selectedIdx < len(pane.files) {
+			fi := pane.files[selectedIdx]
 			if fi.IsDir {
 				m.ChangeDirectory(fi.Path)
 				return m, nil
@@ -148,14 +151,14 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Open file info split panel;
 	case bindings.FileInfoPanel.Matches(key):
-		m.activeSplitPanel = FileInfoSplitPanelType
-		m.isSplitPanelOpen = false
+		m.activeSplitPane = FileInfoSplitPaneType
+		m.isSplitPaneOpen = false
 		return m, nil
 
 	// Open file list split panel
 	case bindings.FileListPanel.Matches(key):
-		m.activeSplitPanel = FileListSplitPanelType
-		m.isSplitPanelOpen = true
+		m.activeSplitPane = FileListSplitPaneType
+		m.isSplitPaneOpen = true
 		return m, nil
 
 	// Change file list to files-only view
@@ -189,13 +192,15 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Move cursor to end of file list
 	case bindings.GoToEnd.Matches(keyMsg.String()):
-		m.fileList.GoToEnd()
+		pane := m.activePane()
+		pane.fileList.GoToEnd()
 		m.UpdateFileInfoPanel()
 		return m, nil
 
 		// Move cursor to start of file list
 	case bindings.GoToStart.Matches(keyMsg.String()):
-		m.fileList.GoToStart()
+		pane := m.activePane()
+		pane.fileList.GoToStart()
 		m.UpdateFileInfoPanel()
 		return m, nil
 
@@ -228,8 +233,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Navigate to the parent directory.
 	case bindings.Parent.Matches(key):
-		parent := filepath.Dir(m.leftCurrentDir)
-		if parent != "" && parent != m.leftCurrentDir {
+		pane := m.activePane()
+		parent := filepath.Dir(pane.currentDir)
+		if parent != "" && parent != pane.currentDir {
 			m.ChangeDirectory(parent)
 		} else {
 			// Even if we're at the root (Dir("/") == "/"), attempt to
@@ -249,8 +255,8 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Open preview split panel
 	case bindings.PreviewPanel.Matches(key):
-		m.activeSplitPanel = PreviewPanelType
-		m.isSplitPanelOpen = false
+		m.activeSplitPane = PreviewPanelType
+		m.isSplitPaneOpen = false
 		return m, nil
 
 	// Quit application
@@ -304,8 +310,8 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Open preview split panel
-	case bindings.SwitchBetweenSplitPanel.Matches(key):
-		if m.isSplitPanelOpen {
+	case bindings.SwitchBetweenSplitPane.Matches(key):
+		if m.isSplitPaneOpen {
 			if m.activeViewport == LeftViewportType {
 				m.activeViewport = RightViewportType
 			} else {
@@ -321,25 +327,29 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Move cursor up in file list (with optional count)
 	case bindings.Up.Matches(key):
+		pane := m.activePane()
+
 		// Arrow keys should move one row at a time, nano-style. Ignore any
 		// numeric count prefix so that a stray digit doesn't cause the cursor
 		// to "jump" or effectively page.
-		m.fileList.CursorUp()
+		pane.fileList.CursorUp()
 		m.UpdateFileInfoPanel()
 		return m, nil
 
 		// Page down in file list (with optional count)
 	case bindings.PageDown.Matches(key):
+		pane := m.activePane()
 		for i := 0; i < count; i++ {
-			m.fileList.NextPage()
+			pane.fileList.NextPage()
 		}
 		m.UpdateFileInfoPanel()
 		return m, nil
 
 	// Page up in file list (with optional count)
 	case bindings.PageUp.Matches(key):
+		pane := m.activePane()
 		for i := 0; i < count; i++ {
-			m.fileList.PrevPage()
+			pane.fileList.PrevPage()
 		}
 		m.UpdateFileInfoPanel()
 		return m, nil

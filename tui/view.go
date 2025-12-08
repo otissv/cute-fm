@@ -62,16 +62,16 @@ func (m Model) View() tea.View {
 
 	fileListView1 := m.FileListView(
 		m, FileListComponentArgs{
-			Width:          m.viewportWidth,
-			Height:         m.viewportHeight,
-			SplitPanelType: LeftViewportType,
+			Width:         m.viewportWidth,
+			Height:        m.viewportHeight,
+			SplitPaneType: LeftViewportType,
 		})
 
 	fileListView2 := m.FileListView(
 		m, FileListComponentArgs{
-			Width:          m.viewportWidth,
-			Height:         m.viewportHeight,
-			SplitPanelType: RightViewportType,
+			Width:         m.viewportWidth,
+			Height:        m.viewportHeight,
+			SplitPaneType: RightViewportType,
 		})
 
 	filePanel1Rows := []string{
@@ -100,13 +100,13 @@ func (m Model) View() tea.View {
 	)
 
 	if m.showRightPanel {
-		switch m.activeSplitPanel {
-		case FileInfoSplitPanelType:
+		switch m.activeSplitPane {
+		case FileInfoSplitPaneType:
 			rightPanel = lipgloss.JoinVertical(
 				lipgloss.Left,
 				fileInfoViewportView,
 			)
-		case FileListSplitPanelType:
+		case FileListSplitPaneType:
 			rightPanel = lipgloss.JoinVertical(
 				lipgloss.Left,
 				filePanel2Rows...,

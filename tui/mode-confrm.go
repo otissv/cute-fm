@@ -26,7 +26,8 @@ func (m Model) ConfirmMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 
 		res, _ := m.ExecuteCommand(command + " " + selected)
 
-		if res.Cwd != "" && res.Cwd != m.leftCurrentDir {
+		pane := m.activePane()
+		if res.Cwd != "" && res.Cwd != pane.currentDir {
 			m.ChangeDirectory(res.Cwd)
 		} else if res.Refresh {
 			// Refresh the current directory without recording history.

@@ -36,56 +36,74 @@ func InitialModel(startDir string) Model {
 	// Load the initial directory.
 	files := loadDirectory(leftCurrentDir)
 
-	// Create the bubbles list with file items.
+	// Create the bubbles lists with file items for both panes.
 	delegate := NewFileItemDelegate(runtimeCfg.Theme, 0, filesystem.ColumnNames)
 	items := FileInfosToItems(files)
-	fileList := list.New(items, delegate, 0, 0)
 
-	// Configure the list appearance - hide built-in UI elements since we have custom ones.
-	fileList.SetShowTitle(false)
-	fileList.SetShowStatusBar(false)
-	fileList.SetShowFilter(false)
-	fileList.SetShowHelp(false)
-	fileList.SetShowPagination(false)
-	fileList.SetFilteringEnabled(false)
-	fileList.DisableQuitKeybindings()
+	newList := func() list.Model {
+		l := list.New(items, delegate, 0, 0)
+		// Configure the list appearance - hide built-in UI elements since we have custom ones.
+		l.SetShowTitle(false)
+		l.SetShowStatusBar(false)
+		l.SetShowFilter(false)
+		l.SetShowHelp(false)
+		l.SetShowPagination(false)
+		l.SetFilteringEnabled(false)
+		l.DisableQuitKeybindings()
+		// Use a simple style for the list.
+		l.Styles.NoItems = l.Styles.NoItems.Foreground(nil)
+		return l
+	}
 
-	// Use a simple style for the list.
-	fileList.Styles.NoItems = fileList.Styles.NoItems.Foreground(nil)
+	leftList := newList()
+	rightList := newList()
+
+	// Default visible columns for new panes.
+	defaultColumns := []filesystem.FileInfoColumn{
+		filesystem.ColumnPermissions,
+		filesystem.ColumnUser,
+		filesystem.ColumnGroup,
+		filesystem.ColumnDateModified,
+		filesystem.ColumnName,
+	}
 
 	m := Model{
-		allFiles:         files,
-		activeSplitPanel: FileInfoSplitPanelType,
-		activeViewport:   LeftViewportType,
+		activeSplitPane: FileInfoSplitPaneType,
+		activeViewport:  LeftViewportType,
 		sortColumnBy: SortColumnBy{
 			column:    filesystem.ColumnName,
 			direction: SortingAsc,
 		},
 		configDir:        cfgDir,
-		leftCurrentDir:   leftCurrentDir,
 		fileInfoViewport: fileInfoViewport,
-		fileList:         fileList,
-		files:            files,
-		jumpTo:           "",
-		layout:           "",
-		layoutRows:       []string{""},
-		runtimeConfig:    runtimeCfg,
-		showRightPanel:   true,
-		isSudo:           false,
-		isSplitPanelOpen: false,
-		terminalType:     string(detectTerminalType()),
-		theme:            runtimeCfg.Theme,
-		titleText:        "The Cute File Manager",
-		viewportHeight:   0,
-		viewportWidth:    0,
-		columnVisibility: []filesystem.FileInfoColumn{
-			filesystem.ColumnPermissions,
-			filesystem.ColumnUser,
-			filesystem.ColumnGroup,
-			filesystem.ColumnDateModified,
-			filesystem.ColumnName,
+		leftPane: filePane{
+			currentDir: leftCurrentDir,
+			allFiles:   files,
+			files:      files,
+			fileList:   leftList,
+			columns:    defaultColumns,
 		},
-		menuCursor: 0,
+		// Start the right pane in the same directory; it can diverge later.
+		rightPane: filePane{
+			currentDir: leftCurrentDir,
+			allFiles:   files,
+			files:      files,
+			fileList:   rightList,
+			columns:    defaultColumns,
+		},
+		jumpTo:          "",
+		layout:          "",
+		layoutRows:      []string{""},
+		runtimeConfig:   runtimeCfg,
+		showRightPanel:  true,
+		isSudo:          false,
+		isSplitPaneOpen: false,
+		terminalType:    string(detectTerminalType()),
+		theme:           runtimeCfg.Theme,
+		titleText:       "The Cute File Manager",
+		viewportHeight:  0,
+		viewportWidth:   0,
+		menuCursor:      0,
 	}
 
 	// Initialize the search input
@@ -123,8 +141,11 @@ func loadDirectory(dir string) []filesystem.FileInfo {
 
 // UpdateFileListDelegate updates the delegate with a new width.
 func (m *Model) UpdateFileListDelegate(width int) {
-	delegate := NewFileItemDelegate(m.theme, width, m.columnVisibility)
-	m.fileList.SetDelegate(delegate)
+	leftDelegate := NewFileItemDelegate(m.theme, width, m.leftPane.columns)
+	m.leftPane.fileList.SetDelegate(leftDelegate)
+
+	rightDelegate := NewFileItemDelegate(m.theme, width, m.rightPane.columns)
+	m.rightPane.fileList.SetDelegate(rightDelegate)
 }
 
 func getConfigDir() string {

@@ -21,7 +21,7 @@ func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
 	}
 
 	// Column identifiers are strongly typed so we don't pass around raw strings.
-	// Convert the typed column identifiers into plain strings for the Menu.
+	// Convert the typed column identifiers into plain strings for the NewMenu.
 	columnNames := filesystem.ColumnNames
 	menuChoices := make([]string, len(columnNames))
 	for i, col := range columnNames {
@@ -56,7 +56,7 @@ func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
 		selectedMap[name] = name
 	}
 
-	menu := Menu(tui.MenuArgs{
+	menu := NewMenu(tui.MenuArgs{
 		Choices:  menuChoices,
 		Cursor:   menuCursor,
 		Selected: selectedMap,
@@ -67,7 +67,7 @@ func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
 	})
 
 	fw := FloatingWindow{
-		Content: menu, // Menu implements tui.ViewPrimitive via its View method.
+		Content: menu, // NewMenu implements tui.ViewPrimitive via its View method.
 		Width:   modalWidth,
 		Height:  10,
 		Style:   DefaultFloatingStyle(theme),

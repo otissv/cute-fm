@@ -55,10 +55,11 @@ func (m *Model) CalcLayout() {
 		listContentWidth = 1
 	}
 
-	// Update the file list dimensions.
-	m.fileList.SetSize(listContentWidth, viewportContentHeight)
+	// Update the file list dimensions for both panes.
+	m.leftPane.fileList.SetSize(listContentWidth, viewportContentHeight)
+	m.rightPane.fileList.SetSize(listContentWidth, viewportContentHeight)
 
-	// Update the delegate with the new width for proper row padding.
+	// Update the delegates with the new width for proper row padding.
 	m.UpdateFileListDelegate(listContentWidth)
 
 	// Update right viewport dimensions (height is the content height).

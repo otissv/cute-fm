@@ -9,20 +9,20 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-type MenuModel struct {
+type Menu struct {
 	choices     []string
 	cursor      int
 	selected    map[string]bool
-	cursorTypes MenuModelCursor
+	cursorTypes MenuCursor
 }
 
-type MenuModelCursor struct {
+type MenuCursor struct {
 	selected   string
 	unselected string
 	propmt     string
 }
 
-func Menu(args tui.MenuArgs) MenuModel {
+func NewMenu(args tui.MenuArgs) Menu {
 	selectedSet := make(map[string]bool, len(args.Selected))
 	for _, col := range args.Selected {
 		selectedSet[col] = true
@@ -50,11 +50,11 @@ func Menu(args tui.MenuArgs) MenuModel {
 		Bold(true).
 		Render(propmt)
 
-	return MenuModel{
+	return Menu{
 		choices:  args.Choices,
 		cursor:   args.Cursor,
 		selected: selectedSet,
-		cursorTypes: MenuModelCursor{
+		cursorTypes: MenuCursor{
 			selected:   selected,
 			unselected: unselected,
 			propmt:     current,
@@ -62,7 +62,7 @@ func Menu(args tui.MenuArgs) MenuModel {
 	}
 }
 
-func (menu MenuModel) View() string {
+func (menu Menu) View() string {
 	var b strings.Builder
 	for i, choice := range menu.choices {
 		iChoice := choice

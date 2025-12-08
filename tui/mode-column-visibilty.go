@@ -47,11 +47,14 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		col := filesystem.ColumnNames[cur]
 
+		// Work on the active pane's column visibility.
+		pane := m.activePane()
+
 		// Toggle presence of col in the columnVisibility set, but always rebuild
 		// the slice in the canonical ColumnNames order so column order remains
 		// stable regardless of toggle sequence.
 		visible := make(map[filesystem.FileInfoColumn]bool, len(filesystem.ColumnNames))
-		for _, c := range m.columnVisibility {
+		for _, c := range pane.columns {
 			visible[c] = true
 		}
 
@@ -68,7 +71,7 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 				newCols = append(newCols, c)
 			}
 		}
-		m.columnVisibility = newCols
+		pane.columns = newCols
 
 		// Rebuild the file list delegate so the visible columns update
 		// immediately to reflect the new selection.
@@ -76,8 +79,7 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if listContentWidth < 1 {
 			listContentWidth = 1
 		}
-		delegate := NewFileItemDelegate(m.theme, listContentWidth, m.columnVisibility)
-		m.fileList.SetDelegate(delegate)
+		m.UpdateFileListDelegate(listContentWidth)
 
 		return m, nil
 

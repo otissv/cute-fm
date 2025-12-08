@@ -55,46 +55,46 @@ var KeybindingCategories = KeybindingCategory{
 }
 
 type Keybindings struct {
-	AddFile                 Keybinding
-	AutoComplete            Keybinding
-	Cancel                  Keybinding
-	Cd                      Keybinding
-	Command                 Keybinding
-	ColumnVisibiliy         Keybinding
-	Copy                    Keybinding
-	Directories             Keybinding
-	Down                    Keybinding
-	Enter                   Keybinding
-	FileInfoPanel           Keybinding
-	FileListPanel           Keybinding
-	Files                   Keybinding
-	Filter                  Keybinding
-	GoToEnd                 Keybinding
-	GoToStart               Keybinding
-	Goto                    Keybinding
-	Help                    Keybinding
-	HiddenFiles             Keybinding
-	List                    Keybinding
-	Mkdir                   Keybinding
-	Move                    Keybinding
-	NextDir                 Keybinding
-	PageDown                Keybinding
-	PageUp                  Keybinding
-	Parent                  Keybinding
-	Paste                   Keybinding
-	PreviewPanel            Keybinding
-	PreviousDir             Keybinding
-	Quit                    Keybinding
-	Redo                    Keybinding
-	Remove                  Keybinding
-	Rename                  Keybinding
-	Select                  Keybinding
-	Sort                    Keybinding
-	Sudo                    Keybinding
-	SwitchBetweenSplitPanel Keybinding
-	ToggleRightPanel        Keybinding
-	Undo                    Keybinding
-	Up                      Keybinding
+	AddFile                Keybinding
+	AutoComplete           Keybinding
+	Cancel                 Keybinding
+	Cd                     Keybinding
+	Command                Keybinding
+	ColumnVisibiliy        Keybinding
+	Copy                   Keybinding
+	Directories            Keybinding
+	Down                   Keybinding
+	Enter                  Keybinding
+	FileInfoPanel          Keybinding
+	FileListPanel          Keybinding
+	Files                  Keybinding
+	Filter                 Keybinding
+	GoToEnd                Keybinding
+	GoToStart              Keybinding
+	Goto                   Keybinding
+	Help                   Keybinding
+	HiddenFiles            Keybinding
+	List                   Keybinding
+	Mkdir                  Keybinding
+	Move                   Keybinding
+	NextDir                Keybinding
+	PageDown               Keybinding
+	PageUp                 Keybinding
+	Parent                 Keybinding
+	Paste                  Keybinding
+	PreviewPanel           Keybinding
+	PreviousDir            Keybinding
+	Quit                   Keybinding
+	Redo                   Keybinding
+	Remove                 Keybinding
+	Rename                 Keybinding
+	Select                 Keybinding
+	Sort                   Keybinding
+	Sudo                   Keybinding
+	SwitchBetweenSplitPane Keybinding
+	ToggleRightPanel       Keybinding
+	Undo                   Keybinding
+	Up                     Keybinding
 }
 
 func GetKeyBindings() Keybindings {
@@ -280,8 +280,8 @@ func GetKeyBindings() Keybindings {
 			Description: "Sort file list colomns",
 			Category:    KeybindingCategories.General.Name,
 		},
-		SwitchBetweenSplitPanel: Keybinding{
-			On:          []string{"T"},
+		SwitchBetweenSplitPane: Keybinding{
+			On:          []string{"tab"},
 			Description: "Toggle beright panel.",
 			Category:    KeybindingCategories.Views.Name,
 		},

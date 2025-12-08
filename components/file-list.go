@@ -8,9 +8,9 @@ import (
 
 func FileList(m tui.Model, args tui.FileListComponentArgs) string {
 	theme := m.GetTheme()
-	fileList := m.GetFileList()
+	fileList := m.GetFileListForViewport(args.SplitPaneType)
 	activeViewport := m.GetActiveViewport()
-	isSplitPanelOpen := m.GetIsSplitPanelOpen()
+	isSplitPaneOpen := m.GetIsSplitPaneOpen()
 
 	// Content width is viewport width minus left/right borders.
 	contentWidth := args.Width - 2
@@ -21,7 +21,7 @@ func FileList(m tui.Model, args tui.FileListComponentArgs) string {
 	header := tui.RenderFileHeaderRow(tui.FileHeaderRowArgs{
 		Theme:        theme,
 		TotalWidth:   contentWidth,
-		Columns:      m.GetColumnVisibility(),
+		Columns:      m.GetColumnVisibilityForViewport(args.SplitPaneType),
 		SortColumnBy: m.GetSortColumnBy(),
 	})
 	body := fileList.View()
@@ -35,16 +35,17 @@ func FileList(m tui.Model, args tui.FileListComponentArgs) string {
 	baseStyle := lipgloss.NewStyle().
 		Background(lipgloss.Color(theme.FileList.Background)).
 		BorderBackground(lipgloss.Color(theme.FileList.Background)).
+		BorderForeground(lipgloss.Color("#1E1E1E")).
 		BorderStyle(lipgloss.RoundedBorder()).
 		Foreground(lipgloss.Color(theme.FileList.Foreground)).
 		Height(args.Height).
 		Width(args.Width).
-		BorderTop(false).
-		BorderBottom(false).
-		BorderLeft(false).
-		BorderRight(false)
+		BorderTop(true).
+		BorderBottom(true).
+		BorderLeft(true).
+		BorderRight(true)
 
-	if activeViewport == args.SplitPanelType && isSplitPanelOpen {
+	if activeViewport == args.SplitPaneType && isSplitPaneOpen {
 		baseStyle = baseStyle.
 			BorderForeground(lipgloss.Color(theme.BorderColor)).
 			BorderTop(true).

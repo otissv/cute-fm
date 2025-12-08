@@ -11,19 +11,21 @@ import (
 // selected file. It handles text files (via bat when available), directories,
 // and image files (with special handling for Kitty).
 func (m *Model) UpdateFileInfoPanel() {
+	pane := m.activePane()
+
 	// If there are no files, clear the preview.
-	if len(m.files) == 0 {
+	if len(pane.files) == 0 {
 		m.fileInfoViewport.SetContent("")
 		return
 	}
 
-	idx := m.fileList.Index()
-	if idx < 0 || idx >= len(m.files) {
+	idx := pane.fileList.Index()
+	if idx < 0 || idx >= len(pane.files) {
 		m.fileInfoViewport.SetContent("")
 		return
 	}
 
-	fi := m.files[idx]
+	fi := pane.files[idx]
 
 	// Always show simple file info/properties in the right-hand panel instead
 	// of rich text/image previews.

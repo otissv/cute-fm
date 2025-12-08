@@ -125,15 +125,17 @@ func (m *Model) ExecuteCommand(line string) (command.Result, error) {
 }
 
 func (m *Model) GetSelectedEntry() *command.SelectedEntry {
-	selectedIdx := m.fileList.Index()
-	if selectedIdx < 0 || selectedIdx >= len(m.files) {
+	pane := m.activePane()
+
+	selectedIdx := pane.fileList.Index()
+	if selectedIdx < 0 || selectedIdx >= len(pane.files) {
 		return nil
 	}
 
-	fi := m.files[selectedIdx]
+	fi := pane.files[selectedIdx]
 	path := fi.Path
 	if path == "" {
-		path = filepath.Join(m.leftCurrentDir, fi.Name)
+		path = filepath.Join(pane.currentDir, fi.Name)
 	}
 
 	return &command.SelectedEntry{
@@ -147,8 +149,10 @@ func (m *Model) GetSelectedEntry() *command.SelectedEntry {
 // GetCommandEnvironment builds the command execution environment using the
 // current model state, including the currently selected entry (if any).
 func (m *Model) GetCommandEnvironment() command.Environment {
+	pane := m.activePane()
+
 	return command.Environment{
-		Cwd:      m.leftCurrentDir,
+		Cwd:      pane.currentDir,
 		Config:   m.runtimeConfig,
 		Selected: m.GetSelectedEntry(),
 	}
@@ -158,18 +162,20 @@ func (m *Model) GetCommandEnvironment() command.Environment {
 // the text input. The filter is a case-insensitive substring match on the file
 // name. When the filter changes, the list is updated with the new items.
 func (m *Model) ApplyFilter() {
+	pane := m.activePane()
+
 	query := strings.TrimSpace(m.searchInput.Value())
 
 	// If there is no backing data yet, nothing to do.
-	if len(m.allFiles) == 0 {
+	if len(pane.allFiles) == 0 {
 		return
 	}
 
-	base := filterByViewMode(m.allFiles)
+	base := filterByViewMode(pane.allFiles)
 
 	// Then apply the search query on top.
 	if query == "" {
-		m.files = base
+		pane.files = base
 	} else {
 		lq := strings.ToLower(query)
 		var filtered []filesystem.FileInfo
@@ -178,19 +184,19 @@ func (m *Model) ApplyFilter() {
 				filtered = append(filtered, fi)
 			}
 		}
-		m.files = filtered
+		pane.files = filtered
 	}
 
 	// Apply the active column-based sorting to the filtered list.
-	m.applySorting()
+	m.applySorting(pane)
 
 	// Update the list with new items.
-	items := FileInfosToItems(m.files)
-	m.fileList.SetItems(items)
+	items := FileInfosToItems(pane.files)
+	pane.fileList.SetItems(items)
 
 	// Reset selection to first item if we have items.
-	if len(m.files) > 0 {
-		m.fileList.Select(0)
+	if len(pane.files) > 0 {
+		pane.fileList.Select(0)
 	}
 
 	// Update preview for the new selection after filtering.
@@ -202,11 +208,13 @@ func (m *Model) ApplyFilter() {
 // previous directory is pushed onto the "back" stack and the "forward"
 // stack is cleared, mirroring typical browser navigation behaviour.
 func (m *Model) changeDirectoryInternal(dir string, trackHistory bool) {
+	pane := m.activePane()
+
 	// Record history before we actually change directories.
-	if trackHistory && m.leftCurrentDir != "" && m.leftCurrentDir != dir {
-		m.dirBackStack = append(m.dirBackStack, m.leftCurrentDir)
+	if trackHistory && pane.currentDir != "" && pane.currentDir != dir {
+		pane.dirBackStack = append(pane.dirBackStack, pane.currentDir)
 		// Any new navigation invalidates the "forward" history.
-		m.dirForwardStack = nil
+		pane.dirForwardStack = nil
 	}
 
 	files, err := filesystem.ListDirectory(dir)
@@ -215,17 +223,17 @@ func (m *Model) changeDirectoryInternal(dir string, trackHistory bool) {
 		return
 	}
 
-	m.leftCurrentDir = dir
-	m.allFiles = files
-	m.files = files
+	pane.currentDir = dir
+	pane.allFiles = files
+	pane.files = files
 
 	// Update the list with new items.
 	items := FileInfosToItems(files)
-	m.fileList.SetItems(items)
+	pane.fileList.SetItems(items)
 
 	// Select the first item if we have items.
 	if len(files) > 0 {
-		m.fileList.Select(0)
+		pane.fileList.Select(0)
 	}
 
 	// Re-apply search/view filters for the new directory.
@@ -246,28 +254,32 @@ func (m *Model) ChangeDirectory(dir string) {
 // ReloadDirectory reloads the current directory without adding a new history
 // entry. This is used when commands request a simple refresh of the listing.
 func (m *Model) ReloadDirectory() {
-	if m.leftCurrentDir == "" {
+	pane := m.activePane()
+
+	if pane.currentDir == "" {
 		return
 	}
-	m.changeDirectoryInternal(m.leftCurrentDir, false)
+	m.changeDirectoryInternal(pane.currentDir, false)
 }
 
 // NavigatePreviousDir moves to the previously visited directory, if any.
 // It updates both the back and forward stacks so that repeated invocations
 // allow walking backward through the navigation history.
 func (m *Model) NavigatePreviousDir() {
-	if len(m.dirBackStack) == 0 {
+	pane := m.activePane()
+
+	if len(pane.dirBackStack) == 0 {
 		return
 	}
 
 	// Pop the last entry from the back stack.
-	lastIdx := len(m.dirBackStack) - 1
-	prevDir := m.dirBackStack[lastIdx]
-	m.dirBackStack = m.dirBackStack[:lastIdx]
+	lastIdx := len(pane.dirBackStack) - 1
+	prevDir := pane.dirBackStack[lastIdx]
+	pane.dirBackStack = pane.dirBackStack[:lastIdx]
 
 	// Current directory becomes a "forward" target.
-	if m.leftCurrentDir != "" && m.leftCurrentDir != prevDir {
-		m.dirForwardStack = append(m.dirForwardStack, m.leftCurrentDir)
+	if pane.currentDir != "" && pane.currentDir != prevDir {
+		pane.dirForwardStack = append(pane.dirForwardStack, pane.currentDir)
 	}
 
 	// Do not record this as a new history entry; we're traversing history.
@@ -276,18 +288,20 @@ func (m *Model) NavigatePreviousDir() {
 
 // NavigateNextDir moves forward in the directory history, if possible.
 func (m *Model) NavigateNextDir() {
-	if len(m.dirForwardStack) == 0 {
+	pane := m.activePane()
+
+	if len(pane.dirForwardStack) == 0 {
 		return
 	}
 
 	// Pop the last entry from the forward stack.
-	lastIdx := len(m.dirForwardStack) - 1
-	nextDir := m.dirForwardStack[lastIdx]
-	m.dirForwardStack = m.dirForwardStack[:lastIdx]
+	lastIdx := len(pane.dirForwardStack) - 1
+	nextDir := pane.dirForwardStack[lastIdx]
+	pane.dirForwardStack = pane.dirForwardStack[:lastIdx]
 
 	// Current directory becomes part of the "back" history.
-	if m.leftCurrentDir != "" && m.leftCurrentDir != nextDir {
-		m.dirBackStack = append(m.dirBackStack, m.leftCurrentDir)
+	if pane.currentDir != "" && pane.currentDir != nextDir {
+		pane.dirBackStack = append(pane.dirBackStack, pane.currentDir)
 	}
 
 	// Do not record this as a new history entry; we're traversing history.
@@ -386,11 +400,11 @@ func parseDateModified(s string) time.Time {
 	return time.Date(now.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, now.Location())
 }
 
-// applySorting sorts m.files in-place according to the current SortColumnBy
+// applySorting sorts pane.files in-place according to the current SortColumnBy
 // configuration on the model. When no sort column is set, the slice is left
 // unchanged.
-func (m *Model) applySorting() {
-	if len(m.files) == 0 {
+func (m *Model) applySorting(pane *filePane) {
+	if len(pane.files) == 0 {
 		return
 	}
 
@@ -399,9 +413,9 @@ func (m *Model) applySorting() {
 		return
 	}
 
-	sort.SliceStable(m.files, func(i, j int) bool {
-		a := m.files[i]
-		b := m.files[j]
+	sort.SliceStable(pane.files, func(i, j int) bool {
+		a := pane.files[i]
+		b := pane.files[j]
 
 		var less bool
 

@@ -78,7 +78,9 @@ func (m Model) GotoMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 // not a valid relative offset or if there are no files to move between.
 func (m *Model) applyRelativeGoto(inputValue string) bool {
 	inputValue = strings.TrimSpace(inputValue)
-	if inputValue == "" || len(m.files) == 0 {
+	pane := m.activePane()
+
+	if inputValue == "" || len(pane.files) == 0 {
 		return false
 	}
 
@@ -108,7 +110,7 @@ func (m *Model) applyRelativeGoto(inputValue string) bool {
 		return false
 	}
 
-	current := m.fileList.Index()
+	current := pane.fileList.Index()
 	if current < 0 {
 		current = 0
 	}
@@ -123,15 +125,15 @@ func (m *Model) applyRelativeGoto(inputValue string) bool {
 	if target < 0 {
 		target = 0
 	}
-	if target >= len(m.files) {
-		target = len(m.files) - 1
+	if target >= len(pane.files) {
+		target = len(pane.files) - 1
 	}
 
 	if target == current {
 		return false
 	}
 
-	m.fileList.Select(target)
+	pane.fileList.Select(target)
 	m.UpdateFileInfoPanel()
 
 	return true

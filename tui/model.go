@@ -14,7 +14,7 @@ import (
 
 type (
 	ModalKind          string
-	SplitPanelType     string
+	SplitPaneType      string
 	TUIMode            string
 	ActiveViewportType string
 )
@@ -59,9 +59,9 @@ type ComponentArgs struct {
 }
 
 type FileListComponentArgs struct {
-	Width          int
-	Height         int
-	SplitPanelType ActiveViewportType
+	Width         int
+	Height        int
+	SplitPaneType ActiveViewportType
 }
 
 type CommandModalArgs struct {
@@ -117,6 +117,19 @@ type SortColumnBy struct {
 	direction SortColumnByDirection
 }
 
+// filePane holds all file-list-related state for a single pane (left or right).
+// Keeping this in a separate struct lets us support independent panes while
+// reusing the same logic for navigation, filtering, and directory history.
+type filePane struct {
+	currentDir      string
+	allFiles        []filesystem.FileInfo
+	files           []filesystem.FileInfo
+	fileList        list.Model
+	dirBackStack    []string
+	dirForwardStack []string
+	columns         []filesystem.FileInfoColumn
+}
+
 // Column returns the currently selected sort column.
 func (s SortColumnBy) Column() filesystem.FileInfoColumn {
 	return s.column
@@ -153,9 +166,9 @@ const (
 	SortingAsc  SortColumnByDirection = "ASC"
 	SortingDesc SortColumnByDirection = "DESC"
 
-	PreviewPanelType       SplitPanelType = "PREVIEW"
-	FileInfoSplitPanelType SplitPanelType = "FILE_INFO"
-	FileListSplitPanelType SplitPanelType = "FILE_LIST"
+	PreviewPanelType      SplitPaneType = "PREVIEW"
+	FileInfoSplitPaneType SplitPaneType = "FILE_INFO"
+	FileListSplitPaneType SplitPaneType = "FILE_LIST"
 
 	LeftViewportType  ActiveViewportType = "LEFT"
 	RightViewportType ActiveViewportType = "RIGHT"
@@ -189,15 +202,15 @@ var (
 )
 
 type Model struct {
-	configDir        string
-	activeModal      ModalKind
-	activeSplitPanel SplitPanelType
-	activeViewport   ActiveViewportType
-	showRightPanel   bool
-	isSudo           bool
-	jumpTo           string
-	isSearchBarOpen  bool
-	isSplitPanelOpen bool
+	configDir       string
+	activeModal     ModalKind
+	activeSplitPane SplitPaneType
+	activeViewport  ActiveViewportType
+	showRightPanel  bool
+	isSudo          bool
+	jumpTo          string
+	isSearchBarOpen bool
+	isSplitPaneOpen bool
 
 	searchInput  textinput.Model
 	commandInput textinput.Model
@@ -210,21 +223,11 @@ type Model struct {
 	// runtimeConfig holds the Lua-backed configuration (theme and commands).
 	runtimeConfig *config.RuntimeConfig
 
-	fileList         list.Model // Bubbles list for file listing
 	fileInfoViewport viewport.Model
 
-	allFiles        []filesystem.FileInfo
-	files           []filesystem.FileInfo
-	leftCurrentDir  string
-	rightCurrentDir string
-
-	// Directory navigation history (similar to a web browser's back/forward).
-	// dirBackStack holds previously visited directories; the most recent entry
-	// is at the end of the slice.
-	dirBackStack []string
-	// dirForwardStack holds directories we can move forward to after going
-	// back. The most recent "forward" target is at the end of the slice.
-	dirForwardStack []string
+	// Independent state for each file-list pane.
+	leftPane  filePane
+	rightPane filePane
 
 	theme theming.Theme
 
@@ -241,9 +244,8 @@ type Model struct {
 	layoutRows     []string
 	titleText      string
 
-	menuCursor       int
-	columnVisibility []filesystem.FileInfoColumn
-	sortColumnBy     SortColumnBy
+	menuCursor   int
+	sortColumnBy SortColumnBy
 
 	// Help modal scroll state
 	helpScrollOffset int
@@ -279,7 +281,7 @@ func (m Model) GetActiveModal() ModalKind {
 }
 
 func (m Model) GetAllFiles() []filesystem.FileInfo {
-	return m.allFiles
+	return m.leftPane.allFiles
 }
 
 func (m Model) GetCommandHistory() []string {
@@ -305,19 +307,30 @@ func (m Model) GetConfigDir() string {
 }
 
 func (m Model) GetCurrentDir() string {
-	return m.leftCurrentDir
+	return m.leftPane.currentDir
 }
 
 func (m Model) GetRightCurrentDir() string {
-	return m.rightCurrentDir
+	return m.rightPane.currentDir
 }
 
 func (m Model) GetFileList() list.Model {
-	return m.fileList
+	// For backward compatibility, return the left pane's file list.
+	return m.leftPane.fileList
+}
+
+// GetFileListForViewport returns the file list model for the given viewport
+// (left or right). In split file-list mode, each pane has its own list;
+// otherwise, only the left list is active.
+func (m Model) GetFileListForViewport(view ActiveViewportType) list.Model {
+	if view == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
+		return m.rightPane.fileList
+	}
+	return m.leftPane.fileList
 }
 
 func (m Model) GetFiles() []filesystem.FileInfo {
-	return m.files
+	return m.leftPane.files
 }
 
 func (m Model) GetHistoryIndex() int {
@@ -349,7 +362,7 @@ func (m Model) GetSearchInputView() string {
 }
 
 func (m Model) GetSelectedIndex() int {
-	return m.fileList.Index()
+	return m.leftPane.fileList.Index()
 }
 
 func (m Model) GetSize() (width, height int) {
@@ -381,9 +394,21 @@ func (m Model) GetHelpScrollOffset() int {
 	return m.helpScrollOffset
 }
 
-// GetColumnVisibility returns the currently selected columns for the file list.
+// GetColumnVisibility returns the currently selected columns for the *left*
+// file list. This is kept for backward compatibility with code that assumes a
+// single file list.
 func (m Model) GetColumnVisibility() []filesystem.FileInfoColumn {
-	return m.columnVisibility
+	return m.leftPane.columns
+}
+
+// GetColumnVisibilityForViewport returns the selected columns for the given
+// viewport (left or right). When the right file-list pane is active, this
+// allows it to have independent column visibility.
+func (m Model) GetColumnVisibilityForViewport(view ActiveViewportType) []filesystem.FileInfoColumn {
+	if view == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
+		return m.rightPane.columns
+	}
+	return m.leftPane.columns
 }
 
 // GetMenuCursor returns the current cursor index in the
@@ -401,14 +426,24 @@ func (m Model) IsSearchBarOpen() bool {
 	return m.isSearchBarOpen
 }
 
-func (m Model) GetActiveSplitPanel() SplitPanelType {
-	return m.activeSplitPanel
+func (m Model) GetActiveSplitPane() SplitPaneType {
+	return m.activeSplitPane
 }
 
 func (m Model) GetActiveViewport() ActiveViewportType {
 	return m.activeViewport
 }
 
-func (m Model) GetIsSplitPanelOpen() bool {
-	return m.isSplitPanelOpen
+func (m Model) GetIsSplitPaneOpen() bool {
+	return m.isSplitPaneOpen
+}
+
+// activePane returns the filePane corresponding to the currently active
+// viewport. When the file-list split pane is not open, this is always the
+// left pane.
+func (m *Model) activePane() *filePane {
+	if m.activeViewport == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
+		return &m.rightPane
+	}
+	return &m.leftPane
 }
