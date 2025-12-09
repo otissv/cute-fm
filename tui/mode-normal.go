@@ -204,6 +204,19 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.UpdateFileInfoPanel()
 		return m, nil
 
+	// Make directory
+	case bindings.Mkdir.Matches(key):
+		if ActiveTuiMode != TuiModeMkdir {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = TuiModeMkdir
+
+			m.commandInput.SetValue("")
+			m.commandInput.Focus()
+		} else {
+			ActiveTuiMode = PreviousTuiMode
+		}
+		return m, nil
+
 	// Move file or folder
 	case bindings.Move.Matches(key):
 		if ActiveTuiMode != TuiModeMove {

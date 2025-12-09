@@ -206,7 +206,7 @@ func GetKeyBindings() Keybindings {
 			Category:    KeybindingCategories.Editing.Name,
 		},
 		Mkdir: Keybinding{
-			On:          []string{"crtl+a"},
+			On:          []string{"A"},
 			Description: "Create a new directory.",
 			Category:    KeybindingCategories.Editing.Name,
 		},

@@ -506,11 +506,15 @@ func expandPath(path, cwd string) string {
 	// Handle leading "~" using the current user's home directory.
 	if strings.HasPrefix(path, "~") {
 		if home, err := os.UserHomeDir(); err == nil {
-			if path == "~" {
+			switch {
+
+			case path == "~":
 				return home
-			}
-			if strings.HasPrefix(path, "~/") {
-				return filepath.Join(home, path[2:])
+
+			case path == "$HOME":
+				return home
+			case strings.HasPrefix(path, "$HOME"):
+				return filepath.Join(home, path[1:])
 			}
 		}
 	}
