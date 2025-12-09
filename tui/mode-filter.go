@@ -34,7 +34,18 @@ func (m Model) FilterMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Enter normal mode
 	case bindings.Cancel.Matches(keyMsg.String()):
-		ActiveTuiMode = TuiModeNormal
+		ActiveTuiMode = ModeNormal
+		return m, nil
+
+	// Switch panes in file list slipt mode
+	case bindings.SwitchBetweenSplitPane.Matches(keyMsg.String()):
+		if m.isSplitPaneOpen {
+			if m.activeViewport == LeftViewportType {
+				m.activeViewport = RightViewportType
+			} else {
+				m.activeViewport = LeftViewportType
+			}
+		}
 		return m, nil
 	}
 

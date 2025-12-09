@@ -48,7 +48,7 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		col := filesystem.ColumnNames[cur]
 
 		// Work on the active pane's column visibility.
-		pane := m.activePane()
+		pane := m.GetActivePane()
 
 		// Toggle presence of col in the columnVisibility set, but always rebuild
 		// the slice in the canonical ColumnNames order so column order remains
@@ -90,7 +90,7 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Enter normal mode
 	case bindings.Select.Matches(keyMsg.String()) ||
 		bindings.Cancel.Matches(keyMsg.String()):
-		ActiveTuiMode = TuiModeNormal
+		ActiveTuiMode = ModeNormal
 
 		// reset menu cusor
 		m.menuCursor = 0

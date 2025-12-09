@@ -29,7 +29,7 @@ func main() {
 	m.Header = components.Header
 	m.StatusBar = components.StatusBar
 	m.ViewModeText = components.ViewModeText
-	m.Preview = components.Preview
+	m.FileInfo = components.FileInfo
 	m.FileListView = components.FileList
 	m.TuiMode = components.TuiMode
 	m.SudoMode = components.SudoMode

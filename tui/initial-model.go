@@ -102,7 +102,7 @@ func InitialModel(startDir string) Model {
 		isSplitPaneOpen: false,
 		terminalType:    string(detectTerminalType()),
 		theme:           runtimeCfg.Theme,
-		titleText:       "The Cute File Manager",
+		titleText:       "Cute File Manager",
 		viewportHeight:  0,
 		viewportWidth:   0,
 		menuCursor:      0,
@@ -121,7 +121,7 @@ func InitialModel(startDir string) Model {
 
 	m.CalcLayout()
 
-	ActiveTuiMode = TuiModeNormal
+	ActiveTuiMode = ModeNormal
 	// Start in the default "list all" view mode so navigation (enter/backspace)
 	// does not implicitly force the directories-only view ("ld").
 	ActiveFileListMode = FileListModeList

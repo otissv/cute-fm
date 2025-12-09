@@ -42,7 +42,7 @@ func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
 	// In column-visibility mode, this is the set of visible columns.
 	// In sort mode, this is the single column currently used for sorting.
 	var selectedColumns []filesystem.FileInfoColumn
-	if tui.ActiveTuiMode == tui.TuiModeSort {
+	if tui.ActiveTuiMode == tui.ModeSort {
 		sortBy := m.GetSortColumnBy()
 		if sortByColumn := sortBy.Column(); sortByColumn != "" {
 			selectedColumns = []filesystem.FileInfoColumn{sortByColumn}

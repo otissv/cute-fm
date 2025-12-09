@@ -6,9 +6,8 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-func CurrentDir(m tui.Model, args tui.ComponentArgs) string {
+func CurrentDir(m tui.Model, args tui.CurrentDirComponentArgs) string {
 	theme := m.GetTheme()
-	leftCurrentDir := m.GetCurrentDir()
 
 	return lipgloss.NewStyle().
 		AlignHorizontal(lipgloss.Center).
@@ -19,5 +18,5 @@ func CurrentDir(m tui.Model, args tui.ComponentArgs) string {
 		PaddingRight(1).
 		PaddingTop(0).
 		Height(args.Height).
-		Render(leftCurrentDir)
+		Render(args.CurrentDir)
 }

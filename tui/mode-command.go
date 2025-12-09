@@ -82,7 +82,7 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			res, err := m.ExecuteCommand(line)
 
 			// Apply environment changes.
-			pane := m.activePane()
+			pane := m.GetActivePane()
 			if res.Cwd != "" && res.Cwd != pane.currentDir {
 				m.ChangeDirectory(res.Cwd)
 			} else if res.Refresh {

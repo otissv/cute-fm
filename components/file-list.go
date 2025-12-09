@@ -8,7 +8,7 @@ import (
 
 func FileList(m tui.Model, args tui.FileListComponentArgs) string {
 	theme := m.GetTheme()
-	fileList := m.GetFileListForViewport(args.SplitPaneType)
+	fileList := m.GetLeftPaneFileListForViewport(args.SplitPaneType)
 	activeViewport := m.GetActiveViewport()
 	isSplitPaneOpen := m.GetIsSplitPaneOpen()
 

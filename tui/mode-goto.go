@@ -55,7 +55,7 @@ func (m Model) GotoMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Cancel goto mode
 	case bindings.Cancel.Matches(keyMsg.String()):
-		ActiveTuiMode = TuiModeNormal
+		ActiveTuiMode = ModeNormal
 		m.commandInput.Blur()
 		m.commandInput.SetValue("")
 		m.jumpTo = ""
@@ -78,7 +78,7 @@ func (m Model) GotoMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 // not a valid relative offset or if there are no files to move between.
 func (m *Model) applyRelativeGoto(inputValue string) bool {
 	inputValue = strings.TrimSpace(inputValue)
-	pane := m.activePane()
+	pane := m.GetActivePane()
 
 	if inputValue == "" || len(pane.files) == 0 {
 		return false

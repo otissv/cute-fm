@@ -14,31 +14,32 @@ func TuiMode(m tui.Model, args tui.ComponentArgs) string {
 	background := ""
 
 	switch activeTuiMode {
-	case tui.TuiModeNormal:
+	case tui.ModeNormal:
 		background = theme.TuiMode.NormalModeBackground
 		foreground = theme.TuiMode.NormalModeForeground
-	case tui.TuiModeCommand:
+	case tui.ModeCommand:
 		background = theme.TuiMode.CommandModeBackground
 		foreground = theme.TuiMode.CommandModeForeground
-	case tui.TuiModeFilter:
+	case tui.ModeFilter:
 		background = theme.TuiMode.FilterModeBackground
 		foreground = theme.TuiMode.FilterModeForeground
-	case tui.TuiModeHelp:
+	case tui.ModeHelp:
 		background = theme.TuiMode.HelpModeBackground
 		foreground = theme.TuiMode.HelpModeForeground
-	case tui.TuiModeQuit:
+	case tui.ModeQuit:
 		background = theme.TuiMode.QuitModeBackground
 		foreground = theme.TuiMode.QuitModeForeground
 	}
 
 	return lipgloss.NewStyle().
-		AlignHorizontal(lipgloss.Center).
+		AlignHorizontal(lipgloss.Left).
 		Background(lipgloss.Color(background)).
 		Foreground(lipgloss.Color(foreground)).
+		Height(args.Height).
 		PaddingBottom(0).
-		PaddingLeft(1).
 		PaddingRight(1).
 		PaddingTop(0).
+		Width(args.Width).
 		Height(args.Height).
 		Render(string(activeTuiMode))
 }

@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"cute/console"
+
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
@@ -12,9 +14,25 @@ func (m Model) View() tea.View {
 		return v
 	}
 
-	headerView := m.Header(m, ComponentArgs{
-		Width: m.width,
+	tuiMode := m.TuiMode(m, ComponentArgs{
+		Height: 1,
+		Width:  20,
 	})
+
+	viewModeText := m.ViewModeText(
+		m, ComponentArgs{
+			Height: 1,
+			Width:  20,
+		})
+
+	header := m.Header(m, ComponentArgs{
+		Height: 1,
+		Width:  m.width - 40,
+	})
+
+	headerView := lipgloss.NewStyle().
+		PaddingBottom(1).
+		Render(lipgloss.JoinHorizontal(lipgloss.Left, tuiMode, viewModeText, header))
 
 	searchBar := m.SearchBar(
 		m, ComponentArgs{
@@ -22,42 +40,28 @@ func (m Model) View() tea.View {
 			Height: 1,
 		})
 
-	leftCurrentDir := m.CurrentDir(m, ComponentArgs{
-		Height: 1,
+	// sudoMode := m.SudoMode(m, ComponentArgs{
+	// 	Height: 1,
+	// })
+
+	// if ActiveTuiMode == ModeGoto {
+	// 	leftStatusBarItem = []string{tuiMode, m.jumpTo}
+	// }
+
+	// if m.isSudo {
+	// 	leftStatusBarItem = append([]string{sudoMode}, leftStatusBarItem...)
+	// }
+
+	leftCurrentDir := m.CurrentDir(m, CurrentDirComponentArgs{
+		Height:     1,
+		CurrentDir: m.GetLeftPaneCurrentDir(),
 	})
 
-	tuiMode := m.TuiMode(m, ComponentArgs{
-		Height: 1,
-	})
-
-	sudoMode := m.SudoMode(m, ComponentArgs{
-		Height: 1,
-	})
-
-	viewModeText := m.ViewModeText(
+	filePanel1StatusBar := m.StatusBar(
 		m, ComponentArgs{
-			Width:  10,
-			Height: 1,
-		})
-
-	leftStatus := []string{tuiMode, viewModeText, leftCurrentDir}
-
-	leftStatusBarItem := leftStatus
-
-	if ActiveTuiMode == TuiModeGoto {
-		leftStatusBarItem = []string{tuiMode, m.jumpTo}
-	}
-
-	if m.isSudo {
-		leftStatusBarItem = append([]string{sudoMode}, leftStatusBarItem...)
-	}
-
-	statusBar := m.StatusBar(
-		m, ComponentArgs{
-			Width:  m.width,
 			Height: 1,
 		},
-		leftStatusBarItem...,
+		leftCurrentDir,
 	)
 
 	fileListView1 := m.FileListView(
@@ -74,42 +78,54 @@ func (m Model) View() tea.View {
 			SplitPaneType: RightViewportType,
 		})
 
-	filePanel1Rows := []string{
-		searchBar,
-		fileListView1,
-	}
-
-	filePanel2Rows := []string{
-		searchBar,
-		fileListView2,
-	}
-
 	leftPanel := lipgloss.JoinVertical(
 		lipgloss.Left,
-		filePanel1Rows...,
+		searchBar,
+		fileListView1,
+		filePanel1StatusBar,
 	)
 
-	fileInfoViewportView := m.Preview(
+	fileInfoViewportView := m.FileInfo(
 		m, ComponentArgs{
 			Width:  m.viewportWidth,
-			Height: m.viewportHeight,
+			Height: m.viewportHeight + 1,
 		})
 
-	rightPanel := lipgloss.JoinVertical(
-		lipgloss.Left,
-	)
+	rightPanel := fileInfoViewportView
 
 	if m.showRightPanel {
+		console.Log("ActiveTuiMode: %s", ActiveTuiMode)
+
+		if m.isSplitPaneOpen {
+			console.Log("m.isSplitPaneOpen: %s", "true")
+		} else {
+			console.Log("m.isSplitPaneOpen: %s", "false")
+		}
+
 		switch m.activeSplitPane {
+
 		case FileInfoSplitPaneType:
+
 			rightPanel = lipgloss.JoinVertical(
 				lipgloss.Left,
+				// Placeholder to align with left panel
+				lipgloss.NewStyle().
+					Height(1).
+					Render(""),
 				fileInfoViewportView,
 			)
+
 		case FileListSplitPaneType:
+			rightCurrentDir := m.CurrentDir(m, CurrentDirComponentArgs{
+				Height:     1,
+				CurrentDir: m.GetRightPaneCurrentDir(),
+			})
+
 			rightPanel = lipgloss.JoinVertical(
 				lipgloss.Left,
-				filePanel2Rows...,
+				searchBar,
+				fileListView2,
+				rightCurrentDir,
 			)
 		}
 	}
@@ -120,17 +136,12 @@ func (m Model) View() tea.View {
 		rightPanel,
 	)
 
-	m.layoutRows = []string{
-		headerView,
-		viewports,
-		statusBar,
-	}
-
 	layoutStyle := lipgloss.NewStyle()
 
 	m.layout = lipgloss.JoinVertical(
 		lipgloss.Left,
-		m.layoutRows...,
+		headerView,
+		viewports,
 	)
 
 	baseContent := layoutStyle.Render(m.layout)
@@ -139,80 +150,80 @@ func (m Model) View() tea.View {
 	var canvas *lipgloss.Canvas
 	switch ActiveTuiMode {
 
-	case TuiModeAddFile:
+	case ModeAddFile:
 		commandLayer := m.CommandModal(m, CommandModalArgs{
 			Title:       "Add New File",
 			Placeholder: "Enter file name...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
-	case TuiModeCd:
+	case ModeCd:
 		commandLayer := m.CommandModal(m, CommandModalArgs{
 			Title:       "Change Directory",
 			Placeholder: "Enter directory...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
-	case TuiModeColumnVisibiliy:
+	case ModeColumnVisibiliy:
 		modalLayer := m.ColumnModal(m, ColumnModelArgs{
 			Title: "Column Visibilty",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 
-	case TuiModeCommand:
+	case ModeCommand:
 		commandLayer := m.CommandModal(m, CommandModalArgs{
 			Title:       "Command",
 			Placeholder: "Enter commnad..",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
-	case TuiModeCopy:
+	case ModeCopy:
 		commandLayer := m.CommandModal(m, CommandModalArgs{
 			Title:       "Copy",
 			Placeholder: "Enter desination...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
-	case TuiModeHelp:
+	case ModeHelp:
 		modalLayer := m.HelpModal(m)
 		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 
-	case TuiModeMkdir:
+	case ModeMkdir:
 		commandLayer := m.CommandModal(m, CommandModalArgs{
 			Title:       "Add Directory",
 			Placeholder: "Enter directory name...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
-	case TuiModeMove:
+	case ModeMove:
 		commandLayer := m.CommandModal(m, CommandModalArgs{
 			Title:       "Move",
 			Placeholder: "Enter desination...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
-	case TuiModeQuit:
+	case ModeQuit:
 		modalLayer := m.DialogModal(m, DialogModalArgs{
 			Title:   "Quit",
 			Content: "Press q to quit\n\nor\n\n press ESC to cancel",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 
-	case TuiModeRemove:
+	case ModeRemove:
 		modalLayer := m.DialogModal(m, DialogModalArgs{
 			Title:   "Remove",
 			Content: "Are you sure you want to remove\n\nYes (y) No (n)",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, modalLayer)
 
-	case TuiModeRename:
+	case ModeRename:
 		commandLayer := m.CommandModal(m, CommandModalArgs{
 			Title:       "Remane",
 			Placeholder: "New name...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
-	case TuiModeSort:
+	case ModeSort:
 		modalLayer := m.ColumnModal(m, ColumnModelArgs{
 			Title: "Sort Columns",
 		})

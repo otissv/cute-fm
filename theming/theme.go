@@ -64,14 +64,14 @@ var (
 	previewBorderBackground  = ""
 	previewForeground        = foreground
 	previewBorder            = borderColor
-	normalModeBackground     = color4
-	normalModeForeground     = color0
-	commandModeBackground    = color7
-	commandModeForeground    = color0
-	filterModeBackground     = color4
-	filterModeForeground     = color0
-	helpModeBackground       = color6
-	helpModeForeground       = color0
+	normalModeBackground     = ""
+	normalModeForeground     = color4
+	commandModeBackground    = ""
+	commandModeForeground    = color7
+	filterModeBackground     = ""
+	filterModeForeground     = color4
+	helpModeBackground       = ""
+	helpModeForeground       = color6
 	quitModeBackground       = "#000000"
 	quitModeForeground       = "#F0EDED"
 	dialogTitle              = color9
@@ -171,7 +171,7 @@ type Theme struct {
 	FileTypeColors map[string]string
 	Header         StyleColor
 	Permissions    PermissionsStyle
-	Preview        Style
+	FileInfo       Style
 	SearchBar      BarStyle
 	Selection      StyleColor
 	StatusBar      Style
@@ -257,7 +257,7 @@ func DefaultTheme() Theme {
 			None:  permNone,
 		},
 
-		Preview: Style{
+		FileInfo: Style{
 			Background:       previewBackground,
 			BorderBackground: previewBorderBackground,
 			Foreground:       previewForeground,

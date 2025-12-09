@@ -165,11 +165,11 @@ func CmdViewModeStatus(mode string) string {
 
 	switch mode {
 	case "ll":
-		status = "All"
+		status = "All Files"
 	case "ld":
-		status = "Dirs"
+		status = "Directores only"
 	case "lf":
-		status = "Files"
+		status = "Files only"
 	}
 
 	return status
@@ -497,33 +497,36 @@ func luaTableToResult(tbl *lua.LTable) Result {
 	return res
 }
 
-// expandPath resolves "~" and relative paths against the provided cwd.
+// expandPath resolves "~", "$HOME" (and other environment variables), and
+// relative paths against the provided cwd.
 func expandPath(path, cwd string) string {
 	if path == "" {
 		return cwd
 	}
 
+	// First expand environment variables like $HOME, $PWD, etc.
+	// This mirrors typical shell behaviour for path-like arguments.
+	path = os.ExpandEnv(path)
+
 	// Handle leading "~" using the current user's home directory.
 	if strings.HasPrefix(path, "~") {
 		if home, err := os.UserHomeDir(); err == nil {
-			switch {
-
-			case path == "~":
+			// "~" -> /home/user
+			if path == "~" {
 				return home
-
-			case path == "$HOME":
-				return home
-			case strings.HasPrefix(path, "$HOME"):
-				return filepath.Join(home, path[1:])
+			}
+			// "~/" or "~/subdir" -> /home/user[/subdir]
+			if strings.HasPrefix(path, "~/") {
+				return filepath.Join(home, path[2:])
 			}
 		}
 	}
 
 	if filepath.IsAbs(path) {
-		return path
+		return filepath.Clean(path)
 	}
 	if cwd == "" {
-		return path
+		return filepath.Clean(path)
 	}
 	return filepath.Join(cwd, path)
 }

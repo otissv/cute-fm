@@ -168,7 +168,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 	lineCols := []string{}
 
 	// Optional selection marker column in select mode.
-	if ActiveTuiMode == TuiModeSelect {
+	if ActiveTuiMode == ModeSelect {
 		markerContent := "[   ]"
 		if isMarked {
 			markerContent = "[ x ]"
@@ -393,7 +393,7 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 	lineCols := []string{}
 
 	// Optional selection marker header column in select mode.
-	if ActiveTuiMode == TuiModeSelect {
+	if ActiveTuiMode == ModeSelect {
 		markerStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color(args.Theme.FileList.Foreground))
 		markerText := padCellWithBG(markerStyle.Render("[   ]"), colMarker, bgColor)

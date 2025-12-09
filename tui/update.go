@@ -10,14 +10,13 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"cute/command"
-	"cute/console"
 	"cute/filesystem"
 )
 
 func SetQuitMode() {
-	if ActiveTuiMode != TuiModeQuit {
+	if ActiveTuiMode != ModeQuit {
 		PreviousTuiMode = ActiveTuiMode
-		ActiveTuiMode = TuiModeQuit
+		ActiveTuiMode = ModeQuit
 	}
 }
 
@@ -44,67 +43,70 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 
-		console.Log("Mode: %s, Key Pressed: %s", ActiveTuiMode, msg.String())
-		if ActiveTuiMode == TuiModeAddFile {
+		if ActiveTuiMode == ModeAddFile {
 			return m.UtilityMode(msg, "touch")
 		}
 
-		if ActiveTuiMode == TuiModeCd {
+		if ActiveTuiMode == ModeCd {
 			return m.UtilityMode(msg, "cd")
 		}
 
-		if ActiveTuiMode == TuiModeColumnVisibiliy {
+		if ActiveTuiMode == ModeColumnVisibiliy {
 			return m.ColumnVisibiliyMode(msg)
 		}
 
-		if ActiveTuiMode == TuiModeCommand {
+		if ActiveTuiMode == ModeCommand {
 			return m.CommandMode(msg)
 		}
 
-		if ActiveTuiMode == TuiModeCopy {
+		if ActiveTuiMode == ModeCopy {
 			return m.UtilityMode(msg, "cp")
 		}
 
-		if ActiveTuiMode == TuiModeFilter {
+		if ActiveTuiMode == ModeFileListSplitPane {
+			return m.FileListSplitPaneMode(msg)
+		}
+
+		if ActiveTuiMode == ModeFilter {
 			return m.FilterMode(msg)
 		}
 
-		if ActiveTuiMode == TuiModeGoto {
+		if ActiveTuiMode == ModeGoto {
 			return m.GotoMode(msg)
 		}
 
-		if ActiveTuiMode == TuiModeHelp {
+		if ActiveTuiMode == ModeHelp {
 			return m.HelpMode(msg)
 		}
 
-		if ActiveTuiMode == TuiModeMkdir {
+		if ActiveTuiMode == ModeMkdir {
 			return m.UtilityMode(msg, "mkdir")
 		}
-		if ActiveTuiMode == TuiModeMove {
+		if ActiveTuiMode == ModeMove {
 			return m.UtilityMode(msg, "mv")
 		}
 
-		if ActiveTuiMode == TuiModeSelect {
+		if ActiveTuiMode == ModeSelect {
 			return m.SelectMode(msg)
 		}
 
-		if ActiveTuiMode == TuiModeNormal {
+		if ActiveTuiMode == ModeNormal {
 			return m.NormalMode(msg)
 		}
 
-		if ActiveTuiMode == TuiModeQuit {
+		if ActiveTuiMode == ModeQuit {
 			return m.QuitMode(msg)
 		}
 
-		if ActiveTuiMode == TuiModeRename {
+		if ActiveTuiMode == ModeRename {
 			return m.UtilityMode(msg, "rename")
 		}
 
-		if ActiveTuiMode == TuiModeRemove {
+		if ActiveTuiMode == ModeRemove {
 			return m.ConfirmMode(msg, "rm -r")
 		}
 
-		if ActiveTuiMode == TuiModeSort {
+		if ActiveTuiMode == ModeSort {
 			return m.SortMode(msg)
 		}
 	}
@@ -129,7 +131,7 @@ func (m *Model) ExecuteCommand(line string) (command.Result, error) {
 }
 
 func (m *Model) GetSelectedEntry() *command.SelectedEntry {
-	pane := m.activePane()
+	pane := m.GetActivePane()
 
 	selectedIdx := pane.fileList.Index()
 	if selectedIdx < 0 || selectedIdx >= len(pane.files) {
@@ -153,7 +155,7 @@ func (m *Model) GetSelectedEntry() *command.SelectedEntry {
 // GetCommandEnvironment builds the command execution environment using the
 // current model state, including the currently selected entry (if any).
 func (m *Model) GetCommandEnvironment() command.Environment {
-	pane := m.activePane()
+	pane := m.GetActivePane()
 
 	return command.Environment{
 		Cwd:      pane.currentDir,
@@ -166,7 +168,7 @@ func (m *Model) GetCommandEnvironment() command.Environment {
 // the text input. The filter is a case-insensitive substring match on the file
 // name. When the filter changes, the list is updated with the new items.
 func (m *Model) ApplyFilter() {
-	pane := m.activePane()
+	pane := m.GetActivePane()
 
 	query := strings.TrimSpace(m.searchInput.Value())
 
@@ -212,7 +214,7 @@ func (m *Model) ApplyFilter() {
 // previous directory is pushed onto the "back" stack and the "forward"
 // stack is cleared, mirroring typical browser navigation behaviour.
 func (m *Model) changeDirectoryInternal(dir string, trackHistory bool) {
-	pane := m.activePane()
+	pane := m.GetActivePane()
 
 	// Record history before we actually change directories.
 	if trackHistory && pane.currentDir != "" && pane.currentDir != dir {
@@ -260,7 +262,7 @@ func (m *Model) ChangeDirectory(dir string) {
 // ReloadDirectory reloads the current directory without adding a new history
 // entry. This is used when commands request a simple refresh of the listing.
 func (m *Model) ReloadDirectory() {
-	pane := m.activePane()
+	pane := m.GetActivePane()
 
 	if pane.currentDir == "" {
 		return
@@ -272,7 +274,7 @@ func (m *Model) ReloadDirectory() {
 // It updates both the back and forward stacks so that repeated invocations
 // allow walking backward through the navigation history.
 func (m *Model) NavigatePreviousDir() {
-	pane := m.activePane()
+	pane := m.GetActivePane()
 
 	if len(pane.dirBackStack) == 0 {
 		return
@@ -294,7 +296,7 @@ func (m *Model) NavigatePreviousDir() {
 
 // NavigateNextDir moves forward in the directory history, if possible.
 func (m *Model) NavigateNextDir() {
-	pane := m.activePane()
+	pane := m.GetActivePane()
 
 	if len(pane.dirForwardStack) == 0 {
 		return

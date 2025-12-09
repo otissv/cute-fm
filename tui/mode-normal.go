@@ -58,9 +58,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Add file
 	case bindings.AddFile.Matches(key):
-		if ActiveTuiMode != TuiModeAddFile {
+		if ActiveTuiMode != ModeAddFile {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeAddFile
+			ActiveTuiMode = ModeAddFile
 
 			m.commandInput.SetValue("")
 			m.commandInput.Focus()
@@ -71,9 +71,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Add change (cd)
 	case bindings.Cd.Matches(key):
-		if ActiveTuiMode != TuiModeCd {
+		if ActiveTuiMode != ModeCd {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeCd
+			ActiveTuiMode = ModeCd
 
 			m.commandInput.SetValue("")
 			m.commandInput.Focus()
@@ -84,9 +84,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Enter command mode
 	case bindings.Command.Matches(key):
-		if ActiveTuiMode != TuiModeCommand {
+		if ActiveTuiMode != ModeCommand {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeCommand
+			ActiveTuiMode = ModeCommand
 
 			m.commandInput.SetValue("")
 			m.commandInput.Focus()
@@ -98,9 +98,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Open column visibility modal
 	case bindings.ColumnVisibiliy.Matches(key):
-		if ActiveTuiMode != TuiModeColumnVisibiliy {
+		if ActiveTuiMode != ModeColumnVisibiliy {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeColumnVisibiliy
+			ActiveTuiMode = ModeColumnVisibiliy
 
 			return m, nil
 		} else {
@@ -109,9 +109,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Copy file or folder
 	case bindings.Copy.Matches(key):
-		if ActiveTuiMode != TuiModeCopy {
+		if ActiveTuiMode != ModeCopy {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeCopy
+			ActiveTuiMode = ModeCopy
 
 			m.commandInput.SetValue("")
 			m.commandInput.Focus()
@@ -128,7 +128,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Move cursor down in file list (with optional count)
 	case bindings.Down.Matches(key):
-		pane := m.activePane()
+		pane := m.GetActivePane()
 
 		// Arrow keys should move one row at a time, nano-style. Ignore any
 		// numeric count prefix so that a stray digit doesn't cause the cursor
@@ -139,7 +139,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Navigate into the selected directory.
 	case bindings.Enter.Matches(key):
-		pane := m.activePane()
+		pane := m.GetActivePane()
 		selectedIdx := pane.fileList.Index()
 		if selectedIdx >= 0 && selectedIdx < len(pane.files) {
 			fi := pane.files[selectedIdx]
@@ -153,12 +153,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.FileInfoPanel.Matches(key):
 		m.activeSplitPane = FileInfoSplitPaneType
 		m.isSplitPaneOpen = false
-		return m, nil
-
-	// Open file list split panel
-	case bindings.FileListPanel.Matches(key):
-		m.activeSplitPane = FileListSplitPaneType
-		m.isSplitPaneOpen = true
+		ActiveTuiMode = ModeNormal
 		return m, nil
 
 	// Change file list to files-only view
@@ -169,9 +164,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Enter filter mode
 	case bindings.Filter.Matches(key):
-		if ActiveTuiMode != TuiModeFilter {
+		if ActiveTuiMode != ModeFilter {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeFilter
+			ActiveTuiMode = ModeFilter
 
 			m.searchInput.Focus()
 
@@ -180,9 +175,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Enter Goto mode
 	case bindings.Goto.Matches(key):
-		if ActiveTuiMode != TuiModeGoto {
+		if ActiveTuiMode != ModeGoto {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeGoto
+			ActiveTuiMode = ModeGoto
 
 			m.jumpTo = key
 			m.commandInput.SetValue(key)
@@ -192,23 +187,37 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Move cursor to end of file list
 	case bindings.GoToEnd.Matches(keyMsg.String()):
-		pane := m.activePane()
+		pane := m.GetActivePane()
 		pane.fileList.GoToEnd()
 		m.UpdateFileInfoPanel()
 		return m, nil
 
 		// Move cursor to start of file list
 	case bindings.GoToStart.Matches(keyMsg.String()):
-		pane := m.activePane()
+		pane := m.GetActivePane()
 		pane.fileList.GoToStart()
 		m.UpdateFileInfoPanel()
 		return m, nil
 
+		// Gotto home directory
+	case bindings.Home.Matches(keyMsg.String()):
+		res, _ := m.ExecuteCommand("cd ~/")
+
+		pane := m.GetActivePane()
+		if res.Cwd != "" && res.Cwd != pane.currentDir {
+			m.ChangeDirectory(res.Cwd)
+		} else if res.Refresh {
+			// Refresh the current directory without recording history.
+			m.ReloadDirectory()
+		}
+
+		return m, nil
+
 	// Make directory
 	case bindings.Mkdir.Matches(key):
-		if ActiveTuiMode != TuiModeMkdir {
+		if ActiveTuiMode != ModeMkdir {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeMkdir
+			ActiveTuiMode = ModeMkdir
 
 			m.commandInput.SetValue("")
 			m.commandInput.Focus()
@@ -219,9 +228,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Move file or folder
 	case bindings.Move.Matches(key):
-		if ActiveTuiMode != TuiModeMove {
+		if ActiveTuiMode != ModeMove {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeMove
+			ActiveTuiMode = ModeMove
 
 			m.commandInput.SetValue("")
 			m.commandInput.Focus()
@@ -232,9 +241,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Open help modal
 	case bindings.Help.Matches(key):
-		if ActiveTuiMode != TuiModeHelp {
+		if ActiveTuiMode != ModeHelp {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeHelp
+			ActiveTuiMode = ModeHelp
 			return m, nil
 		}
 
@@ -246,7 +255,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Navigate to the parent directory.
 	case bindings.Parent.Matches(key):
-		pane := m.activePane()
+		pane := m.GetActivePane()
 		parent := filepath.Dir(pane.currentDir)
 		if parent != "" && parent != pane.currentDir {
 			m.ChangeDirectory(parent)
@@ -279,9 +288,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Remove file or directory
 	case bindings.Remove.Matches(key):
-		if ActiveTuiMode != TuiModeRemove {
+		if ActiveTuiMode != ModeRemove {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeRemove
+			ActiveTuiMode = ModeRemove
 
 			m.commandInput.SetValue("")
 			m.commandInput.Focus()
@@ -292,9 +301,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Move file or folder
 	case bindings.Rename.Matches(key):
-		if ActiveTuiMode != TuiModeRename {
+		if ActiveTuiMode != ModeRename {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeRename
+			ActiveTuiMode = ModeRename
 
 			m.commandInput.SetValue("")
 			m.commandInput.Focus()
@@ -305,25 +314,37 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Enter select mode and mark the current row.
 	case bindings.Select.Matches(key):
-		if ActiveTuiMode != TuiModeSelect {
+		if ActiveTuiMode != ModeSelect {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeSelect
+			ActiveTuiMode = ModeSelect
 			(&m).toggleCurrentSelection()
 			return m, nil
 		}
 
 		// Open sort modal
 	case bindings.Sort.Matches(key):
-		if ActiveTuiMode != TuiModeSort {
+		if ActiveTuiMode != ModeSort {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = TuiModeSort
+			ActiveTuiMode = ModeSort
 
 			return m, nil
 		} else {
 			ActiveTuiMode = PreviousTuiMode
 		}
 
-		// Open preview split panel
+		// Open file list split panel
+	case bindings.SwitchBetweenSplitPane.Matches(key) && !m.isSplitPaneOpen:
+		if ActiveTuiMode != ModeFileListSplitPane {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = ModeFileListSplitPane
+
+			m.activeSplitPane = FileListSplitPaneType
+			m.isSplitPaneOpen = true
+		}
+
+		return m, nil
+
+		// Switch panes in file list slipt mode
 	case bindings.SwitchBetweenSplitPane.Matches(key):
 		if m.isSplitPaneOpen {
 			if m.activeViewport == LeftViewportType {
@@ -341,7 +362,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Move cursor up in file list (with optional count)
 	case bindings.Up.Matches(key):
-		pane := m.activePane()
+		pane := m.GetActivePane()
 
 		// Arrow keys should move one row at a time, nano-style. Ignore any
 		// numeric count prefix so that a stray digit doesn't cause the cursor
@@ -352,7 +373,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Page down in file list (with optional count)
 	case bindings.PageDown.Matches(key):
-		pane := m.activePane()
+		pane := m.GetActivePane()
 		for i := 0; i < count; i++ {
 			pane.fileList.NextPage()
 		}
@@ -361,7 +382,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Page up in file list (with optional count)
 	case bindings.PageUp.Matches(key):
-		pane := m.activePane()
+		pane := m.GetActivePane()
 		for i := 0; i < count; i++ {
 			pane.fileList.PrevPage()
 		}

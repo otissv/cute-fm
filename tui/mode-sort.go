@@ -70,7 +70,7 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Re-apply filters so the active file list is re-sorted.
 		m.ApplyFilter()
 
-		ActiveTuiMode = TuiModeNormal
+		ActiveTuiMode = ModeNormal
 
 		// reset menu cursor
 		m.menuCursor = 0
@@ -78,7 +78,7 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Cancel sorting and return to normal mode without changing the sort.
 	case bindings.Cancel.Matches(key):
-		ActiveTuiMode = TuiModeNormal
+		ActiveTuiMode = ModeNormal
 
 		// reset menu cursor
 		m.menuCursor = 0

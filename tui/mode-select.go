@@ -9,7 +9,7 @@ import (
 // toggleCurrentSelection toggles the marked state of the currently focused row
 // in the active pane and refreshes the list items so the marker column updates.
 func (m *Model) toggleCurrentSelection() {
-	pane := m.activePane()
+	pane := m.GetActivePane()
 	if len(pane.files) == 0 {
 		return
 	}
@@ -41,7 +41,7 @@ func (m *Model) toggleCurrentSelection() {
 // toggleSelectAll toggles between marking all visible rows and clearing all
 // marks in the active pane.
 func (m *Model) toggleSelectAll() {
-	pane := m.activePane()
+	pane := m.GetActivePane()
 	if len(pane.files) == 0 {
 		return
 	}
@@ -98,7 +98,7 @@ func (m Model) SelectMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Leave select mode on cancel (esc / ctrl+q).
 	case bindings.Cancel.Matches(key):
-		ActiveTuiMode = TuiModeNormal
+		ActiveTuiMode = ModeNormal
 		return m, nil
 
 	// Toggle select all rows in the current pane.

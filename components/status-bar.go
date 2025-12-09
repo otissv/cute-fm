@@ -16,7 +16,7 @@ func StatusBar(m tui.Model, args tui.ComponentArgs, items ...string) string {
 		PaddingBottom(theme.StatusBar.PaddingBottom).
 		PaddingLeft(theme.StatusBar.PaddingLeft).
 		PaddingRight(theme.StatusBar.PaddingRight).
-		PaddingTop(theme.Preview.PaddingTop).
+		PaddingTop(theme.StatusBar.PaddingTop).
 		Width(args.Width)
 
 	var flatItems []string

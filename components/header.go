@@ -11,11 +11,13 @@ func Header(m tui.Model, args tui.ComponentArgs) string {
 	theme := m.GetTheme()
 
 	return lipgloss.NewStyle().
-		Align(lipgloss.Center).
+		AlignHorizontal(lipgloss.Right).
 		Background(lipgloss.Color(theme.Header.Background)).
-		PaddingBottom(1).
+		Height(args.Height).
+		PaddingBottom(0).
+		PaddingRight(1).
+		PaddingTop(0).
 		Width(args.Width).
-		Height(1).
 		Render(theming.RainbowText(
 			lipgloss.NewStyle().
 				Background(lipgloss.Color(theme.Header.Background)),

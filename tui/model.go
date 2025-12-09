@@ -20,32 +20,32 @@ type (
 )
 
 type TUIModes struct {
-	TuiModeAddFile         TUIMode
-	TuiModeCd              TUIMode
-	TuiModeColumnVisibiliy TUIMode
-	TuiModeCommand         TUIMode
-	TuiModeCopy            TUIMode
-	TuiModeFilter          TUIMode
-	TuiModeGoto            TUIMode
-	TuiModeHelp            TUIMode
-	TuiModeMkdir           TUIMode
-	TuiModeMove            TUIMode
-	TuiModeNextDir         TUIMode
-	TuiModeNormal          TUIMode
-	TuiModeQuit            TUIMode
-	TuiModeRemove          TUIMode
-	TuiModeRename          TUIMode
-	TuiModeSelect          TUIMode
-	TuiModeSort            TUIMode
+	ModeAddFile           TUIMode
+	ModeCd                TUIMode
+	ModeColumnVisibiliy   TUIMode
+	ModeCommand           TUIMode
+	ModeCopy              TUIMode
+	ModeFilter            TUIMode
+	ModeGoto              TUIMode
+	ModeHelp              TUIMode
+	ModeMkdir             TUIMode
+	ModeMove              TUIMode
+	ModeNormal            TUIMode
+	ModeQuit              TUIMode
+	ModeRemove            TUIMode
+	ModeRename            TUIMode
+	ModeSelect            TUIMode
+	ModeSort              TUIMode
+	ModeFileListSplitPane TUIMode
 }
 
 type (
 	FileListMode  string
 	FileListModes struct {
-		TuiModeNormal  FileListMode
-		TuiModeCommand FileListMode
-		TuiModeFilter  FileListMode
-		TuiModeHelp    FileListMode
+		ModeNormal  FileListMode
+		ModeCommand FileListMode
+		ModeFilter  FileListMode
+		ModeHelp    FileListMode
 	}
 )
 
@@ -56,6 +56,12 @@ type ViewPrimitive interface {
 type ComponentArgs struct {
 	Width  int
 	Height int
+}
+
+type CurrentDirComponentArgs struct {
+	Width      int
+	Height     int
+	CurrentDir string
 }
 
 type FileListComponentArgs struct {
@@ -144,24 +150,24 @@ func (s SortColumnBy) Direction() SortColumnByDirection {
 }
 
 const (
-	TuiModeAddFile         TUIMode = "ADD_FILE"
-	TuiModeAutoComplete    TUIMode = "AUTOCOMPLETE"
-	TuiModeCd              TUIMode = "CD"
-	TuiModeColumnVisibiliy TUIMode = "COLUMN_VISIBILIY"
-	TuiModeCommand         TUIMode = "COMMAND"
-	TuiModeCopy            TUIMode = "COPY"
-	TuiModeFilter          TUIMode = "FILTER"
-	TuiModeGoto            TUIMode = "Goto row:"
-	TuiModeHelp            TUIMode = "HELP"
-	TuiModeMkdir           TUIMode = "MKDIR"
-	TuiModeMove            TUIMode = "MOVE"
-	TuiModeNormal          TUIMode = "NORMAL"
-	TuiModeParent          TUIMode = "PARENT"
-	TuiModeQuit            TUIMode = "QUIT"
-	TuiModeRemove          TUIMode = "REMOVE"
-	TuiModeRename          TUIMode = "RENAME"
-	TuiModeSelect          TUIMode = "SELECT"
-	TuiModeSort            TUIMode = "SORT"
+	ModeAddFile           TUIMode = "ADD_FILE"
+	ModeCd                TUIMode = "CD"
+	ModeColumnVisibiliy   TUIMode = "COLUMN VISIBILIY"
+	ModeCommand           TUIMode = "COMMAND"
+	ModeCopy              TUIMode = "COPY"
+	ModeFilter            TUIMode = "FILTER"
+	ModeGoto              TUIMode = "Goto row:"
+	ModeHelp              TUIMode = "HELP"
+	ModeMkdir             TUIMode = "MKDIR"
+	ModeMove              TUIMode = "MOVE"
+	ModeNormal            TUIMode = "NORMAL"
+	ModeParent            TUIMode = "PARENT"
+	ModeQuit              TUIMode = "QUIT"
+	ModeRemove            TUIMode = "REMOVE"
+	ModeRename            TUIMode = "RENAME"
+	ModeSelect            TUIMode = "SELECT"
+	ModeSort              TUIMode = "SORT"
+	ModeFileListSplitPane TUIMode = "SPLIT PANE"
 
 	ModalNone ModalKind = "None"
 	ModalHelp ModalKind = "Help"
@@ -187,80 +193,61 @@ var (
 	PreviousTuiMode    TUIMode = "NORMAL"
 
 	TuiModes = TUIModes{
-		TuiModeAddFile:         TuiModeAddFile,
-		TuiModeCd:              TuiModeCd,
-		TuiModeColumnVisibiliy: TuiModeColumnVisibiliy,
-		TuiModeCommand:         TuiModeCommand,
-		TuiModeCopy:            TuiModeCopy,
-		TuiModeFilter:          TuiModeFilter,
-		TuiModeGoto:            TuiModeGoto,
-		TuiModeHelp:            TuiModeHelp,
-		TuiModeMkdir:           TuiModeMkdir,
-		TuiModeNormal:          TuiModeNormal,
-		TuiModeRemove:          TuiModeRemove,
-		TuiModeRename:          TuiModeRename,
-		TuiModeSelect:          TuiModeSelect,
-		TuiModeSort:            TuiModeSort,
+		ModeAddFile:         ModeAddFile,
+		ModeCd:              ModeCd,
+		ModeColumnVisibiliy: ModeColumnVisibiliy,
+		ModeCommand:         ModeCommand,
+		ModeCopy:            ModeCopy,
+		ModeFilter:          ModeFilter,
+		ModeGoto:            ModeGoto,
+		ModeHelp:            ModeHelp,
+		ModeMkdir:           ModeMkdir,
+		ModeNormal:          ModeNormal,
+		ModeRemove:          ModeRemove,
+		ModeRename:          ModeRename,
+		ModeSelect:          ModeSelect,
+		ModeSort:            ModeSort,
 	}
 )
 
 type Model struct {
-	configDir       string
-	activeModal     ModalKind
-	activeSplitPane SplitPaneType
-	activeViewport  ActiveViewportType
-	showRightPanel  bool
-	isSudo          bool
-	jumpTo          string
-	isSearchBarOpen bool
-	isSplitPaneOpen bool
-
-	searchInput  textinput.Model
-	commandInput textinput.Model
-
-	// countPrefix stores a pending numeric prefix for Vim-style
-	// navigation (e.g. "10j" / "3↓" in the file list).
-	// A value of 0 means "no active prefix".
-	countPrefix int
-
-	// runtimeConfig holds the Lua-backed configuration (theme and commands).
-	runtimeConfig *config.RuntimeConfig
-
-	fileInfoViewport viewport.Model
-
-	// Independent state for each file-list pane.
-	leftPane  filePane
-	rightPane filePane
-
-	theme theming.Theme
-
-	// Command history for auto-complete
-	commandHistory []string
-	historyMatches []string // Filtered matches based on current input
-	historyIndex   int      // Current index in historyMatches for navigation
-
-	width          int
-	height         int
-	viewportHeight int
-	viewportWidth  int
-	layout         string
-	layoutRows     []string
-	titleText      string
-
-	menuCursor   int
-	sortColumnBy SortColumnBy
-
-	// Help modal scroll state
-	helpScrollOffset int
-
-	// Terminal / preview state
-	terminalType string
+	activeModal        ModalKind
+	activeSplitPane    SplitPaneType
+	activeViewport     ActiveViewportType
+	commandHistory     []string // Command history for auto-complete
+	commandInput       textinput.Model
+	configDir          string
+	countPrefix        int            // countPrefix stores a pending numeric prefix for Vim-style navigation (e.g. "10j" / "3↓" in the file list). A value of 0 means "no active prefix".
+	fileInfoViewport   viewport.Model // Independent state for each file-list pane.
+	height             int
+	helpScrollOffset   int      // Help modal scroll state
+	historyIndex       int      // Current index in historyMatches for navigation
+	historyMatches     []string // Filtered matches based on current input
+	isActionInProgress bool
+	isSplitPaneOpen    bool
+	isSudo             bool
+	jumpTo             string
+	layout             string
+	layoutRows         []string
+	leftPane           filePane
+	menuCursor         int
+	rightPane          filePane
+	runtimeConfig      *config.RuntimeConfig // runtimeConfig holds the Lua-backed configuration (theme and commands).
+	searchInput        textinput.Model
+	showRightPanel     bool
+	sortColumnBy       SortColumnBy
+	terminalType       string // Terminal / preview state
+	theme              theming.Theme
+	titleText          string
+	viewportHeight     int
+	viewportWidth      int
+	width              int
 
 	// Components
-	CurrentDir   func(m Model, args ComponentArgs) string
+	CurrentDir   func(m Model, args CurrentDirComponentArgs) string
 	FileListView func(m Model, args FileListComponentArgs) string
 	Header       func(m Model, args ComponentArgs) string
-	Preview      func(m Model, args ComponentArgs) string
+	FileInfo     func(m Model, args ComponentArgs) string
 	PreviewTabs  func(m Model, args ComponentArgs) string
 	SearchBar    func(m Model, args ComponentArgs) string
 	StatusBar    func(m Model, args ComponentArgs, items ...string) string
@@ -283,12 +270,29 @@ func (m Model) GetActiveModal() ModalKind {
 	return m.activeModal
 }
 
-func (m Model) GetAllFiles() []filesystem.FileInfo {
-	return m.leftPane.allFiles
+// activePane returns the filePane corresponding to the currently active
+// viewport. When the file-list split pane is not open, this is always the
+// left pane.
+func (m *Model) GetActivePane() *filePane {
+	if m.activeViewport == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
+		return &m.rightPane
+	}
+	return &m.leftPane
 }
 
-func (m Model) GetCommandHistory() []string {
-	return m.commandHistory
+func (m Model) GetActiveViewport() ActiveViewportType {
+	return m.activeViewport
+}
+
+func (m Model) GetColumnVisibility() []filesystem.FileInfoColumn {
+	return m.leftPane.columns
+}
+
+func (m Model) GetColumnVisibilityForViewport(view ActiveViewportType) []filesystem.FileInfoColumn {
+	if view == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
+		return m.rightPane.columns
+	}
+	return m.leftPane.columns
 }
 
 func (m Model) GetCommandInput() textinput.Model {
@@ -299,84 +303,68 @@ func (m Model) GetCommandInputView() string {
 	return m.commandInput.View()
 }
 
-func (m Model) GetCommands() map[string]string {
-	// Deprecated: commands are now defined in Lua and executed through the
-	// runtimeConfig; this method remains only to satisfy any existing callers.
-	return nil
-}
-
 func (m Model) GetConfigDir() string {
 	return m.configDir
 }
 
-func (m Model) GetCurrentDir() string {
+func (m Model) GetIsActionInProgress() bool {
+	return m.isSplitPaneOpen
+}
+
+func (m Model) GetIsSplitPaneOpen() bool {
+	return m.isSplitPaneOpen
+}
+
+func (m Model) GetLeftPaneCurrentDir() string {
 	return m.leftPane.currentDir
 }
 
-func (m Model) GetRightCurrentDir() string {
-	return m.rightPane.currentDir
-}
-
-func (m Model) GetFileList() list.Model {
-	// For backward compatibility, return the left pane's file list.
+func (m Model) GetLeftPaneFileList() list.Model {
 	return m.leftPane.fileList
 }
 
-// GetFileListForViewport returns the file list model for the given viewport
+// GetLeftPaneFileListForViewport returns the file list model for the given viewport
 // (left or right). In split file-list mode, each pane has its own list;
 // otherwise, only the left list is active.
-func (m Model) GetFileListForViewport(view ActiveViewportType) list.Model {
+func (m Model) GetLeftPaneFileListForViewport(view ActiveViewportType) list.Model {
 	if view == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
 		return m.rightPane.fileList
 	}
 	return m.leftPane.fileList
 }
 
-func (m Model) GetFiles() []filesystem.FileInfo {
-	return m.leftPane.files
-}
-
-func (m Model) GetHistoryIndex() int {
-	return m.historyIndex
-}
-
-func (m Model) GetHistoryMatches() []string {
-	return m.historyMatches
-}
-
-func (m Model) GetLayout() string {
-	return m.layout
-}
-
-func (m Model) GetLayoutRows() []string {
-	return m.layoutRows
+func (m Model) GetMenuCursor() int {
+	return m.menuCursor
 }
 
 func (m Model) GetPreviewViewport() viewport.Model {
 	return m.fileInfoViewport
 }
 
-func (m Model) GetSearchInput() textinput.Model {
-	return m.searchInput
+func (m Model) GetRightCurrentDir() string {
+	return m.rightPane.currentDir
+}
+
+func (m Model) GetRightPaneCurrentDir() string {
+	return m.rightPane.currentDir
 }
 
 func (m Model) GetSearchInputView() string {
 	return m.searchInput.View()
 }
 
-func (m Model) GetSelectedIndex() int {
-	return m.leftPane.fileList.Index()
-}
-
 func (m Model) GetSize() (width, height int) {
 	return m.width, m.height
+}
+
+func (m Model) GetSortColumnBy() SortColumnBy {
+	return m.sortColumnBy
 }
 
 func (m Model) GetTheme() theming.Theme {
 	return m.theme
 }
 
-// GetTerminalType returns the detected terminal type (e.g. "kitty").
 func (m Model) GetTerminalType() string {
 	return m.terminalType
 }
@@ -385,68 +373,6 @@ func (m Model) GetTitleText() string {
 	return m.titleText
 }
 
-func (m Model) GetViewportHeight() int {
-	return m.viewportHeight
-}
-
-func (m Model) GetViewportWidth() int {
-	return m.viewportWidth
-}
-
 func (m Model) GetHelpScrollOffset() int {
 	return m.helpScrollOffset
-}
-
-// GetColumnVisibility returns the currently selected columns for the *left*
-// file list. This is kept for backward compatibility with code that assumes a
-// single file list.
-func (m Model) GetColumnVisibility() []filesystem.FileInfoColumn {
-	return m.leftPane.columns
-}
-
-// GetColumnVisibilityForViewport returns the selected columns for the given
-// viewport (left or right). When the right file-list pane is active, this
-// allows it to have independent column visibility.
-func (m Model) GetColumnVisibilityForViewport(view ActiveViewportType) []filesystem.FileInfoColumn {
-	if view == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
-		return m.rightPane.columns
-	}
-	return m.leftPane.columns
-}
-
-// GetMenuCursor returns the current cursor index in the
-// column-visibility modal.
-func (m Model) GetMenuCursor() int {
-	return m.menuCursor
-}
-
-// GetSortColumnBy returns the current sort column and direction.
-func (m Model) GetSortColumnBy() SortColumnBy {
-	return m.sortColumnBy
-}
-
-func (m Model) IsSearchBarOpen() bool {
-	return m.isSearchBarOpen
-}
-
-func (m Model) GetActiveSplitPane() SplitPaneType {
-	return m.activeSplitPane
-}
-
-func (m Model) GetActiveViewport() ActiveViewportType {
-	return m.activeViewport
-}
-
-func (m Model) GetIsSplitPaneOpen() bool {
-	return m.isSplitPaneOpen
-}
-
-// activePane returns the filePane corresponding to the currently active
-// viewport. When the file-list split pane is not open, this is always the
-// left pane.
-func (m *Model) activePane() *filePane {
-	if m.activeViewport == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
-		return &m.rightPane
-	}
-	return &m.leftPane
 }

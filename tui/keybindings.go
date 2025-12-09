@@ -66,7 +66,6 @@ type Keybindings struct {
 	Down                   Keybinding
 	Enter                  Keybinding
 	FileInfoPanel          Keybinding
-	FileListPanel          Keybinding
 	Files                  Keybinding
 	Filter                 Keybinding
 	GoToEnd                Keybinding
@@ -74,6 +73,7 @@ type Keybindings struct {
 	Goto                   Keybinding
 	Help                   Keybinding
 	HiddenFiles            Keybinding
+	Home                   Keybinding
 	List                   Keybinding
 	Mkdir                  Keybinding
 	Move                   Keybinding
@@ -155,11 +155,6 @@ func GetKeyBindings() Keybindings {
 			Description: "Execute a command.",
 			Category:    KeybindingCategories.Views.Name,
 		},
-		FileListPanel: Keybinding{
-			On:          []string{"ctrl+e"},
-			Description: "Execute a command.",
-			Category:    KeybindingCategories.Views.Name,
-		},
 		Files: Keybinding{
 			On:          []string{"ctrl+f"},
 			Description: "List files only.",
@@ -194,6 +189,11 @@ func GetKeyBindings() Keybindings {
 			On:          []string{"i"},
 			Description: "Toggle hidden files.",
 			Category:    KeybindingCategories.Views.Name,
+		},
+		Home: Keybinding{
+			On:          []string{"~"},
+			Description: "Goto home directory",
+			Category:    KeybindingCategories.General.Name,
 		},
 		List: Keybinding{
 			On:          []string{"ctrl+l"},

@@ -56,7 +56,7 @@ func (m Model) UtilityMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 
 			res, _ := m.ExecuteCommand(line)
 
-			pane := m.activePane()
+			pane := m.GetActivePane()
 			if res.Cwd != "" && res.Cwd != pane.currentDir {
 				m.ChangeDirectory(res.Cwd)
 			} else if res.Refresh {
@@ -73,7 +73,7 @@ func (m Model) UtilityMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 
 	// Cancel add-file mode
 	case bindings.Cancel.Matches(keyMsg.String()):
-		ActiveTuiMode = TuiModeNormal
+		ActiveTuiMode = ModeNormal
 		m.commandInput.Blur()
 		m.commandInput.SetValue("")
 		return m, nil
