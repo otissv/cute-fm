@@ -44,6 +44,9 @@ func (m Model) GotoMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//   "10"   -> move 10 rows down
 		//   "10-"  -> move 10 rows up
 		//   "-10"  -> move 10 rows up
+		//   "10"   -> move 10 rows down
+		//   "10-"  -> move 10 rows up
+		//   "-10"  -> move 10 rows up
 		m.applyRelativeGoto(inputValue)
 
 		m.commandInput.Blur()
@@ -86,8 +89,8 @@ func (m *Model) applyRelativeGoto(inputValue string) bool {
 
 	moveBackward := false
 
-	// A trailing "-" means "move up".
-	if strings.HasSuffix(inputValue, "-") {
+	// A trailing "-" or sytarts with "-" means "move up".
+	if strings.HasSuffix(inputValue, "-") || strings.HasPrefix(inputValue, "-") {
 		moveBackward = true
 		inputValue = strings.TrimSpace(strings.TrimSuffix(inputValue, "-"))
 		if inputValue == "" {
@@ -134,7 +137,7 @@ func (m *Model) applyRelativeGoto(inputValue string) bool {
 	}
 
 	pane.fileList.Select(target)
-	m.UpdateFileInfoPanel()
+	m.UpdateFileInfoPane()
 
 	return true
 }

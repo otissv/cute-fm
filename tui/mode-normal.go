@@ -134,7 +134,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// numeric count prefix so that a stray digit doesn't cause the cursor
 		// to "jump" or effectively page.
 		pane.fileList.CursorDown()
-		m.UpdateFileInfoPanel()
+		m.UpdateFileInfoPane()
 		return m, nil
 
 	// Navigate into the selected directory.
@@ -149,8 +149,8 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-	// Open file info split panel;
-	case bindings.FileInfoPanel.Matches(key):
+	// Open file info split pane;
+	case bindings.FileInfoPane.Matches(key):
 		m.activeSplitPane = FileInfoSplitPaneType
 		m.isSplitPaneOpen = false
 		ActiveTuiMode = ModeNormal
@@ -189,14 +189,14 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.GoToEnd.Matches(keyMsg.String()):
 		pane := m.GetActivePane()
 		pane.fileList.GoToEnd()
-		m.UpdateFileInfoPanel()
+		m.UpdateFileInfoPane()
 		return m, nil
 
 		// Move cursor to start of file list
 	case bindings.GoToStart.Matches(keyMsg.String()):
 		pane := m.GetActivePane()
 		pane.fileList.GoToStart()
-		m.UpdateFileInfoPanel()
+		m.UpdateFileInfoPane()
 		return m, nil
 
 		// Gotto home directory
@@ -275,9 +275,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.NavigateNextDir()
 		return m, nil
 
-	// Open preview split panel
-	case bindings.PreviewPanel.Matches(key):
-		m.activeSplitPane = PreviewPanelType
+	// Open preview split pane
+	case bindings.PreviewPane.Matches(key):
+		m.activeSplitPane = PreviewPaneType
 		m.isSplitPaneOpen = false
 		return m, nil
 
@@ -332,7 +332,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			ActiveTuiMode = PreviousTuiMode
 		}
 
-		// Open file list split panel
+		// Open file list split pane
 	case bindings.SwitchBetweenSplitPane.Matches(key) && !m.isSplitPaneOpen:
 		if ActiveTuiMode != ModeFileListSplitPane {
 			PreviousTuiMode = ActiveTuiMode
@@ -355,8 +355,8 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
-	case bindings.ToggleRightPanel.Matches(key):
-		m.showRightPanel = !m.showRightPanel
+	case bindings.ToggleRightPane.Matches(key):
+		m.showRightPane = !m.showRightPane
 		m.CalcLayout()
 		return m, nil
 
@@ -368,7 +368,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// numeric count prefix so that a stray digit doesn't cause the cursor
 		// to "jump" or effectively page.
 		pane.fileList.CursorUp()
-		m.UpdateFileInfoPanel()
+		m.UpdateFileInfoPane()
 		return m, nil
 
 		// Page down in file list (with optional count)
@@ -377,7 +377,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for i := 0; i < count; i++ {
 			pane.fileList.NextPage()
 		}
-		m.UpdateFileInfoPanel()
+		m.UpdateFileInfoPane()
 		return m, nil
 
 	// Page up in file list (with optional count)
@@ -386,7 +386,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for i := 0; i < count; i++ {
 			pane.fileList.PrevPage()
 		}
-		m.UpdateFileInfoPanel()
+		m.UpdateFileInfoPane()
 		return m, nil
 	}
 

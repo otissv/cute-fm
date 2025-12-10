@@ -65,7 +65,7 @@ type Keybindings struct {
 	Directories            Keybinding
 	Down                   Keybinding
 	Enter                  Keybinding
-	FileInfoPanel          Keybinding
+	FileInfoPane           Keybinding
 	Files                  Keybinding
 	Filter                 Keybinding
 	GoToEnd                Keybinding
@@ -82,7 +82,7 @@ type Keybindings struct {
 	PageUp                 Keybinding
 	Parent                 Keybinding
 	Paste                  Keybinding
-	PreviewPanel           Keybinding
+	PreviewPane            Keybinding
 	PreviousDir            Keybinding
 	Quit                   Keybinding
 	Redo                   Keybinding
@@ -93,7 +93,7 @@ type Keybindings struct {
 	Sort                   Keybinding
 	Sudo                   Keybinding
 	SwitchBetweenSplitPane Keybinding
-	ToggleRightPanel       Keybinding
+	ToggleRightPane        Keybinding
 	Undo                   Keybinding
 	Up                     Keybinding
 }
@@ -150,7 +150,7 @@ func GetKeyBindings() Keybindings {
 			Description: "Execute a command.",
 			Category:    KeybindingCategories.General.Name,
 		},
-		FileInfoPanel: Keybinding{
+		FileInfoPane: Keybinding{
 			On:          []string{"ctrl+i"},
 			Description: "Execute a command.",
 			Category:    KeybindingCategories.Views.Name,
@@ -166,7 +166,7 @@ func GetKeyBindings() Keybindings {
 			Category:    KeybindingCategories.Filter.Name,
 		},
 		Goto: Keybinding{
-			On:          []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"},
+			On:          []string{"-", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"},
 			Description: "Enter goto mode to jump to a selection",
 			Category:    KeybindingCategories.Navigation.Name,
 		},
@@ -236,7 +236,7 @@ func GetKeyBindings() Keybindings {
 		// 	Description: "Paste file or directory.",
 		// 	Category:    KeybindingCategories.Editing.Name,
 		// },
-		PreviewPanel: Keybinding{
+		PreviewPane: Keybinding{
 			On:          []string{"ctrl+w"},
 			Description: "Preview file or folder.",
 			Category:    KeybindingCategories.Views.Name,
@@ -288,12 +288,12 @@ func GetKeyBindings() Keybindings {
 		},
 		SwitchBetweenSplitPane: Keybinding{
 			On:          []string{"tab"},
-			Description: "Toggle beright panel.",
+			Description: "Toggle beright pane.",
 			Category:    KeybindingCategories.Views.Name,
 		},
-		ToggleRightPanel: Keybinding{
+		ToggleRightPane: Keybinding{
 			On:          []string{"t"},
-			Description: "Toggle right panel.",
+			Description: "Toggle right pane.",
 			Category:    KeybindingCategories.Views.Name,
 		},
 		Undo: Keybinding{

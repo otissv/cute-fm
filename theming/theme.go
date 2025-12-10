@@ -21,6 +21,7 @@ var (
 	color8  = "#A8D2FF"
 	color9  = "#2072D5"
 	color10 = "#F00F00"
+	color11 = "#A8A7A7"
 
 	background               = ""
 	foreground               = color1
@@ -33,7 +34,7 @@ var (
 	commandBarBackground     = background
 	commandBarBorder         = borderColor
 	commandBarForeground     = foreground
-	commandBarPlaceholder    = "#A8A7A7"
+	commandBarPlaceholder    = color11
 	leftCurrentDirBackground = background
 	leftCurrentDirForeground = foreground
 	fieldGroup               = color3

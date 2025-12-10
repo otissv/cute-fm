@@ -156,7 +156,7 @@ const (
 	ModeCommand           TUIMode = "COMMAND"
 	ModeCopy              TUIMode = "COPY"
 	ModeFilter            TUIMode = "FILTER"
-	ModeGoto              TUIMode = "Goto row:"
+	ModeGoto              TUIMode = "GOTO"
 	ModeHelp              TUIMode = "HELP"
 	ModeMkdir             TUIMode = "MKDIR"
 	ModeMove              TUIMode = "MOVE"
@@ -175,7 +175,7 @@ const (
 	SortingAsc  SortColumnByDirection = "ASC"
 	SortingDesc SortColumnByDirection = "DESC"
 
-	PreviewPanelType      SplitPaneType = "PREVIEW"
+	PreviewPaneType       SplitPaneType = "PREVIEW"
 	FileInfoSplitPaneType SplitPaneType = "FILE_INFO"
 	FileListSplitPaneType SplitPaneType = "FILE_LIST"
 
@@ -234,7 +234,7 @@ type Model struct {
 	rightPane          filePane
 	runtimeConfig      *config.RuntimeConfig // runtimeConfig holds the Lua-backed configuration (theme and commands).
 	searchInput        textinput.Model
-	showRightPanel     bool
+	showRightPane      bool
 	sortColumnBy       SortColumnBy
 	terminalType       string // Terminal / preview state
 	theme              theming.Theme
@@ -246,10 +246,11 @@ type Model struct {
 	// Components
 	CurrentDir   func(m Model, args CurrentDirComponentArgs) string
 	FileListView func(m Model, args FileListComponentArgs) string
-	Header       func(m Model, args ComponentArgs) string
 	FileInfo     func(m Model, args ComponentArgs) string
+	Header       func(m Model, args ComponentArgs) string
 	PreviewTabs  func(m Model, args ComponentArgs) string
 	SearchBar    func(m Model, args ComponentArgs) string
+	SearchText   func(m Model) string
 	StatusBar    func(m Model, args ComponentArgs, items ...string) string
 	SudoMode     func(m Model, args ComponentArgs) string
 	TuiMode      func(m Model, args ComponentArgs) string
@@ -347,6 +348,10 @@ func (m Model) GetRightCurrentDir() string {
 
 func (m Model) GetRightPaneCurrentDir() string {
 	return m.rightPane.currentDir
+}
+
+func (m Model) GetSearchInputText() string {
+	return m.searchInput.Value()
 }
 
 func (m Model) GetSearchInputView() string {

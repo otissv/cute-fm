@@ -17,7 +17,7 @@ import (
 func InitialModel(startDir string) Model {
 	// Initialize right viewport for the second row
 	fileInfoViewport := viewport.New()
-	fileInfoViewport.SetContent("Right Panel\n\nThis is the right viewport.\nIt will display file previews.")
+	fileInfoViewport.SetContent("Right Pane\n\nThis is the right viewport.\nIt will display file previews.")
 
 	// Determine initial directory for the file list.
 	leftCurrentDir := startDir
@@ -97,7 +97,7 @@ func InitialModel(startDir string) Model {
 		layout:          "",
 		layoutRows:      []string{""},
 		runtimeConfig:   runtimeCfg,
-		showRightPanel:  true,
+		showRightPane:   true,
 		isSudo:          false,
 		isSplitPaneOpen: false,
 		terminalType:    string(detectTerminalType()),
@@ -127,7 +127,7 @@ func InitialModel(startDir string) Model {
 	ActiveFileListMode = FileListModeList
 
 	// Initialize preview for the initial selection, if any.
-	m.UpdateFileInfoPanel()
+	m.UpdateFileInfoPane()
 
 	return m
 }

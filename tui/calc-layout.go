@@ -27,9 +27,9 @@ func (m *Model) CalcLayout() {
 		viewportContentHeight = 1 // Minimum content height
 	}
 
-	// Calculate viewport width. When the right panel is hidden, the left
+	// Calculate viewport width. When the right pane is hidden, the left
 	// viewport should take the full terminal width; otherwise, split evenly.
-	if m.showRightPanel {
+	if m.showRightPane {
 		m.viewportWidth = m.width / 2
 	} else {
 		m.viewportWidth = m.width

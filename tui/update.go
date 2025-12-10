@@ -206,7 +206,7 @@ func (m *Model) ApplyFilter() {
 	}
 
 	// Update preview for the new selection after filtering.
-	m.UpdateFileInfoPanel()
+	m.UpdateFileInfoPane()
 }
 
 // changeDirectoryInternal updates the model to point at a new current
@@ -248,7 +248,7 @@ func (m *Model) changeDirectoryInternal(dir string, trackHistory bool) {
 	m.ApplyFilter()
 
 	// And recompute the preview for the new directory/selection.
-	m.UpdateFileInfoPanel()
+	m.UpdateFileInfoPane()
 }
 
 // ChangeDirectory is the public helper used throughout the TUI when the user

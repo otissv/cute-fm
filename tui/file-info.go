@@ -7,10 +7,10 @@ import (
 	"cute/filesystem"
 )
 
-// UpdateFileInfoPanel recomputes the right-hand preview panel based on the currently
+// UpdateFileInfoPane recomputes the right-hand preview pane based on the currently
 // selected file. It handles text files (via bat when available), directories,
 // and image files (with special handling for Kitty).
-func (m *Model) UpdateFileInfoPanel() {
+func (m *Model) UpdateFileInfoPane() {
 	pane := m.GetActivePane()
 
 	// If there are no files, clear the preview.
@@ -27,15 +27,15 @@ func (m *Model) UpdateFileInfoPanel() {
 
 	fi := pane.files[idx]
 
-	// Always show simple file info/properties in the right-hand panel instead
+	// Always show simple file info/properties in the right-hand pane instead
 	// of rich text/image previews.
-	m.fileInfoViewport.SetContent(renderFileInfoPanel(fi))
+	m.fileInfoViewport.SetContent(renderFileInfoPane(fi))
 }
 
-// renderFileInfoPanel renders basic file information and properties for the
+// renderFileInfoPane renders basic file information and properties for the
 // currently selected entry. This is now the only content shown in the
-// right-hand panel (rich previews have been removed).
-func renderFileInfoPanel(fi filesystem.FileInfo) string {
+// right-hand pane (rich previews have been removed).
+func renderFileInfoPane(fi filesystem.FileInfo) string {
 	var b strings.Builder
 
 	fmt.Fprintf(&b, "File info\n\n")

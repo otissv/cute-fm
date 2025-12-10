@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"cute/console"
-
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
@@ -13,6 +11,8 @@ func (m Model) View() tea.View {
 		v.AltScreen = true
 		return v
 	}
+
+	isLeftViewportActivce := m.activeViewport == LeftViewportType
 
 	tuiMode := m.TuiMode(m, ComponentArgs{
 		Height: 1,
@@ -52,12 +52,18 @@ func (m Model) View() tea.View {
 	// 	leftStatusBarItem = append([]string{sudoMode}, leftStatusBarItem...)
 	// }
 
+	fileInfoViewportView := m.FileInfo(
+		m, ComponentArgs{
+			Width:  m.viewportWidth,
+			Height: m.viewportHeight + 1,
+		})
+
 	leftCurrentDir := m.CurrentDir(m, CurrentDirComponentArgs{
 		Height:     1,
 		CurrentDir: m.GetLeftPaneCurrentDir(),
 	})
 
-	filePanel1StatusBar := m.StatusBar(
+	filePane1StatusBar := m.StatusBar(
 		m, ComponentArgs{
 			Height: 1,
 		},
@@ -78,42 +84,38 @@ func (m Model) View() tea.View {
 			SplitPaneType: RightViewportType,
 		})
 
-	leftPanel := lipgloss.JoinVertical(
-		lipgloss.Left,
-		searchBar,
-		fileListView1,
-		filePanel1StatusBar,
-	)
+	placeholder := lipgloss.NewStyle().Render("")
+	leftPaneHeader := m.SearchText(m)
+	rightPaneHeader := placeholder
 
-	fileInfoViewportView := m.FileInfo(
-		m, ComponentArgs{
-			Width:  m.viewportWidth,
-			Height: m.viewportHeight + 1,
-		})
-
-	rightPanel := fileInfoViewportView
-
-	if m.showRightPanel {
-		console.Log("ActiveTuiMode: %s", ActiveTuiMode)
-
-		if m.isSplitPaneOpen {
-			console.Log("m.isSplitPaneOpen: %s", "true")
-		} else {
-			console.Log("m.isSplitPaneOpen: %s", "false")
+	if isLeftViewportActivce {
+		if ActiveTuiMode == ModeFilter {
+			leftPaneHeader = searchBar
 		}
 
+		if ActiveTuiMode == ModeGoto {
+			leftPaneHeader = "Jump to row: " + m.jumpTo
+			rightPaneHeader = placeholder
+		}
+	}
+
+	leftPaneItems := []string{
+		leftPaneHeader,
+		fileListView1,
+		filePane1StatusBar,
+	}
+
+	rightPaneItems := []string{}
+
+	if m.showRightPane {
 		switch m.activeSplitPane {
 
 		case FileInfoSplitPaneType:
 
-			rightPanel = lipgloss.JoinVertical(
-				lipgloss.Left,
-				// Placeholder to align with left panel
-				lipgloss.NewStyle().
-					Height(1).
-					Render(""),
+			rightPaneItems = []string{
+				rightPaneHeader,
 				fileInfoViewportView,
-			)
+			}
 
 		case FileListSplitPaneType:
 			rightCurrentDir := m.CurrentDir(m, CurrentDirComponentArgs{
@@ -121,19 +123,34 @@ func (m Model) View() tea.View {
 				CurrentDir: m.GetRightPaneCurrentDir(),
 			})
 
-			rightPanel = lipgloss.JoinVertical(
-				lipgloss.Left,
-				searchBar,
+			rightPaneHeader = m.SearchText(m)
+
+			if ActiveTuiMode == ModeGoto && !isLeftViewportActivce {
+				rightPaneHeader = "Jump to row: " + m.jumpTo
+			}
+
+			rightPaneItems = []string{
+				rightPaneHeader,
 				fileListView2,
 				rightCurrentDir,
-			)
+			}
 		}
 	}
 
+	rightPane := lipgloss.JoinVertical(
+		lipgloss.Left,
+		rightPaneItems...,
+	)
+
+	leftPane := lipgloss.JoinVertical(
+		lipgloss.Left,
+		leftPaneItems...,
+	)
+
 	viewports := lipgloss.JoinHorizontal(
 		lipgloss.Top,
-		leftPanel,
-		rightPanel,
+		leftPane,
+		rightPane,
 	)
 
 	layoutStyle := lipgloss.NewStyle()

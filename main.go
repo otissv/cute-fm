@@ -23,7 +23,6 @@ func main() {
 	m := tui.InitialModel(startDir)
 
 	// Inject UI components .
-
 	m.SearchBar = components.SearchBar
 	m.CurrentDir = components.CurrentDir
 	m.Header = components.Header
@@ -33,6 +32,7 @@ func main() {
 	m.FileListView = components.FileList
 	m.TuiMode = components.TuiMode
 	m.SudoMode = components.SudoMode
+	m.SearchText = components.SearchText
 
 	// Inject UI modals.
 	m.HelpModal = components.HelpModal
