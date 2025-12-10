@@ -44,10 +44,6 @@ func (m Model) View() tea.View {
 	// 	Height: 1,
 	// })
 
-	// if ActiveTuiMode == ModeGoto {
-	// 	leftStatusBarItem = []string{tuiMode, m.jumpTo}
-	// }
-
 	// if m.isSudo {
 	// 	leftStatusBarItem = append([]string{sudoMode}, leftStatusBarItem...)
 	// }
@@ -85,7 +81,7 @@ func (m Model) View() tea.View {
 		})
 
 	placeholder := lipgloss.NewStyle().Render("")
-	leftPaneHeader := m.SearchText(m)
+	leftPaneHeader := m.SearchText(m, LeftViewportType)
 	rightPaneHeader := placeholder
 
 	if isLeftViewportActivce {
@@ -123,10 +119,16 @@ func (m Model) View() tea.View {
 				CurrentDir: m.GetRightPaneCurrentDir(),
 			})
 
-			rightPaneHeader = m.SearchText(m)
+			rightPaneHeader = m.SearchText(m, RightViewportType)
 
-			if ActiveTuiMode == ModeGoto && !isLeftViewportActivce {
-				rightPaneHeader = "Jump to row: " + m.jumpTo
+			if !isLeftViewportActivce {
+				if ActiveTuiMode == ModeGoto {
+					rightPaneHeader = "Jump to row: " + m.jumpTo
+				}
+
+				if ActiveTuiMode == ModeFilter {
+					rightPaneHeader = searchBar
+				}
 			}
 
 			rightPaneItems = []string{

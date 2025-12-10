@@ -77,21 +77,23 @@ func InitialModel(startDir string) Model {
 		configDir:        cfgDir,
 		fileInfoViewport: fileInfoViewport,
 		leftPane: filePane{
-			currentDir: leftCurrentDir,
-			allFiles:   files,
-			files:      files,
-			fileList:   leftList,
-			columns:    defaultColumns,
-			marked:     make(map[string]bool),
+			currentDir:  leftCurrentDir,
+			allFiles:    files,
+			files:       files,
+			fileList:    leftList,
+			filterQuery: "",
+			columns:     defaultColumns,
+			marked:      make(map[string]bool),
 		},
 		// Start the right pane in the same directory; it can diverge later.
 		rightPane: filePane{
-			currentDir: leftCurrentDir,
-			allFiles:   files,
-			files:      files,
-			fileList:   rightList,
-			columns:    defaultColumns,
-			marked:     make(map[string]bool),
+			currentDir:  leftCurrentDir,
+			allFiles:    files,
+			files:       files,
+			fileList:    rightList,
+			filterQuery: "",
+			columns:     defaultColumns,
+			marked:      make(map[string]bool),
 		},
 		jumpTo:          "",
 		layout:          "",
@@ -108,7 +110,9 @@ func InitialModel(startDir string) Model {
 		menuCursor:      0,
 	}
 
-	// Initialize the search input
+	// Initialize the search input used when editing filters. The actual
+	// filter string is stored per-pane in filePane.filterQuery so each
+	// pane can keep an independent filter.
 	m.searchInput = m.SearchInput("> ", "Filter...")
 
 	// Initialize the command input

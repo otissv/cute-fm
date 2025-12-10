@@ -168,6 +168,11 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeFilter
 
+			// When entering filter mode, load the existing filter for the
+			// active pane into the shared search input so that each pane can
+			// remember and edit its own filter independently.
+			pane := m.GetActivePane()
+			m.searchInput.SetValue(pane.filterQuery)
 			m.searchInput.Focus()
 
 			return m, nil

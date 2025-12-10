@@ -19,10 +19,18 @@ func (m Model) FilterMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// Update search input (first row) and apply filtering if the value changed.
-	before := m.searchInput.Value()
+	pane := m.GetActivePane()
+	before := pane.filterQuery
+
 	m.searchInput, cmd = m.searchInput.Update(msg)
 	cmds = append(cmds, cmd)
-	if m.searchInput.Value() != before {
+
+	// Keep the pane-specific filter query in sync with the text input so
+	// that each pane remembers its own filter while sharing a single
+	// searchInput UI.
+	pane.filterQuery = m.searchInput.Value()
+
+	if pane.filterQuery != before {
 		m.ApplyFilter()
 	}
 
@@ -45,6 +53,12 @@ func (m Model) FilterMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.activeViewport = LeftViewportType
 			}
+
+			// After switching panes, load that pane's existing filter text
+			// into the shared search input so each pane can be edited
+			// independently.
+			newPane := m.GetActivePane()
+			m.searchInput.SetValue(newPane.filterQuery)
 		}
 		return m, nil
 	}

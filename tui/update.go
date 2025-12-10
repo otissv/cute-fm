@@ -170,7 +170,10 @@ func (m *Model) GetCommandEnvironment() command.Environment {
 func (m *Model) ApplyFilter() {
 	pane := m.GetActivePane()
 
-	query := strings.TrimSpace(m.searchInput.Value())
+	// Use the pane-specific filter query so that split panes can have
+	// independent filters. The interactive searchInput is just the UI
+	// for editing this value on the active pane.
+	query := strings.TrimSpace(pane.filterQuery)
 
 	// If there is no backing data yet, nothing to do.
 	if len(pane.allFiles) == 0 {

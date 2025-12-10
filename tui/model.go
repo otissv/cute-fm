@@ -127,10 +127,14 @@ type SortColumnBy struct {
 // Keeping this in a separate struct lets us support independent panes while
 // reusing the same logic for navigation, filtering, and directory history.
 type filePane struct {
-	currentDir      string
-	allFiles        []filesystem.FileInfo
-	files           []filesystem.FileInfo
-	fileList        list.Model
+	currentDir string
+	allFiles   []filesystem.FileInfo
+	files      []filesystem.FileInfo
+	fileList   list.Model
+	// filterQuery stores the current filter string for this pane only.
+	// Each pane maintains its own independent filter so that split panes
+	// do not share search state.
+	filterQuery     string
 	dirBackStack    []string
 	dirForwardStack []string
 	columns         []filesystem.FileInfoColumn
@@ -233,15 +237,18 @@ type Model struct {
 	menuCursor         int
 	rightPane          filePane
 	runtimeConfig      *config.RuntimeConfig // runtimeConfig holds the Lua-backed configuration (theme and commands).
-	searchInput        textinput.Model
-	showRightPane      bool
-	sortColumnBy       SortColumnBy
-	terminalType       string // Terminal / preview state
-	theme              theming.Theme
-	titleText          string
-	viewportHeight     int
-	viewportWidth      int
-	width              int
+	// searchInput is the interactive text input used when the user is in
+	// filter mode. It is shared visually, but each pane keeps its own
+	// filterQuery string so that split panes can have independent filters.
+	searchInput    textinput.Model
+	showRightPane  bool
+	sortColumnBy   SortColumnBy
+	terminalType   string // Terminal / preview state
+	theme          theming.Theme
+	titleText      string
+	viewportHeight int
+	viewportWidth  int
+	width          int
 
 	// Components
 	CurrentDir   func(m Model, args CurrentDirComponentArgs) string
@@ -250,7 +257,7 @@ type Model struct {
 	Header       func(m Model, args ComponentArgs) string
 	PreviewTabs  func(m Model, args ComponentArgs) string
 	SearchBar    func(m Model, args ComponentArgs) string
-	SearchText   func(m Model) string
+	SearchText   func(m Model, view ActiveViewportType) string
 	StatusBar    func(m Model, args ComponentArgs, items ...string) string
 	SudoMode     func(m Model, args ComponentArgs) string
 	TuiMode      func(m Model, args ComponentArgs) string
@@ -351,11 +358,24 @@ func (m Model) GetRightPaneCurrentDir() string {
 }
 
 func (m Model) GetSearchInputText() string {
-	return m.searchInput.Value()
+	// Default to the active viewport's filter text.
+	if m.activeViewport == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
+		return m.rightPane.filterQuery
+	}
+	return m.leftPane.filterQuery
 }
 
 func (m Model) GetSearchInputView() string {
 	return m.searchInput.View()
+}
+
+// GetSearchInputTextForViewport returns the filter text associated with the
+// given viewport, allowing split panes to display their own filter headers.
+func (m Model) GetSearchInputTextForViewport(view ActiveViewportType) string {
+	if view == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
+		return m.rightPane.filterQuery
+	}
+	return m.leftPane.filterQuery
 }
 
 func (m Model) GetSize() (width, height int) {

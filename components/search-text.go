@@ -6,7 +6,9 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-func SearchText(m tui.Model) string {
+// SearchText renders the current filter text for a specific viewport (left or
+// right). Each split pane can therefore display its own filter independently.
+func SearchText(m tui.Model, view tui.ActiveViewportType) string {
 	return lipgloss.NewStyle().
-		Render("> " + m.GetSearchInputText())
+		Render("> " + m.GetSearchInputTextForViewport(view))
 }
