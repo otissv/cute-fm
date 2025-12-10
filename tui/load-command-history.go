@@ -7,9 +7,6 @@ import (
 	"strings"
 )
 
-// LoadCommandHistory reads the command history file and returns a slice of
-// command lines, with the most recent commands at the end. It is best-effort
-// and returns an empty slice if the file doesn't exist or can't be read.
 func (m *Model) LoadCommandHistory() []string {
 	if m.configDir == "" {
 		return []string{}

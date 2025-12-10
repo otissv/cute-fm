@@ -4,8 +4,6 @@ import (
 	"strings"
 )
 
-// filterHistoryMatches filters the command history based on the current input
-// and returns matching commands. Matches are case-insensitive prefix matches.
 func (m *Model) filterHistoryMatches(input string) []string {
 	if input == "" {
 		return []string{}
@@ -35,16 +33,12 @@ func (m *Model) filterHistoryMatches(input string) []string {
 	return matches
 }
 
-// updateHistoryMatches updates the history matches based on current input
-// and resets the history index.
 func (m *Model) updateHistoryMatches() {
 	currentInput := strings.TrimSpace(m.commandInput.Value())
 	m.historyMatches = m.filterHistoryMatches(currentInput)
 	m.historyIndex = -1
 }
 
-// completeCommand completes the command input with the next match from history.
-// If historyIndex is -1, it uses the first match. Otherwise, it cycles through matches.
 func (m *Model) completeCommand() {
 	if len(m.historyMatches) == 0 {
 		return
@@ -62,9 +56,6 @@ func (m *Model) completeCommand() {
 	m.commandInput.CursorEnd()
 }
 
-// navigateHistory moves through history matches using Up/Down arrows.
-// delta is -1 for up (older), +1 for down (newer).
-// If there are no matches based on current input, it navigates through all history.
 func (m *Model) navigateHistory(delta int) {
 	currentInput := strings.TrimSpace(m.commandInput.Value())
 

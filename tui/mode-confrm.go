@@ -30,7 +30,6 @@ func (m Model) ConfirmMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 		if res.Cwd != "" && res.Cwd != pane.currentDir {
 			m.ChangeDirectory(res.Cwd)
 		} else if res.Refresh {
-			// Refresh the current directory without recording history.
 			m.ReloadDirectory()
 		}
 

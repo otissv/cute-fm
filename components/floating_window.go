@@ -47,8 +47,7 @@ func (fw FloatingWindow) View(outerWidth, outerHeight int) string {
 
 	contentView := fw.Content.View()
 
-	// Apply vertical scrolling based on ScrollOffset. We slice the content
-	// lines before rendering the box so the border and padding remain intact.
+	// Apply vertical scrolling based on ScrollOffset.
 	if fw.Height > 0 {
 		lines := strings.Split(contentView, "\n")
 		if len(lines) > 0 {
@@ -72,9 +71,7 @@ func (fw FloatingWindow) View(outerWidth, outerHeight int) string {
 
 			visible := lines[start:end]
 
-			// Add simple scroll indicators to the first/last visible lines
-			// without changing the total number of lines, so the box height
-			// remains stable.
+			// Add simple scroll indicators
 			if len(visible) > 0 {
 				if canScrollUp {
 					visible[0] = "↑\n" + visible[0]
@@ -91,12 +88,11 @@ func (fw FloatingWindow) View(outerWidth, outerHeight int) string {
 
 	box := style.Render(contentView)
 
-	// If there's no title, just return the styled box.
 	if fw.Title == "" {
 		return box
 	}
 
-	// of the rendered box. This avoids needing an extra canvas or layer.
+	// This avoids needing an extra canvas or layer.
 	lines := strings.Split(box, "\n")
 	if len(lines) == 0 {
 		return box
@@ -109,16 +105,13 @@ func (fw FloatingWindow) View(outerWidth, outerHeight int) string {
 
 	line := lines[row]
 
-	// The border line contains ANSI escape codes added by lipgloss. We must not
-	// overwrite those, so we only modify the substring between the visible
-	// corner runes (for the default rounded border: '╭' ... '╮').
+	// The border line contains ANSI escape codes added by lipgloss.
 	leftCorner := '╭'
 	rightCorner := '╮'
 
 	leftIdx := strings.IndexRune(line, leftCorner)
 	rightIdx := strings.LastIndex(line, string(rightCorner))
 	if leftIdx == -1 || rightIdx == -1 || rightIdx <= leftIdx {
-		// Fallback: unexpected border characters; keep the box as-is.
 		return box
 	}
 

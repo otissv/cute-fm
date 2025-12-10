@@ -24,7 +24,6 @@ const (
 	colDate   = 14
 )
 
-// FileItem wraps filesystem.FileInfo to implement the list.Item interface.
 type FileItem struct {
 	Info   filesystem.FileInfo
 	Marked bool
@@ -56,22 +55,18 @@ func NewFileItemDelegate(theme theming.Theme, width int, columns []filesystem.Fi
 	}
 }
 
-// Height returns the height of each item (1 line per file).
 func (d FileItemDelegate) Height() int {
 	return 1
 }
 
-// Spacing returns the spacing between items.
 func (d FileItemDelegate) Spacing() int {
 	return 0
 }
 
-// Update handles item-level updates.
 func (d FileItemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	return nil
 }
 
-// Render renders a single file item.
 func (d FileItemDelegate) Render(w io.Writer, m list.Model, index int, item list.Item) {
 	fi, ok := item.(FileItem)
 	if !ok {
@@ -101,8 +96,6 @@ func (d FileItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 	_, _ = io.WriteString(w, line)
 }
 
-// renderFileRow renders a single file row with all columns styled.
-// index is the precomputed display index (already relative/absolute as desired).
 func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, isMarked bool, index int) string {
 	theme := d.theme
 
@@ -121,10 +114,6 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 	typeStyle := theming.StyleFromSpec(theme.FieldColors["type"])
 	timeStyle := theming.StyleFromSpec(theme.FieldColors["time"])
 
-	// Background color for the row.
-	// In select mode, the cursor row uses FileList.Marked as its background.
-	// Otherwise, fall back to the generic Selection background when available,
-	// or the file-list background.
 	bgColor := theme.FileList.Background
 
 	if isMarked {
@@ -144,7 +133,6 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 		timeStyle = timeStyle.Background(bg)
 	}
 
-	// Render permission string with per-character coloring.
 	permTextRaw := renderPermissions(theme, fi, bgColor)
 	permText := padCellWithBG(permTextRaw, colPerms, bgColor)
 
@@ -156,7 +144,6 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 	typeText := padCellWithBG(typeStyle.Render(mime), colType, bgColor)
 	timeText := padCellWithBG(timeStyle.Render(date), colDate, bgColor)
 
-	// File name color based on file type.
 	nameColorSpec := theme.FileTypeColors[fi.Type]
 	nameStyle := theming.StyleFromSpec(nameColorSpec)
 	if bgColor != "" {
@@ -164,10 +151,8 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 	}
 	nameText := nameStyle.Render(name)
 
-	// Build the list of columns to render based on the delegate configuration.
 	lineCols := []string{}
 
-	// Optional selection marker column in select mode.
 	if ActiveTuiMode == ModeSelect {
 		markerContent := "[   ]"
 		if isMarked {
@@ -185,7 +170,6 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 		lineCols = append(lineCols, markerText)
 	}
 
-	// Index column: always present.
 	lineCols = append(lineCols, indexText)
 
 	for _, col := range d.columns {
@@ -234,7 +218,6 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 	return line
 }
 
-// renderPermissions renders the permission string with per-character coloring.
 func renderPermissions(theme theming.Theme, fi filesystem.FileInfo, bgColor string) string {
 	perm := fi.Permissions
 	if perm == "" {
@@ -243,7 +226,6 @@ func renderPermissions(theme theming.Theme, fi filesystem.FileInfo, bgColor stri
 
 	var b strings.Builder
 
-	// Optional background for selected rows.
 	hasBG := bgColor != ""
 
 	// First character: type indicator ('d', '.', 'l', etc.) colored by file type.
@@ -291,9 +273,6 @@ func padCell(content string, w int) string {
 	return content + strings.Repeat(" ", w-width)
 }
 
-// padCellWithBG right-pads content like padCell, but if a non-empty bgColor
-// is provided, the padding spaces are rendered with that background color so
-// that the cell's whitespace is also highlighted.
 func padCellWithBG(content string, w int, bgColor string) string {
 	width := lipgloss.Width(content)
 	if width >= w {
@@ -321,7 +300,6 @@ func padCellWithBG(content string, w int, bgColor string) string {
 	return b.String()
 }
 
-// FileInfosToItems converts a slice of FileInfo to a slice of list.Item.
 func FileInfosToItems(files []filesystem.FileInfo, marked map[string]bool) []list.Item {
 	items := make([]list.Item, len(files))
 	for i, f := range files {
@@ -341,8 +319,6 @@ type FileHeaderRowArgs struct {
 	SortColumnBy SortColumnBy
 }
 
-// RenderFileHeaderRow renders a single header row for the file list, aligned
-// with the same columns and widths used for file rows.
 func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 	bgColor := args.Theme.FileList.Background
 	bg := lipgloss.Color(bgColor)
@@ -400,7 +376,6 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 		lineCols = append(lineCols, markerText)
 	}
 
-	// Index column always present.
 	lineCols = append(lineCols, indexText)
 
 	for _, col := range args.Columns {

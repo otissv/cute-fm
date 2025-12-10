@@ -42,8 +42,6 @@ func (m Model) UtilityMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 			line := command + " " + inputValue
 			selectedEntry := m.GetSelectedEntry()
 
-			// For copy and move operations, automatically include the selected path
-			// as the source and use the input as the destination.
 			if (command == "cp" || command == "mv") && selectedEntry != nil {
 				line = command + " " + selectedEntry.Path + " " + inputValue
 			}
@@ -60,7 +58,6 @@ func (m Model) UtilityMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 			if res.Cwd != "" && res.Cwd != pane.currentDir {
 				m.ChangeDirectory(res.Cwd)
 			} else if res.Refresh {
-				// Refresh the current directory without recording history.
 				m.ReloadDirectory()
 			}
 		}

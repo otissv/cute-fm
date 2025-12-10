@@ -5,7 +5,6 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-// CommandInput constructs the command-line text input styled to match the command bar.
 func (m Model) CommandInput(prompt string, placeholder string) textinput.Model {
 	commandInput := textinput.New()
 	commandInput.Prompt = prompt

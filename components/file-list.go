@@ -12,7 +12,6 @@ func FileList(m tui.Model, args tui.FileListComponentArgs) string {
 	activeViewport := m.GetActiveViewport()
 	isSplitPaneOpen := m.GetIsSplitPaneOpen()
 
-	// Content width is viewport width minus left/right borders.
 	contentWidth := args.Width - 2
 	if contentWidth < 1 {
 		contentWidth = 1

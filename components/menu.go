@@ -44,8 +44,6 @@ func NewMenu(args tui.MenuArgs) Menu {
 		propmt = args.CursorTypes.Prompt
 	}
 
-	// current
-
 	current := lipgloss.NewStyle().
 		Bold(true).
 		Render(propmt)

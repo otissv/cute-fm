@@ -7,8 +7,6 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
-// NormalMode handles keybindings when the TUI is in its default ("normal")
-// browsing mode.
 func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	bindings := GetKeyBindings()
 
@@ -129,10 +127,6 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Move cursor down in file list (with optional count)
 	case bindings.Down.Matches(key):
 		pane := m.GetActivePane()
-
-		// Arrow keys should move one row at a time, nano-style. Ignore any
-		// numeric count prefix so that a stray digit doesn't cause the cursor
-		// to "jump" or effectively page.
 		pane.fileList.CursorDown()
 		m.UpdateFileInfoPane()
 		return m, nil
@@ -168,9 +162,6 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeFilter
 
-			// When entering filter mode, load the existing filter for the
-			// active pane into the shared search input so that each pane can
-			// remember and edit its own filter independently.
 			pane := m.GetActivePane()
 			m.searchInput.SetValue(pane.filterQuery)
 			m.searchInput.Focus()
@@ -212,7 +203,6 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if res.Cwd != "" && res.Cwd != pane.currentDir {
 			m.ChangeDirectory(res.Cwd)
 		} else if res.Refresh {
-			// Refresh the current directory without recording history.
 			m.ReloadDirectory()
 		}
 
@@ -265,8 +255,6 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if parent != "" && parent != pane.currentDir {
 			m.ChangeDirectory(parent)
 		} else {
-			// Even if we're at the root (Dir("/") == "/"), attempt to
-			// reload so the listing stays fresh.
 			m.ReloadDirectory()
 		}
 		return m, nil
@@ -368,10 +356,6 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Move cursor up in file list (with optional count)
 	case bindings.Up.Matches(key):
 		pane := m.GetActivePane()
-
-		// Arrow keys should move one row at a time, nano-style. Ignore any
-		// numeric count prefix so that a stray digit doesn't cause the cursor
-		// to "jump" or effectively page.
 		pane.fileList.CursorUp()
 		m.UpdateFileInfoPane()
 		return m, nil

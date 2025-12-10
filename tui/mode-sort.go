@@ -67,13 +67,10 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.sortColumnBy.direction = SortingAsc
 		}
 
-		// Re-apply filters so the active file list is re-sorted.
 		m.ApplyFilter()
-
 		ActiveTuiMode = ModeNormal
-
-		// reset menu cursor
 		m.menuCursor = 0
+
 		return m, nil
 
 	// Cancel sorting and return to normal mode without changing the sort.

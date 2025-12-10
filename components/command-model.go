@@ -6,8 +6,6 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-// CommandBar renders the bottom command bar using only the public TUI model
-// interface, so this component can live outside the tui package.
 func CommandModal(m tui.Model, args tui.CommandModalArgs) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()
@@ -29,7 +27,7 @@ func CommandModal(m tui.Model, args tui.CommandModalArgs) *lipgloss.Layer {
 
 	commandInputView := commandInput.View()
 
-	// Choose a dialog-sized window, not full-screen.
+	// Dialog-sized window
 	modalWidth := width / 2
 	if modalWidth > 60 {
 		modalWidth = 60

@@ -7,13 +7,9 @@ import (
 	"cute/filesystem"
 )
 
-// UpdateFileInfoPane recomputes the right-hand preview pane based on the currently
-// selected file. It handles text files (via bat when available), directories,
-// and image files (with special handling for Kitty).
 func (m *Model) UpdateFileInfoPane() {
 	pane := m.GetActivePane()
 
-	// If there are no files, clear the preview.
 	if len(pane.files) == 0 {
 		m.fileInfoViewport.SetContent("")
 		return
@@ -27,14 +23,9 @@ func (m *Model) UpdateFileInfoPane() {
 
 	fi := pane.files[idx]
 
-	// Always show simple file info/properties in the right-hand pane instead
-	// of rich text/image previews.
 	m.fileInfoViewport.SetContent(renderFileInfoPane(fi))
 }
 
-// renderFileInfoPane renders basic file information and properties for the
-// currently selected entry. This is now the only content shown in the
-// right-hand pane (rich previews have been removed).
 func renderFileInfoPane(fi filesystem.FileInfo) string {
 	var b strings.Builder
 
@@ -63,7 +54,6 @@ func renderFileInfoPane(fi filesystem.FileInfo) string {
 		group := perm[4:7]
 		other := perm[7:10]
 
-		// Helper to print a permission group with a heading.
 		printGroup := func(heading string, bits string) {
 			if len(bits) != 3 {
 				return

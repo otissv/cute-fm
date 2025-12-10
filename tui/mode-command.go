@@ -26,7 +26,6 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.commandInput, cmd = m.commandInput.Update(msg)
 	cmds = append(cmds, cmd)
 
-	// Update right viewport (second row, right column)
 	m.fileInfoViewport, cmd = m.fileInfoViewport.Update(msg)
 	cmds = append(cmds, cmd)
 
@@ -112,8 +111,6 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if res.Quit {
-				// Clear the prompt before quitting so we don't leave a stale
-				// command line visible.
 				m.commandInput.Blur()
 				m.commandInput.SetValue("")
 				m.searchInput.Focus()

@@ -6,8 +6,6 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
-// toggleCurrentSelection toggles the marked state of the currently focused row
-// in the active pane and refreshes the list items so the marker column updates.
 func (m *Model) toggleCurrentSelection() {
 	pane := m.GetActivePane()
 	if len(pane.files) == 0 {
@@ -38,8 +36,6 @@ func (m *Model) toggleCurrentSelection() {
 	pane.fileList.SetItems(FileInfosToItems(pane.files, pane.marked))
 }
 
-// toggleSelectAll toggles between marking all visible rows and clearing all
-// marks in the active pane.
 func (m *Model) toggleSelectAll() {
 	pane := m.GetActivePane()
 	if len(pane.files) == 0 {

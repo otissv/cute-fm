@@ -11,7 +11,7 @@ func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()
 
-	// Choose a dialog-sized window, not full-screen.
+	// Dialog-sized window
 	modalWidth := width / 2
 	if modalWidth > 60 {
 		modalWidth = 60
@@ -20,16 +20,12 @@ func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
 		modalWidth = 30
 	}
 
-	// Column identifiers are strongly typed so we don't pass around raw strings.
-	// Convert the typed column identifiers into plain strings for the NewMenu.
 	columnNames := filesystem.ColumnNames
 	menuChoices := make([]string, len(columnNames))
 	for i, col := range columnNames {
 		menuChoices[i] = string(col)
 	}
 
-	// Use the cursor stored on the TUI model so navigation in ColumnVisibiliyMode
-	// is reflected visually in the modal.
 	menuCursor := m.GetMenuCursor()
 	if menuCursor < 0 {
 		menuCursor = 0
@@ -38,10 +34,8 @@ func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
 		menuCursor = len(menuChoices) - 1
 	}
 
-	// Pass the currently selected columns so the menu can display markers.
-	// In column-visibility mode, this is the set of visible columns.
-	// In sort mode, this is the single column currently used for sorting.
 	var selectedColumns []filesystem.FileInfoColumn
+
 	if tui.ActiveTuiMode == tui.ModeSort {
 		sortBy := m.GetSortColumnBy()
 		if sortByColumn := sortBy.Column(); sortByColumn != "" {
@@ -67,7 +61,7 @@ func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
 	})
 
 	fw := FloatingWindow{
-		Content: menu, // NewMenu implements tui.ViewPrimitive via its View method.
+		Content: menu,
 		Width:   modalWidth,
 		Height:  10,
 		Style:   DefaultFloatingStyle(theme),

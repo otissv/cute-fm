@@ -51,8 +51,6 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		pane := m.GetActivePane()
 
 		// Toggle presence of col in the columnVisibility set, but always rebuild
-		// the slice in the canonical ColumnNames order so column order remains
-		// stable regardless of toggle sequence.
 		visible := make(map[filesystem.FileInfoColumn]bool, len(filesystem.ColumnNames))
 		for _, c := range pane.columns {
 			visible[c] = true

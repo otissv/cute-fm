@@ -12,10 +12,7 @@ import (
 )
 
 // InitialModel creates a new model with default values.
-// If startDir is non-empty, it will be used as the initial directory for the
-// file list; otherwise the current working directory is used.
 func InitialModel(startDir string) Model {
-	// Initialize right viewport for the second row
 	fileInfoViewport := viewport.New()
 	fileInfoViewport.SetContent("Right Pane\n\nThis is the right viewport.\nIt will display file previews.")
 
@@ -85,7 +82,6 @@ func InitialModel(startDir string) Model {
 			columns:     defaultColumns,
 			marked:      make(map[string]bool),
 		},
-		// Start the right pane in the same directory; it can diverge later.
 		rightPane: filePane{
 			currentDir:  leftCurrentDir,
 			allFiles:    files,
@@ -110,15 +106,10 @@ func InitialModel(startDir string) Model {
 		menuCursor:      0,
 	}
 
-	// Initialize the search input used when editing filters. The actual
-	// filter string is stored per-pane in filePane.filterQuery so each
-	// pane can keep an independent filter.
 	m.searchInput = m.SearchInput("> ", "Filter...")
 
-	// Initialize the command input
 	m.commandInput = m.CommandInput("", "")
 
-	// Load command history for auto-complete
 	m.commandHistory = m.LoadCommandHistory()
 	m.historyMatches = []string{}
 	m.historyIndex = -1
@@ -126,17 +117,13 @@ func InitialModel(startDir string) Model {
 	m.CalcLayout()
 
 	ActiveTuiMode = ModeNormal
-	// Start in the default "list all" view mode so navigation (enter/backspace)
-	// does not implicitly force the directories-only view ("ld").
 	ActiveFileListMode = FileListModeList
 
-	// Initialize preview for the initial selection, if any.
 	m.UpdateFileInfoPane()
 
 	return m
 }
 
-// loadDirectory lists the given directory and returns the file list.
 func loadDirectory(dir string) []filesystem.FileInfo {
 	files, err := filesystem.ListDirectory(dir)
 	if err != nil {
@@ -145,7 +132,6 @@ func loadDirectory(dir string) []filesystem.FileInfo {
 	return files
 }
 
-// UpdateFileListDelegate updates the delegate with a new width.
 func (m *Model) UpdateFileListDelegate(width int) {
 	leftDelegate := NewFileItemDelegate(m.theme, width, m.leftPane.columns)
 	m.leftPane.fileList.SetDelegate(leftDelegate)

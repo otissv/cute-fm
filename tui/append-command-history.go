@@ -5,9 +5,6 @@ import (
 	"path/filepath"
 )
 
-// AppendCommandHistory appends a command line to the history file
-// inside the config directory. It is best-effort and silently ignores
-// any filesystem errors so as not to disrupt the TUI.
 func (m *Model) AppendCommandHistory(line string) {
 	if line == "" || m.configDir == "" {
 		return

@@ -47,7 +47,6 @@ func buildHelpContent() string {
 		}
 	}
 
-	// Group bindings by category name
 	groups := map[string][]tui.Keybinding{}
 	for _, kb := range allBindings {
 		categoryName := string(kb.Category)
@@ -56,7 +55,6 @@ func buildHelpContent() string {
 
 	var b strings.Builder
 
-	// Category order
 	categories := []tui.KeybindingCategoryField{
 		tui.KeybindingCategories.General,
 		tui.KeybindingCategories.Navigation,
@@ -74,10 +72,8 @@ func buildHelpContent() string {
 			continue
 		}
 
-		// Category title
 		b.WriteString(name + "\n")
 
-		// Keybindings within the category
 		for _, kb := range kbs {
 			keys := strings.Join(kb.On, " / ")
 			line := fmt.Sprintf("  %-18s %s\n", keys, kb.Description)

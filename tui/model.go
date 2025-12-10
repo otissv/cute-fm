@@ -106,14 +106,10 @@ type ColumnModelArgs struct {
 }
 
 type SelectedEntry struct {
-	// Name is the base name of the entry.
-	Name string
-	// Path is the full filesystem path to the entry.
-	Path string
-	// IsDir indicates whether the entry is a directory.
+	Name  string
+	Path  string
 	IsDir bool
-	// Type is the classified file type string ("directory", "regular", ...).
-	Type string
+	Type  string
 }
 
 type SortColumnByDirection string
@@ -123,32 +119,23 @@ type SortColumnBy struct {
 	direction SortColumnByDirection
 }
 
-// filePane holds all file-list-related state for a single pane (left or right).
-// Keeping this in a separate struct lets us support independent panes while
-// reusing the same logic for navigation, filtering, and directory history.
 type filePane struct {
-	currentDir string
-	allFiles   []filesystem.FileInfo
-	files      []filesystem.FileInfo
-	fileList   list.Model
-	// filterQuery stores the current filter string for this pane only.
-	// Each pane maintains its own independent filter so that split panes
-	// do not share search state.
+	currentDir      string
+	allFiles        []filesystem.FileInfo
+	files           []filesystem.FileInfo
+	fileList        list.Model
 	filterQuery     string
 	dirBackStack    []string
 	dirForwardStack []string
 	columns         []filesystem.FileInfoColumn
-	// marked tracks which file paths are currently marked for actions (multi-select)
-	// independently of the cursor row. The key is the full filesystem path.
+
 	marked map[string]bool
 }
 
-// Column returns the currently selected sort column.
 func (s SortColumnBy) Column() filesystem.FileInfoColumn {
 	return s.column
 }
 
-// Direction returns the current sort direction for the column.
 func (s SortColumnBy) Direction() SortColumnByDirection {
 	return s.direction
 }
@@ -237,18 +224,15 @@ type Model struct {
 	menuCursor         int
 	rightPane          filePane
 	runtimeConfig      *config.RuntimeConfig // runtimeConfig holds the Lua-backed configuration (theme and commands).
-	// searchInput is the interactive text input used when the user is in
-	// filter mode. It is shared visually, but each pane keeps its own
-	// filterQuery string so that split panes can have independent filters.
-	searchInput    textinput.Model
-	showRightPane  bool
-	sortColumnBy   SortColumnBy
-	terminalType   string // Terminal / preview state
-	theme          theming.Theme
-	titleText      string
-	viewportHeight int
-	viewportWidth  int
-	width          int
+	searchInput        textinput.Model
+	showRightPane      bool
+	sortColumnBy       SortColumnBy
+	terminalType       string // Terminal / preview state
+	theme              theming.Theme
+	titleText          string
+	viewportHeight     int
+	viewportWidth      int
+	width              int
 
 	// Components
 	CurrentDir   func(m Model, args CurrentDirComponentArgs) string
@@ -278,9 +262,6 @@ func (m Model) GetActiveModal() ModalKind {
 	return m.activeModal
 }
 
-// activePane returns the filePane corresponding to the currently active
-// viewport. When the file-list split pane is not open, this is always the
-// left pane.
 func (m *Model) GetActivePane() *filePane {
 	if m.activeViewport == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
 		return &m.rightPane
@@ -331,9 +312,6 @@ func (m Model) GetLeftPaneFileList() list.Model {
 	return m.leftPane.fileList
 }
 
-// GetLeftPaneFileListForViewport returns the file list model for the given viewport
-// (left or right). In split file-list mode, each pane has its own list;
-// otherwise, only the left list is active.
 func (m Model) GetLeftPaneFileListForViewport(view ActiveViewportType) list.Model {
 	if view == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
 		return m.rightPane.fileList
@@ -369,8 +347,6 @@ func (m Model) GetSearchInputView() string {
 	return m.searchInput.View()
 }
 
-// GetSearchInputTextForViewport returns the filter text associated with the
-// given viewport, allowing split panes to display their own filter headers.
 func (m Model) GetSearchInputTextForViewport(view ActiveViewportType) string {
 	if view == RightViewportType && m.isSplitPaneOpen && m.activeSplitPane == FileListSplitPaneType {
 		return m.rightPane.filterQuery

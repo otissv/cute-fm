@@ -12,9 +12,6 @@ const (
 	TerminalKitty   TerminalType = "kitty"
 )
 
-// detectTerminalType inspects environment variables to determine the
-// current terminal. For now we only care about Kitty, but this can be
-// extended in the future.
 func detectTerminalType() TerminalType {
 	// Kitty sets KITTY_WINDOW_ID and usually TERM=xterm-kitty.
 	if os.Getenv("KITTY_WINDOW_ID") != "" {

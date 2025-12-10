@@ -1,8 +1,5 @@
 package tui
 
-// CalcLayout recalculates the viewport dimensions based on the current
-// window size and whether command mode is active, then updates the file
-// list and right viewport dimensions.
 func (m *Model) CalcLayout() {
 	if m.width <= 0 || m.height <= 0 {
 		return
