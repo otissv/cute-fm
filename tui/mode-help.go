@@ -22,7 +22,7 @@ func (m Model) HelpMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		SetQuitMode()
 		return m, nil
 
-	// Close help modal
+	// Close help window
 	case bindings.Help.Matches(keyMsg.String()) ||
 		bindings.Cancel.Matches(keyMsg.String()):
 		ActiveTuiMode = PreviousTuiMode

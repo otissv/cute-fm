@@ -1,12 +1,8 @@
-package components
+package tui
 
-import (
-	"cute/tui"
+import "charm.land/lipgloss/v2"
 
-	"charm.land/lipgloss/v2"
-)
-
-func CurrentDir(m tui.Model, args tui.CurrentDirComponentArgs) string {
+func CurrentDir(m Model, args CurrentDirComponentArgs) string {
 	theme := m.GetTheme()
 
 	return lipgloss.NewStyle().

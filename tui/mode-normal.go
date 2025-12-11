@@ -94,7 +94,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		// Open column visibility modal
+		// Open column visibility window
 	case bindings.ColumnVisibiliy.Matches(key):
 		if ActiveTuiMode != ModeColumnVisibiliy {
 			PreviousTuiMode = ActiveTuiMode
@@ -234,7 +234,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
-	// Open help modal
+	// Open help window
 	case bindings.Help.Matches(key):
 		if ActiveTuiMode != ModeHelp {
 			PreviousTuiMode = ActiveTuiMode
@@ -314,16 +314,25 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		// Open sort modal
+		// Open settings window
+	case bindings.Settings.Matches(key):
+		if ActiveTuiMode != ModeSettings {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = ModeSettings
+		} else {
+			ActiveTuiMode = PreviousTuiMode
+		}
+		return m, nil
+
+		// Open sort window
 	case bindings.Sort.Matches(key):
 		if ActiveTuiMode != ModeSort {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeSort
-
-			return m, nil
 		} else {
 			ActiveTuiMode = PreviousTuiMode
 		}
+		return m, nil
 
 		// Open file list split pane
 	case bindings.SwitchBetweenSplitPane.Matches(key) && !m.isSplitPaneOpen:

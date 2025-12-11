@@ -1,12 +1,10 @@
-package components
+package tui
 
 import (
-	"cute/tui"
-
 	"charm.land/lipgloss/v2"
 )
 
-func SearchText(m tui.Model, view tui.ActiveViewportType) string {
+func SearchText(m Model, view ActiveViewportType) string {
 	return lipgloss.NewStyle().
 		Render("> " + m.GetSearchInputTextForViewport(view))
 }

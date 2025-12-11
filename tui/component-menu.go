@@ -1,10 +1,8 @@
-package components
+package tui
 
 import (
 	"fmt"
 	"strings"
-
-	"cute/tui"
 
 	"charm.land/lipgloss/v2"
 )
@@ -17,12 +15,19 @@ type Menu struct {
 }
 
 type MenuCursor struct {
-	selected   string
-	unselected string
-	propmt     string
+	Selected   string
+	Unselected string
+	Prompt     string
 }
 
-func NewMenu(args tui.MenuArgs) Menu {
+type MenuArgs struct {
+	Choices     []string
+	Cursor      int
+	Selected    map[string]string
+	CursorTypes MenuCursor
+}
+
+func NewMenu(args MenuArgs) Menu {
 	selectedSet := make(map[string]bool, len(args.Selected))
 	for _, col := range args.Selected {
 		selectedSet[col] = true
@@ -53,9 +58,9 @@ func NewMenu(args tui.MenuArgs) Menu {
 		cursor:   args.Cursor,
 		selected: selectedSet,
 		cursorTypes: MenuCursor{
-			selected:   selected,
-			unselected: unselected,
-			propmt:     current,
+			Selected:   selected,
+			Unselected: unselected,
+			Prompt:     current,
 		},
 	}
 }
@@ -64,16 +69,16 @@ func (menu Menu) View() string {
 	var b strings.Builder
 	for i, choice := range menu.choices {
 		iChoice := choice
-		cursor := "[ " + menu.cursorTypes.unselected + " ]"
+		cursor := "[ " + menu.cursorTypes.Unselected + " ]"
 		if menu.selected != nil && menu.selected[iChoice] {
-			cursor = "[ " + menu.cursorTypes.selected + " ]"
+			cursor = "[ " + menu.cursorTypes.Selected + " ]"
 			iChoice = lipgloss.NewStyle().
 				Bold(true).
 				Render(choice)
 		}
 
 		if i == menu.cursor {
-			cursor = "[ " + menu.cursorTypes.propmt + " ]"
+			cursor = "[ " + menu.cursorTypes.Prompt + " ]"
 			iChoice = lipgloss.NewStyle().
 				Bold(true).
 				Render(choice)

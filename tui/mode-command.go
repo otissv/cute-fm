@@ -99,7 +99,7 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if res.OpenHelp {
-				m.activeModal = ModalHelp
+				m.activeWindow = WindowHelp
 			}
 
 			if res.Output != "" {

@@ -1,12 +1,8 @@
-package components
+package tui
 
-import (
-	"cute/tui"
+import "charm.land/lipgloss/v2"
 
-	"charm.land/lipgloss/v2"
-)
-
-func SudoMode(m tui.Model, args tui.ComponentArgs) string {
+func SudoMode(m Model, args ComponentArgs) string {
 	theme := m.GetTheme()
 
 	return lipgloss.NewStyle().

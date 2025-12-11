@@ -89,9 +89,11 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.Select.Matches(keyMsg.String()) ||
 		bindings.Cancel.Matches(keyMsg.String()):
 		ActiveTuiMode = ModeNormal
-
-		// reset menu cusor
 		m.menuCursor = 0
+		return m, nil
+
+	case bindings.Sort.Matches(keyMsg.String()):
+		ActiveTuiMode = ModeSort
 		return m, nil
 	}
 

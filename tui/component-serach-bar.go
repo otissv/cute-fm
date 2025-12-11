@@ -1,12 +1,10 @@
-package components
+package tui
 
 import (
-	"cute/tui"
-
 	"charm.land/lipgloss/v2"
 )
 
-func SearchBar(m tui.Model, args tui.ComponentArgs) string {
+func SearchBar(m Model, args ComponentArgs) string {
 	theme := m.GetTheme()
 	view := m.GetSearchInputView()
 

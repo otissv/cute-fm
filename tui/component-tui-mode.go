@@ -1,32 +1,28 @@
-package components
+package tui
 
-import (
-	"cute/tui"
+import "charm.land/lipgloss/v2"
 
-	"charm.land/lipgloss/v2"
-)
-
-func TuiMode(m tui.Model, args tui.ComponentArgs) string {
+func TuiMode(m Model, args ComponentArgs) string {
 	theme := m.GetTheme()
-	activeTuiMode := tui.ActiveTuiMode
+	activeTuiMode := ActiveTuiMode
 
 	foreground := ""
 	background := ""
 
 	switch activeTuiMode {
-	case tui.ModeNormal:
+	case ModeNormal:
 		background = theme.TuiMode.NormalModeBackground
 		foreground = theme.TuiMode.NormalModeForeground
-	case tui.ModeCommand:
+	case ModeCommand:
 		background = theme.TuiMode.CommandModeBackground
 		foreground = theme.TuiMode.CommandModeForeground
-	case tui.ModeFilter:
+	case ModeFilter:
 		background = theme.TuiMode.FilterModeBackground
 		foreground = theme.TuiMode.FilterModeForeground
-	case tui.ModeHelp:
+	case ModeHelp:
 		background = theme.TuiMode.HelpModeBackground
 		foreground = theme.TuiMode.HelpModeForeground
-	case tui.ModeQuit:
+	case ModeQuit:
 		background = theme.TuiMode.QuitModeBackground
 		foreground = theme.TuiMode.QuitModeForeground
 	}

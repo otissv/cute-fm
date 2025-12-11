@@ -15,18 +15,16 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	key := keyMsg.String()
-
 	switch {
 	// Move cursor up within the column list.
-	case bindings.Up.Matches(key):
+	case bindings.Up.Matches(keyMsg.String()):
 		if m.menuCursor > 0 {
 			m.menuCursor--
 		}
 		return m, nil
 
 	// Move cursor down within the column list.
-	case bindings.Down.Matches(key):
+	case bindings.Down.Matches(keyMsg.String()):
 		maxIdx := len(filesystem.ColumnNames) - 1
 		if m.menuCursor < maxIdx {
 			m.menuCursor++
@@ -34,12 +32,12 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	// Quit application
-	case bindings.Quit.Matches(key):
+	case bindings.Quit.Matches(keyMsg.String()):
 		SetQuitMode()
 		return m, nil
 
-	// Apply sorting based on the currently focused column and return to normal mode.
-	case bindings.Select.Matches(key):
+	// Apply sorting based on the currently focused column.
+	case bindings.Select.Matches(keyMsg.String()):
 		if len(filesystem.ColumnNames) == 0 {
 			return m, nil
 		}
@@ -68,17 +66,17 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		m.ApplyFilter()
-		ActiveTuiMode = ModeNormal
 		m.menuCursor = 0
 
 		return m, nil
 
-	// Cancel sorting and return to normal mode without changing the sort.
-	case bindings.Cancel.Matches(key):
+	case bindings.Cancel.Matches(keyMsg.String()):
 		ActiveTuiMode = ModeNormal
-
-		// reset menu cursor
 		m.menuCursor = 0
+		return m, nil
+
+	case bindings.ColumnVisibiliy.Matches(keyMsg.String()):
+		ActiveTuiMode = ModeColumnVisibiliy
 		return m, nil
 	}
 

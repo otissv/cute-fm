@@ -1,23 +1,22 @@
-package components
+package tui
 
 import (
 	"cute/filesystem"
-	"cute/tui"
 
 	"charm.land/lipgloss/v2"
 )
 
-func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
+func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()
 
 	// Dialog-sized window
-	modalWidth := width / 2
-	if modalWidth > 60 {
-		modalWidth = 60
+	windowWidth := width / 2
+	if windowWidth > 60 {
+		windowWidth = 60
 	}
-	if modalWidth < 30 {
-		modalWidth = 30
+	if windowWidth < 30 {
+		windowWidth = 30
 	}
 
 	columnNames := filesystem.ColumnNames
@@ -36,7 +35,7 @@ func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
 
 	var selectedColumns []filesystem.FileInfoColumn
 
-	if tui.ActiveTuiMode == tui.ModeSort {
+	if ActiveTuiMode == ModeSort {
 		sortBy := m.GetSortColumnBy()
 		if sortByColumn := sortBy.Column(); sortByColumn != "" {
 			selectedColumns = []filesystem.FileInfoColumn{sortByColumn}
@@ -44,17 +43,19 @@ func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
 	} else {
 		selectedColumns = m.GetColumnVisibility()
 	}
+
 	selectedMap := make(map[string]string, len(selectedColumns))
+
 	for _, col := range selectedColumns {
 		name := string(col)
 		selectedMap[name] = name
 	}
 
-	menu := NewMenu(tui.MenuArgs{
+	menu := NewMenu(MenuArgs{
 		Choices:  menuChoices,
 		Cursor:   menuCursor,
 		Selected: selectedMap,
-		CursorTypes: tui.MenuCursor{
+		CursorTypes: MenuCursor{
 			Selected:   args.Selected,
 			Unselected: args.Unselected,
 		},
@@ -62,12 +63,12 @@ func ColumnModal(m tui.Model, args tui.ColumnModelArgs) *lipgloss.Layer {
 
 	fw := FloatingWindow{
 		Content: menu,
-		Width:   modalWidth,
+		Width:   windowWidth,
 		Height:  10,
 		Style:   DefaultFloatingStyle(theme),
 		Title:   args.Title,
 	}
 
-	modalContent := fw.View(width, height)
-	return CenterModal(modalContent, width, height)
+	windowContent := fw.View(width, height)
+	return CenterWindow(windowContent, width, height)
 }

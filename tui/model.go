@@ -5,7 +5,6 @@ import (
 	"charm.land/bubbles/v2/textinput"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
 
 	"cute/config"
 	"cute/filesystem"
@@ -13,7 +12,7 @@ import (
 )
 
 type (
-	ModalKind          string
+	WindowKind         string
 	SplitPaneType      string
 	TUIMode            string
 	ActiveViewportType string
@@ -37,6 +36,7 @@ type TUIModes struct {
 	ModeSelect            TUIMode
 	ModeSort              TUIMode
 	ModeFileListSplitPane TUIMode
+	ModeSettings          TUIMode
 }
 
 type (
@@ -49,8 +49,14 @@ type (
 	}
 )
 
-type ViewPrimitive interface {
+type ViewPrimitiveView interface {
 	View() string
+}
+
+type ViewPrimitive string
+
+func (t ViewPrimitive) View() string {
+	return string(t)
 }
 
 type ComponentArgs struct {
@@ -70,35 +76,36 @@ type FileListComponentArgs struct {
 	SplitPaneType ActiveViewportType
 }
 
-type CommandModalArgs struct {
+type filePane struct {
+	currentDir      string
+	allFiles        []filesystem.FileInfo
+	files           []filesystem.FileInfo
+	fileList        list.Model
+	filterQuery     string
+	dirBackStack    []string
+	dirForwardStack []string
+	columns         []filesystem.FileInfoColumn
+
+	marked map[string]bool
+}
+
+type CommandWindowArgs struct {
 	Title       string
 	Prompt      string
 	Placeholder string
 }
 
-type MenuCursor struct {
-	Selected   string
-	Unselected string
-	Prompt     string
-}
-type MenuArgs struct {
-	Choices     []string
-	Cursor      int
-	Selected    map[string]string
-	CursorTypes MenuCursor
-}
+// type DialogArgs struct {
+// 	X int
+// 	Y int
+// }
 
-type DialogArgs struct {
-	X int
-	Y int
-}
-
-type DialogModalArgs struct {
+type DialogWindowArgs struct {
 	Title   string
 	Content string
 }
 
-type ColumnModelArgs struct {
+type ColumnWindowArgs struct {
 	Title      string
 	Selected   string
 	Unselected string
@@ -112,24 +119,20 @@ type SelectedEntry struct {
 	Type  string
 }
 
+type Settings struct {
+	StartDir            string
+	SplitPane           SplitPaneType
+	ColumnVisibiliy     []filesystem.FileInfoColumn
+	SortColumnBy        filesystem.FileInfoColumn
+	SortColumnDirection SortColumnByDirection
+	FileListMode        FileListMode
+}
+
 type SortColumnByDirection string
 
 type SortColumnBy struct {
 	column    filesystem.FileInfoColumn
 	direction SortColumnByDirection
-}
-
-type filePane struct {
-	currentDir      string
-	allFiles        []filesystem.FileInfo
-	files           []filesystem.FileInfo
-	fileList        list.Model
-	filterQuery     string
-	dirBackStack    []string
-	dirForwardStack []string
-	columns         []filesystem.FileInfoColumn
-
-	marked map[string]bool
 }
 
 func (s SortColumnBy) Column() filesystem.FileInfoColumn {
@@ -159,9 +162,10 @@ const (
 	ModeSelect            TUIMode = "SELECT"
 	ModeSort              TUIMode = "SORT"
 	ModeFileListSplitPane TUIMode = "SPLIT PANE"
+	ModeSettings          TUIMode = "SETTINGS"
 
-	ModalNone ModalKind = "None"
-	ModalHelp ModalKind = "Help"
+	WindowNone WindowKind = "None"
+	WindowHelp WindowKind = "Help"
 
 	SortingAsc  SortColumnByDirection = "ASC"
 	SortingDesc SortColumnByDirection = "DESC"
@@ -202,7 +206,7 @@ var (
 )
 
 type Model struct {
-	activeModal        ModalKind
+	activeWindow       WindowKind
 	activeSplitPane    SplitPaneType
 	activeViewport     ActiveViewportType
 	commandHistory     []string // Command history for auto-complete
@@ -211,7 +215,7 @@ type Model struct {
 	countPrefix        int            // countPrefix stores a pending numeric prefix for Vim-style navigation (e.g. "10j" / "3↓" in the file list). A value of 0 means "no active prefix".
 	fileInfoViewport   viewport.Model // Independent state for each file-list pane.
 	height             int
-	helpScrollOffset   int      // Help modal scroll state
+	helpScrollOffset   int      // Help window scroll state
 	historyIndex       int      // Current index in historyMatches for navigation
 	historyMatches     []string // Filtered matches based on current input
 	isActionInProgress bool
@@ -226,6 +230,7 @@ type Model struct {
 	runtimeConfig      *config.RuntimeConfig // runtimeConfig holds the Lua-backed configuration (theme and commands).
 	searchInput        textinput.Model
 	showRightPane      bool
+	settings           Settings
 	sortColumnBy       SortColumnBy
 	terminalType       string // Terminal / preview state
 	theme              theming.Theme
@@ -234,32 +239,16 @@ type Model struct {
 	viewportWidth      int
 	width              int
 
-	// Components
-	CurrentDir   func(m Model, args CurrentDirComponentArgs) string
-	FileListView func(m Model, args FileListComponentArgs) string
-	FileInfo     func(m Model, args ComponentArgs) string
-	Header       func(m Model, args ComponentArgs) string
-	PreviewTabs  func(m Model, args ComponentArgs) string
-	SearchBar    func(m Model, args ComponentArgs) string
-	SearchText   func(m Model, view ActiveViewportType) string
-	StatusBar    func(m Model, args ComponentArgs, items ...string) string
-	SudoMode     func(m Model, args ComponentArgs) string
-	TuiMode      func(m Model, args ComponentArgs) string
-	ViewModeText func(m Model, args ComponentArgs) string
-
-	// Modals
-	ColumnModal  func(m Model, args ColumnModelArgs) *lipgloss.Layer
-	CommandModal func(m Model, args CommandModalArgs) *lipgloss.Layer
-	DialogModal  func(m Model, args DialogModalArgs) *lipgloss.Layer
-	HelpModal    func(m Model) *lipgloss.Layer
+	Components Components
+	Windows    Windows
 }
 
 func (m Model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m Model) GetActiveModal() ModalKind {
-	return m.activeModal
+func (m Model) GetActiveWindow() WindowKind {
+	return m.activeWindow
 }
 
 func (m *Model) GetActivePane() *filePane {

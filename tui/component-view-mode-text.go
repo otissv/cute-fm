@@ -1,13 +1,12 @@
-package components
+package tui
 
 import (
 	"cute/command"
-	"cute/tui"
 
 	"charm.land/lipgloss/v2"
 )
 
-func ViewModeText(m tui.Model, args tui.ComponentArgs) string {
+func ViewModeText(m Model, args ComponentArgs) string {
 	theme := m.GetTheme()
 
 	return lipgloss.NewStyle().
@@ -17,5 +16,5 @@ func ViewModeText(m tui.Model, args tui.ComponentArgs) string {
 		Height(args.Height).
 		PaddingRight(1).
 		Width(args.Width).
-		Render(command.CmdViewModeStatus(string(tui.ActiveFileListMode)))
+		Render(command.CmdViewModeStatus(string(ActiveFileListMode)))
 }

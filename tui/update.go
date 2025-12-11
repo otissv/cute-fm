@@ -106,6 +106,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.ConfirmMode(msg, "rm -r")
 		}
 
+		if ActiveTuiMode == ModeSettings {
+			return m.SettingsMode(msg)
+		}
+
 		if ActiveTuiMode == ModeSort {
 			return m.SortMode(msg)
 		}

@@ -1,23 +1,21 @@
-package components
+package tui
 
 import (
-	"cute/tui"
-
 	"charm.land/lipgloss/v2"
 )
 
-func DialogModal(m tui.Model, args tui.DialogModalArgs) *lipgloss.Layer {
+func DialogWindow(m Model, args DialogWindowArgs) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()
 
 	fw := FloatingWindow{
-		Content: viewPrimitive(args.Content),
+		Content: ViewPrimitive(args.Content),
 		Width:   40,
 		Height:  6,
 		Style:   DefaultFloatingStyle(theme).Align(lipgloss.Center),
 		Title:   args.Title,
 	}
 
-	modalContent := fw.View(width, height)
-	return CenterModal(modalContent, width, height)
+	windowContent := fw.View(width, height)
+	return CenterWindow(windowContent, width, height)
 }

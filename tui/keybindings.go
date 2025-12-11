@@ -90,6 +90,7 @@ type Keybindings struct {
 	Rename                 Keybinding
 	Select                 Keybinding
 	SelectAll              Keybinding
+	Settings               Keybinding
 	Sort                   Keybinding
 	Sudo                   Keybinding
 	SwitchBetweenSplitPane Keybinding
@@ -275,6 +276,11 @@ func GetKeyBindings() Keybindings {
 			On:          []string{"ctrl+a"},
 			Description: "Toggle select all items.",
 			Category:    KeybindingCategories.Editing.Name,
+		},
+		Settings: Keybinding{
+			On:          []string{"ctrl+s"},
+			Description: "Settings",
+			Category:    KeybindingCategories.General.Name,
 		},
 		Sort: Keybinding{
 			On:          []string{"]"},

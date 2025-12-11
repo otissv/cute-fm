@@ -65,14 +65,17 @@ func InitialModel(startDir string) Model {
 	}
 
 	m := Model{
-		activeSplitPane: FileInfoSplitPaneType,
-		activeViewport:  LeftViewportType,
-		sortColumnBy: SortColumnBy{
-			column:    filesystem.ColumnName,
-			direction: SortingAsc,
-		},
+		activeSplitPane:  FileInfoSplitPaneType,
+		activeViewport:   LeftViewportType,
 		configDir:        cfgDir,
 		fileInfoViewport: fileInfoViewport,
+		historyIndex:     -1,
+		historyMatches:   []string{},
+		isSplitPaneOpen:  false,
+		isSudo:           false,
+		jumpTo:           "",
+		layout:           "",
+		layoutRows:       []string{""},
 		leftPane: filePane{
 			currentDir:  leftCurrentDir,
 			allFiles:    files,
@@ -82,6 +85,7 @@ func InitialModel(startDir string) Model {
 			columns:     defaultColumns,
 			marked:      make(map[string]bool),
 		},
+		menuCursor: 0,
 		rightPane: filePane{
 			currentDir:  leftCurrentDir,
 			allFiles:    files,
@@ -91,19 +95,25 @@ func InitialModel(startDir string) Model {
 			columns:     defaultColumns,
 			marked:      make(map[string]bool),
 		},
-		jumpTo:          "",
-		layout:          "",
-		layoutRows:      []string{""},
-		runtimeConfig:   runtimeCfg,
-		showRightPane:   true,
-		isSudo:          false,
-		isSplitPaneOpen: false,
-		terminalType:    string(detectTerminalType()),
-		theme:           runtimeCfg.Theme,
-		titleText:       "Cute File Manager",
-		viewportHeight:  0,
-		viewportWidth:   0,
-		menuCursor:      0,
+		runtimeConfig: runtimeCfg,
+		showRightPane: true,
+		sortColumnBy: SortColumnBy{
+			column:    filesystem.ColumnName,
+			direction: SortingAsc,
+		},
+		terminalType:   string(detectTerminalType()),
+		theme:          runtimeCfg.Theme,
+		titleText:      "Cute File Manager",
+		viewportHeight: 0,
+		viewportWidth:  0,
+	}
+
+	m.settings = Settings{
+		StartDir:        leftCurrentDir,
+		SortColumnBy:    filesystem.ColumnName,
+		ColumnVisibiliy: m.leftPane.columns,
+		SplitPane:       FileInfoSplitPaneType,
+		FileListMode:    FileListModeList,
 	}
 
 	m.searchInput = m.SearchInput("> ", "Filter...")
@@ -111,8 +121,6 @@ func InitialModel(startDir string) Model {
 	m.commandInput = m.CommandInput("", "")
 
 	m.commandHistory = m.LoadCommandHistory()
-	m.historyMatches = []string{}
-	m.historyIndex = -1
 
 	m.CalcLayout()
 

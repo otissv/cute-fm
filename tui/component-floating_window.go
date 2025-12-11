@@ -1,16 +1,15 @@
-package components
+package tui
 
 import (
 	"strings"
 
 	"cute/theming"
-	"cute/tui"
 
 	"charm.land/lipgloss/v2"
 )
 
 type FloatingWindow struct {
-	Content      tui.ViewPrimitive
+	Content      ViewPrimitiveView
 	Width        int
 	Height       int
 	Title        string

@@ -48,7 +48,7 @@ type Result struct {
 	// ViewMode, when non-empty, indicates a logical file-list view mode
 	// (e.g. "ll", "ls", ...).
 	ViewMode string
-	// OpenHelp indicates that the UI should open the help modal.
+	// OpenHelp indicates that the UI should open the help window.
 	OpenHelp bool
 	// Quit indicates that the application should exit.
 	Quit bool

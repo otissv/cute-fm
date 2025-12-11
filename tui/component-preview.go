@@ -1,12 +1,10 @@
-package components
+package tui
 
 import (
-	"cute/tui"
-
 	"charm.land/lipgloss/v2"
 )
 
-func FileInfo(m tui.Model, args tui.ComponentArgs) string {
+func FileInfo(m Model, args ComponentArgs) string {
 	theme := m.GetTheme()
 	previewViewport := m.GetPreviewViewport()
 

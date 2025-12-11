@@ -1,12 +1,8 @@
-package components
+package tui
 
-import (
-	"charm.land/lipgloss/v2"
+import "charm.land/lipgloss/v2"
 
-	"cute/tui"
-)
-
-func FileList(m tui.Model, args tui.FileListComponentArgs) string {
+func FileList(m Model, args FileListComponentArgs) string {
 	theme := m.GetTheme()
 	fileList := m.GetLeftPaneFileListForViewport(args.SplitPaneType)
 	activeViewport := m.GetActiveViewport()
@@ -17,7 +13,7 @@ func FileList(m tui.Model, args tui.FileListComponentArgs) string {
 		contentWidth = 1
 	}
 
-	header := tui.RenderFileHeaderRow(tui.FileHeaderRowArgs{
+	header := RenderFileHeaderRow(FileHeaderRowArgs{
 		Theme:        theme,
 		TotalWidth:   contentWidth,
 		Columns:      m.GetColumnVisibilityForViewport(args.SplitPaneType),

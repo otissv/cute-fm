@@ -1,13 +1,12 @@
-package components
+package tui
 
 import (
 	"cute/theming"
-	"cute/tui"
 
 	"charm.land/lipgloss/v2"
 )
 
-func Header(m tui.Model, args tui.ComponentArgs) string {
+func Header(m Model, args ComponentArgs) string {
 	theme := m.GetTheme()
 
 	return lipgloss.NewStyle().
