@@ -11,17 +11,17 @@ type Windows struct {
 }
 
 type Components struct {
-	CurrentDir   func(m Model, args CurrentDirComponentArgs) string
-	FileListView func(m Model, args FileListComponentArgs) string
-	FileInfo     func(m Model, args ComponentArgs) string
-	Header       func(m Model, args ComponentArgs) string
-	PreviewTabs  func(m Model, args ComponentArgs) string
-	SearchBar    func(m Model, args ComponentArgs) string
-	SearchText   func(m Model, view ActiveViewportType) string
-	StatusBar    func(m Model, args ComponentArgs, items ...string) string
-	SudoMode     func(m Model, args ComponentArgs) string
-	TuiMode      func(m Model, args ComponentArgs) string
-	ViewModeText func(m Model, args ComponentArgs) string
+	CurrentDir     func(m Model, args CurrentDirComponentArgs) string
+	FileListView   func(m Model, args FileListComponentArgs) string
+	FileInfo       func(m Model, args FileInfoComponentArgs) string
+	Header         func(m Model, args HeaderComponentArgs) string
+	SearchBar      func(m Model, args SearchBarComponentArgs) string
+	SearchText     func(m Model, view ActiveViewportType) string
+	StatusBar      func(m Model, args StatusBarComponentArgs, items ...string) string
+	SudoMode       func(m Model, args SudoModeComponentArgs) string
+	TuiMode        func(m Model, args TuiModeComponentArgs) string
+	ViewModeText   func(m Model, args ViewModeTextComponentArgs) string
+	SettingsWindow func(m Model) string
 }
 
 func InjectIntoModel(m *Model) {

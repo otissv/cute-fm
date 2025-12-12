@@ -4,7 +4,12 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-func SearchBar(m Model, args ComponentArgs) string {
+type SearchBarComponentArgs struct {
+	Width  int
+	Height int
+}
+
+func SearchBar(m Model, args SearchBarComponentArgs) string {
 	theme := m.GetTheme()
 	view := m.GetSearchInputView()
 

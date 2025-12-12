@@ -6,6 +6,13 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+type ColumnWindowArgs struct {
+	Title      string
+	Selected   string
+	Unselected string
+	Prompt     string
+}
+
 func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()
@@ -20,17 +27,20 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 	}
 
 	columnNames := filesystem.ColumnNames
-	menuChoices := make([]string, len(columnNames))
-	for i, col := range columnNames {
-		menuChoices[i] = string(col)
+	menuChoices := make([]MenuChoice, len(columnNames))
+	for _, col := range columnNames {
+		menuChoices = append(menuChoices, MenuChoice{
+			Label: string(col),
+			Type:  CHOICE_TYPE,
+		})
 	}
 
-	menuCursor := m.GetMenuCursor()
-	if menuCursor < 0 {
-		menuCursor = 0
+	menuCursorIndex := m.GetMenuCursorIndex()
+	if menuCursorIndex < 0 {
+		menuCursorIndex = 0
 	}
-	if menuCursor >= len(menuChoices) {
-		menuCursor = len(menuChoices) - 1
+	if menuCursorIndex >= len(menuChoices) {
+		menuCursorIndex = len(menuChoices) - 1
 	}
 
 	var selectedColumns []filesystem.FileInfoColumn
@@ -52,13 +62,14 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 	}
 
 	menu := NewMenu(MenuArgs{
-		Choices:  menuChoices,
-		Cursor:   menuCursor,
-		Selected: selectedMap,
+		Choices:     menuChoices,
+		CursorIndex: menuCursorIndex,
 		CursorTypes: MenuCursor{
 			Selected:   args.Selected,
 			Unselected: args.Unselected,
 		},
+		Selected: selectedMap,
+		Theme:    m.theme,
 	})
 
 	fw := FloatingWindow{

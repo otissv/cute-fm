@@ -2,6 +2,12 @@ package tui
 
 import "charm.land/lipgloss/v2"
 
+type CurrentDirComponentArgs struct {
+	Width      int
+	Height     int
+	CurrentDir string
+}
+
 func CurrentDir(m Model, args CurrentDirComponentArgs) string {
 	theme := m.GetTheme()
 

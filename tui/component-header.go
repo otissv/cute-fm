@@ -6,7 +6,12 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-func Header(m Model, args ComponentArgs) string {
+type HeaderComponentArgs struct {
+	Width  int
+	Height int
+}
+
+func Header(m Model, args HeaderComponentArgs) string {
 	theme := m.GetTheme()
 
 	return lipgloss.NewStyle().

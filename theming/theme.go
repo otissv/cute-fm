@@ -27,6 +27,7 @@ var (
 	foreground               = color1
 	borderColor              = color2
 	primary                  = color2
+	muted                    = color11
 	secondary                = color3
 	placeholder              = "#33282E"
 	viewModBackground        = background
@@ -163,6 +164,7 @@ type Theme struct {
 	Background     string
 	Primary        string
 	Secondary      string
+	Muted          string
 	BorderColor    string
 	CommandBar     BarStyle
 	CurrentDir     StyleColor
@@ -190,6 +192,7 @@ func DefaultTheme() Theme {
 		BorderColor: borderColor,
 		Primary:     primary,
 		Secondary:   secondary,
+		Muted:       muted,
 
 		CommandBar: BarStyle{
 			Background:    commandBarBackground,

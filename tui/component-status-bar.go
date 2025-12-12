@@ -2,7 +2,12 @@ package tui
 
 import "charm.land/lipgloss/v2"
 
-func StatusBar(m Model, args ComponentArgs, items ...string) string {
+type StatusBarComponentArgs struct {
+	Width  int
+	Height int
+}
+
+func StatusBar(m Model, args StatusBarComponentArgs, items ...string) string {
 	theme := m.GetTheme()
 
 	statusStyle := lipgloss.NewStyle().

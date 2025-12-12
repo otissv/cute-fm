@@ -2,7 +2,12 @@ package tui
 
 import "charm.land/lipgloss/v2"
 
-func SudoMode(m Model, args ComponentArgs) string {
+type SudoModeComponentArgs struct {
+	Width  int
+	Height int
+}
+
+func SudoMode(m Model, args SudoModeComponentArgs) string {
 	theme := m.GetTheme()
 
 	return lipgloss.NewStyle().

@@ -42,7 +42,7 @@ func (m Model) FilterMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	// Switch panes in file list slipt mode
-	case bindings.SwitchBetweenSplitPane.Matches(keyMsg.String()):
+	case bindings.Tab.Matches(keyMsg.String()):
 		if m.isSplitPaneOpen {
 			if m.activeViewport == LeftViewportType {
 				m.activeViewport = RightViewportType

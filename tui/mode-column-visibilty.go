@@ -6,7 +6,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
-func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	bindings := GetKeyBindings()
 
 	// Only handle key messages here; ignore everything else.
@@ -18,16 +18,16 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch {
 	// Move cursor up within the column list.
 	case bindings.Up.Matches(keyMsg.String()):
-		if m.menuCursor > 0 {
-			m.menuCursor--
+		if m.menuCursorIndex > 0 {
+			m.menuCursorIndex--
 		}
 		return m, nil
 
 	// Move cursor down within the column list.
 	case bindings.Down.Matches(keyMsg.String()):
 		maxIdx := len(filesystem.ColumnNames) - 1
-		if m.menuCursor < maxIdx {
-			m.menuCursor++
+		if m.menuCursorIndex < maxIdx {
+			m.menuCursorIndex++
 		}
 		return m, nil
 
@@ -37,7 +37,7 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		cur := m.menuCursor
+		cur := m.menuCursorIndex
 		if cur < 0 {
 			cur = 0
 		}
@@ -89,7 +89,7 @@ func (m Model) ColumnVisibiliyMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.Select.Matches(keyMsg.String()) ||
 		bindings.Cancel.Matches(keyMsg.String()):
 		ActiveTuiMode = ModeNormal
-		m.menuCursor = 0
+		m.menuCursorIndex = 0
 		return m, nil
 
 	case bindings.Sort.Matches(keyMsg.String()):

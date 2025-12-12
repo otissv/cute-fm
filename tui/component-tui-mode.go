@@ -2,7 +2,12 @@ package tui
 
 import "charm.land/lipgloss/v2"
 
-func TuiMode(m Model, args ComponentArgs) string {
+type TuiModeComponentArgs struct {
+	Width  int
+	Height int
+}
+
+func TuiMode(m Model, args TuiModeComponentArgs) string {
 	theme := m.GetTheme()
 	activeTuiMode := ActiveTuiMode
 

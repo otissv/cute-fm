@@ -14,18 +14,18 @@ func (m Model) View() tea.View {
 
 	isLeftViewportActivce := m.activeViewport == LeftViewportType
 
-	tuiMode := m.Components.TuiMode(m, ComponentArgs{
+	tuiMode := m.Components.TuiMode(m, TuiModeComponentArgs{
 		Height: 1,
 		Width:  20,
 	})
 
 	viewModeText := m.Components.ViewModeText(
-		m, ComponentArgs{
+		m, ViewModeTextComponentArgs{
 			Height: 1,
 			Width:  20,
 		})
 
-	header := m.Components.Header(m, ComponentArgs{
+	header := m.Components.Header(m, HeaderComponentArgs{
 		Height: 1,
 		Width:  m.width - 40,
 	})
@@ -35,7 +35,7 @@ func (m Model) View() tea.View {
 		Render(lipgloss.JoinHorizontal(lipgloss.Left, tuiMode, viewModeText, header))
 
 	searchBar := m.Components.SearchBar(
-		m, ComponentArgs{
+		m, SearchBarComponentArgs{
 			Width:  m.viewportWidth,
 			Height: 1,
 		})
@@ -49,7 +49,7 @@ func (m Model) View() tea.View {
 	// }
 
 	fileInfoViewportView := m.Components.FileInfo(
-		m, ComponentArgs{
+		m, FileInfoComponentArgs{
 			Width:  m.viewportWidth,
 			Height: m.viewportHeight + 1,
 		})
@@ -60,7 +60,7 @@ func (m Model) View() tea.View {
 	})
 
 	filePane1StatusBar := m.Components.StatusBar(
-		m, ComponentArgs{
+		m, StatusBarComponentArgs{
 			Height: 1,
 		},
 		leftCurrentDir,
@@ -183,7 +183,7 @@ func (m Model) View() tea.View {
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
-	case ModeColumnVisibiliy:
+	case ModeColumnVisibility:
 		windowLayer := m.Windows.Column(m, ColumnWindowArgs{
 			Title: "Column Visibilty",
 		})

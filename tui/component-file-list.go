@@ -2,6 +2,12 @@ package tui
 
 import "charm.land/lipgloss/v2"
 
+type FileListComponentArgs struct {
+	Width         int
+	Height        int
+	SplitPaneType ActiveViewportType
+}
+
 func FileList(m Model, args FileListComponentArgs) string {
 	theme := m.GetTheme()
 	fileList := m.GetLeftPaneFileListForViewport(args.SplitPaneType)
