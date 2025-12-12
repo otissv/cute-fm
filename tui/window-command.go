@@ -4,6 +4,12 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+type CommandWindowArgs struct {
+	Title       string
+	Prompt      string
+	Placeholder string
+}
+
 func CommandWindow(m Model, args CommandWindowArgs) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()

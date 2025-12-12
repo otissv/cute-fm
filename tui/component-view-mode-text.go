@@ -6,7 +6,12 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-func ViewModeText(m Model, args ComponentArgs) string {
+type ViewModeTextComponentArgs struct {
+	Width  int
+	Height int
+}
+
+func ViewModeText(m Model, args ViewModeTextComponentArgs) string {
 	theme := m.GetTheme()
 
 	return lipgloss.NewStyle().

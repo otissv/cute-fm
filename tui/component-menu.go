@@ -4,27 +4,44 @@ import (
 	"fmt"
 	"strings"
 
+	"cute/theming"
+
 	"charm.land/lipgloss/v2"
 )
 
+type MenuChoiceType string
+
+const (
+	HEADING_CHOICE_TYPE MenuChoiceType = "HEADING_CHOICE_TYPE"
+	CHOICE_TYPE         MenuChoiceType = "CHOICE_TYPE"
+)
+
+type MenuChoice struct {
+	Type  MenuChoiceType
+	Label string
+}
+
 type Menu struct {
-	choices     []string
+	choices     []MenuChoice
 	cursor      int
 	selected    map[string]bool
 	cursorTypes MenuCursor
+	theme       theming.Theme
 }
 
 type MenuCursor struct {
 	Selected   string
 	Unselected string
 	Prompt     string
+	Numbered   bool
 }
 
 type MenuArgs struct {
-	Choices     []string
-	Cursor      int
-	Selected    map[string]string
+	Choices     []MenuChoice
+	CursorIndex int
 	CursorTypes MenuCursor
+	Selected    map[string]string
+	Theme       theming.Theme
 }
 
 func NewMenu(args MenuArgs) Menu {
@@ -35,7 +52,8 @@ func NewMenu(args MenuArgs) Menu {
 
 	selected := "x"
 	unselected := " "
-	propmt := ">"
+	prompt := ">"
+	numbered := false
 
 	if args.CursorTypes.Selected != "" {
 		selected = args.CursorTypes.Selected
@@ -46,44 +64,76 @@ func NewMenu(args MenuArgs) Menu {
 	}
 
 	if args.CursorTypes.Prompt != "" {
-		propmt = args.CursorTypes.Prompt
+		prompt = args.CursorTypes.Prompt
+	}
+
+	if args.CursorTypes.Numbered {
+		numbered = args.CursorTypes.Numbered
 	}
 
 	current := lipgloss.NewStyle().
 		Bold(true).
-		Render(propmt)
+		Render(prompt)
 
 	return Menu{
-		choices:  args.Choices,
-		cursor:   args.Cursor,
-		selected: selectedSet,
+		choices: args.Choices,
+		cursor:  args.CursorIndex,
 		cursorTypes: MenuCursor{
 			Selected:   selected,
 			Unselected: unselected,
 			Prompt:     current,
+			Numbered:   numbered,
 		},
+		selected: selectedSet,
+		theme:    args.Theme,
 	}
 }
 
 func (menu Menu) View() string {
 	var b strings.Builder
+
+	number := 1
+
 	for i, choice := range menu.choices {
-		iChoice := choice
+		label := choice.Label
 		cursor := "[ " + menu.cursorTypes.Unselected + " ]"
-		if menu.selected != nil && menu.selected[iChoice] {
+		prefix := ""
+
+		if menu.cursorTypes.Numbered {
+			prefix = lipgloss.NewStyle().
+				Foreground(lipgloss.Color(menu.theme.Muted)).
+				Render(fmt.Sprintf("%d ", number))
+		}
+
+		if menu.selected != nil && menu.selected[label] {
 			cursor = "[ " + menu.cursorTypes.Selected + " ]"
-			iChoice = lipgloss.NewStyle().
+			label = lipgloss.NewStyle().
 				Bold(true).
-				Render(choice)
+				Render(label)
 		}
 
 		if i == menu.cursor {
 			cursor = "[ " + menu.cursorTypes.Prompt + " ]"
-			iChoice = lipgloss.NewStyle().
+			label = lipgloss.NewStyle().
 				Bold(true).
-				Render(choice)
+				Render(label)
 		}
-		fmt.Fprintf(&b, "%s %s\n", cursor, iChoice)
+
+		if choice.Type == HEADING_CHOICE_TYPE {
+			label = " " + lipgloss.NewStyle().
+				Bold(true).
+				Render(label)
+
+			fmt.Fprintf(&b, "\n%s%s\n", prefix, label)
+
+		} else {
+			if menu.cursorTypes.Numbered {
+				cursor = fmt.Sprintf("%s %s", prefix, cursor)
+			}
+			fmt.Fprintf(&b, "%s %s\n", cursor, label)
+		}
+
+		number += 1
 	}
 	return strings.TrimRight(b.String(), "\n")
 }

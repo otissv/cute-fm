@@ -18,16 +18,16 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch {
 	// Move cursor up within the column list.
 	case bindings.Up.Matches(keyMsg.String()):
-		if m.menuCursor > 0 {
-			m.menuCursor--
+		if m.menuCursorIndex > 0 {
+			m.menuCursorIndex--
 		}
 		return m, nil
 
 	// Move cursor down within the column list.
 	case bindings.Down.Matches(keyMsg.String()):
 		maxIdx := len(filesystem.ColumnNames) - 1
-		if m.menuCursor < maxIdx {
-			m.menuCursor++
+		if m.menuCursorIndex < maxIdx {
+			m.menuCursorIndex++
 		}
 		return m, nil
 
@@ -42,7 +42,7 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		cur := m.menuCursor
+		cur := m.menuCursorIndex
 		if cur < 0 {
 			cur = 0
 		}
@@ -66,17 +66,17 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		m.ApplyFilter()
-		m.menuCursor = 0
+		m.menuCursorIndex = 0
 
 		return m, nil
 
 	case bindings.Cancel.Matches(keyMsg.String()):
 		ActiveTuiMode = ModeNormal
-		m.menuCursor = 0
+		m.menuCursorIndex = 0
 		return m, nil
 
-	case bindings.ColumnVisibiliy.Matches(keyMsg.String()):
-		ActiveTuiMode = ModeColumnVisibiliy
+	case bindings.ColumnVisibility.Matches(keyMsg.String()):
+		ActiveTuiMode = ModeColumnVisibility
 		return m, nil
 	}
 

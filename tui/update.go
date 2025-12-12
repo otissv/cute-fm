@@ -51,8 +51,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.UtilityMode(msg, "cd")
 		}
 
-		if ActiveTuiMode == ModeColumnVisibiliy {
-			return m.ColumnVisibiliyMode(msg)
+		if ActiveTuiMode == ModeColumnVisibility {
+			return m.ColumnVisibilityMode(msg)
 		}
 
 		if ActiveTuiMode == ModeCommand {

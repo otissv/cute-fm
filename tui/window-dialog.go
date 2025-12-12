@@ -4,6 +4,11 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+type DialogWindowArgs struct {
+	Title   string
+	Content string
+}
+
 func DialogWindow(m Model, args DialogWindowArgs) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()

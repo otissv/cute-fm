@@ -85,7 +85,7 @@ func InitialModel(startDir string) Model {
 			columns:     defaultColumns,
 			marked:      make(map[string]bool),
 		},
-		menuCursor: 0,
+		menuCursorIndex: 0,
 		rightPane: filePane{
 			currentDir:  leftCurrentDir,
 			allFiles:    files,
@@ -109,11 +109,11 @@ func InitialModel(startDir string) Model {
 	}
 
 	m.settings = Settings{
-		StartDir:        leftCurrentDir,
-		SortColumnBy:    filesystem.ColumnName,
-		ColumnVisibiliy: m.leftPane.columns,
-		SplitPane:       FileInfoSplitPaneType,
-		FileListMode:    FileListModeList,
+		StartDir:         leftCurrentDir,
+		SortColumnBy:     filesystem.ColumnName,
+		ColumnVisibility: m.leftPane.columns,
+		SplitPane:        FileInfoSplitPaneType,
+		FileListMode:     FileListModeList,
 	}
 
 	m.searchInput = m.SearchInput("> ", "Filter...")

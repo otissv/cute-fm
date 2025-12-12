@@ -16,12 +16,13 @@ type (
 	SplitPaneType      string
 	TUIMode            string
 	ActiveViewportType string
+	ActiveSetting      string
 )
 
 type TUIModes struct {
 	ModeAddFile           TUIMode
 	ModeCd                TUIMode
-	ModeColumnVisibiliy   TUIMode
+	ModeColumnVisibility  TUIMode
 	ModeCommand           TUIMode
 	ModeCopy              TUIMode
 	ModeFilter            TUIMode
@@ -59,23 +60,6 @@ func (t ViewPrimitive) View() string {
 	return string(t)
 }
 
-type ComponentArgs struct {
-	Width  int
-	Height int
-}
-
-type CurrentDirComponentArgs struct {
-	Width      int
-	Height     int
-	CurrentDir string
-}
-
-type FileListComponentArgs struct {
-	Width         int
-	Height        int
-	SplitPaneType ActiveViewportType
-}
-
 type filePane struct {
 	currentDir      string
 	allFiles        []filesystem.FileInfo
@@ -89,29 +73,6 @@ type filePane struct {
 	marked map[string]bool
 }
 
-type CommandWindowArgs struct {
-	Title       string
-	Prompt      string
-	Placeholder string
-}
-
-// type DialogArgs struct {
-// 	X int
-// 	Y int
-// }
-
-type DialogWindowArgs struct {
-	Title   string
-	Content string
-}
-
-type ColumnWindowArgs struct {
-	Title      string
-	Selected   string
-	Unselected string
-	Prompt     string
-}
-
 type SelectedEntry struct {
 	Name  string
 	Path  string
@@ -122,7 +83,7 @@ type SelectedEntry struct {
 type Settings struct {
 	StartDir            string
 	SplitPane           SplitPaneType
-	ColumnVisibiliy     []filesystem.FileInfoColumn
+	ColumnVisibility    []filesystem.FileInfoColumn
 	SortColumnBy        filesystem.FileInfoColumn
 	SortColumnDirection SortColumnByDirection
 	FileListMode        FileListMode
@@ -146,7 +107,7 @@ func (s SortColumnBy) Direction() SortColumnByDirection {
 const (
 	ModeAddFile           TUIMode = "ADD_FILE"
 	ModeCd                TUIMode = "CD"
-	ModeColumnVisibiliy   TUIMode = "COLUMN VISIBILIY"
+	ModeColumnVisibility  TUIMode = "COLUMN VISIBILIY"
 	ModeCommand           TUIMode = "COMMAND"
 	ModeCopy              TUIMode = "COPY"
 	ModeFilter            TUIMode = "FILTER"
@@ -180,28 +141,35 @@ const (
 	FileListModeList FileListMode = "ll"
 	FileListModeFile FileListMode = "lf"
 	FileListModeDir  FileListMode = "ld"
+
+	SETTING_START                 ActiveSetting = "SETTING_START"
+	SETTING_SPLIT_PANE            ActiveSetting = "SETTING_SPLIT_PANE"
+	SETTING_FILE_LIST_MODE        ActiveSetting = "SETTING_FILE_LIST_MODE"
+	SETTING_COLUMN_VISIBILITY     ActiveSetting = "SETTING_COLUMN_VISIBILITY"
+	SETTING_SORT_BY_COLUMN        ActiveSetting = "SETTING_SORT_BY_COLUMN"
+	SETTING_SORT_COLUMN_DIRECTION ActiveSetting = "SETTING_SORT_COLUMN_DIRECTION"
 )
 
 var (
 	ActiveFileListMode         = FileListModeList
-	ActiveTuiMode      TUIMode = "NORMAL"
-	PreviousTuiMode    TUIMode = "NORMAL"
+	ActiveTuiMode      TUIMode = ModeNormal
+	PreviousTuiMode    TUIMode = ModeNormal
 
 	TuiModes = TUIModes{
-		ModeAddFile:         ModeAddFile,
-		ModeCd:              ModeCd,
-		ModeColumnVisibiliy: ModeColumnVisibiliy,
-		ModeCommand:         ModeCommand,
-		ModeCopy:            ModeCopy,
-		ModeFilter:          ModeFilter,
-		ModeGoto:            ModeGoto,
-		ModeHelp:            ModeHelp,
-		ModeMkdir:           ModeMkdir,
-		ModeNormal:          ModeNormal,
-		ModeRemove:          ModeRemove,
-		ModeRename:          ModeRename,
-		ModeSelect:          ModeSelect,
-		ModeSort:            ModeSort,
+		ModeAddFile:          ModeAddFile,
+		ModeCd:               ModeCd,
+		ModeColumnVisibility: ModeColumnVisibility,
+		ModeCommand:          ModeCommand,
+		ModeCopy:             ModeCopy,
+		ModeFilter:           ModeFilter,
+		ModeGoto:             ModeGoto,
+		ModeHelp:             ModeHelp,
+		ModeMkdir:            ModeMkdir,
+		ModeNormal:           ModeNormal,
+		ModeRemove:           ModeRemove,
+		ModeRename:           ModeRename,
+		ModeSelect:           ModeSelect,
+		ModeSort:             ModeSort,
 	}
 )
 
@@ -225,7 +193,7 @@ type Model struct {
 	layout             string
 	layoutRows         []string
 	leftPane           filePane
-	menuCursor         int
+	menuCursorIndex    int
 	rightPane          filePane
 	runtimeConfig      *config.RuntimeConfig // runtimeConfig holds the Lua-backed configuration (theme and commands).
 	searchInput        textinput.Model
@@ -308,8 +276,8 @@ func (m Model) GetLeftPaneFileListForViewport(view ActiveViewportType) list.Mode
 	return m.leftPane.fileList
 }
 
-func (m Model) GetMenuCursor() int {
-	return m.menuCursor
+func (m Model) GetMenuCursorIndex() int {
+	return m.menuCursorIndex
 }
 
 func (m Model) GetPreviewViewport() viewport.Model {

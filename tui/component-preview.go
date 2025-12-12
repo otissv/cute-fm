@@ -4,7 +4,12 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-func FileInfo(m Model, args ComponentArgs) string {
+type FileInfoComponentArgs struct {
+	Width  int
+	Height int
+}
+
+func FileInfo(m Model, args FileInfoComponentArgs) string {
 	theme := m.GetTheme()
 	previewViewport := m.GetPreviewViewport()
 

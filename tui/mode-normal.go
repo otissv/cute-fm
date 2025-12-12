@@ -95,10 +95,10 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Open column visibility window
-	case bindings.ColumnVisibiliy.Matches(key):
-		if ActiveTuiMode != ModeColumnVisibiliy {
+	case bindings.ColumnVisibility.Matches(key):
+		if ActiveTuiMode != ModeColumnVisibility {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = ModeColumnVisibiliy
+			ActiveTuiMode = ModeColumnVisibility
 
 			return m, nil
 		} else {
@@ -335,7 +335,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 		// Open file list split pane
-	case bindings.SwitchBetweenSplitPane.Matches(key) && !m.isSplitPaneOpen:
+	case bindings.Tab.Matches(key) && !m.isSplitPaneOpen:
 		if ActiveTuiMode != ModeFileListSplitPane {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeFileListSplitPane
@@ -347,7 +347,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 		// Switch panes in file list slipt mode
-	case bindings.SwitchBetweenSplitPane.Matches(key):
+	case bindings.Tab.Matches(key):
 		if m.isSplitPaneOpen {
 			if m.activeViewport == LeftViewportType {
 				m.activeViewport = RightViewportType
