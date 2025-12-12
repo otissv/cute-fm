@@ -11,25 +11,43 @@ import (
 	"cute/theming"
 )
 
-// InitialModel creates a new model with default values.
 func InitialModel(startDir string) Model {
 	fileInfoViewport := viewport.New()
 	fileInfoViewport.SetContent("Right Pane\n\nThis is the right viewport.\nIt will display file previews.")
 
-	// Determine initial directory for the file list.
-	leftCurrentDir := startDir
-	if leftCurrentDir == "" {
-		var err error
-		leftCurrentDir, err = os.Getwd()
-		if err != nil {
-			leftCurrentDir = "."
-		}
-	}
 	configDir := config.GetConfigDir()
 
-	// Load the initial directory.
-	files := loadDirectory(leftCurrentDir)
+	if err := SaveDefaultSettings(configDir); err != nil {
+		_ = err
+	}
 
+	tomlSettings, _ := LoadSettings(configDir)
+
+	// Determine initial directory for the file list.
+	// Priority: command line argument > settings.toml > current directory
+	leftCurrentDir := startDir
+	if leftCurrentDir == "" {
+		// Try to load from settings
+		if tomlSettings != nil && tomlSettings.StartDir != "" {
+			if tomlSettings.StartDir == "Home" {
+				if homeDir, err := os.UserHomeDir(); err == nil {
+					leftCurrentDir = homeDir
+				}
+			} else {
+				leftCurrentDir = tomlSettings.StartDir
+			}
+		}
+		// Fallback to current directory
+		if leftCurrentDir == "" {
+			var err error
+			leftCurrentDir, err = os.Getwd()
+			if err != nil {
+				leftCurrentDir = "."
+			}
+		}
+	}
+
+	files := loadDirectory(leftCurrentDir)
 	theme := theming.GetTheme()
 
 	// Create the bubbles lists with file items for both panes.
@@ -106,24 +124,47 @@ func InitialModel(startDir string) Model {
 		viewportWidth:  0,
 	}
 
-	m.settings = Settings{
-		StartDir:         leftCurrentDir,
-		SortColumnBy:     filesystem.ColumnName,
-		ColumnVisibility: m.leftPane.columns,
-		SplitPane:        FileInfoSplitPaneType,
-		FileListMode:     FileListModeList,
+	// Initialize default settings
+	defaultSettings := Settings{
+		StartDir:            leftCurrentDir,
+		SortColumnBy:        filesystem.ColumnName,
+		SortColumnDirection: SortingAsc,
+		ColumnVisibility:    m.leftPane.columns,
+		SplitPane:           FileInfoSplitPaneType,
+		FileListMode:        FileListModeList,
+	}
+
+	m.settings = MergeSettings(defaultSettings, tomlSettings)
+	m.settings.StartDir = leftCurrentDir
+
+	m.activeSplitPane = m.settings.SplitPane
+	if m.settings.SplitPane != "" {
+		m.isSplitPaneOpen = m.settings.SplitPane != ""
+	}
+
+	if m.settings.FileListMode != "" {
+		ActiveFileListMode = m.settings.FileListMode
+	}
+
+	if len(m.settings.ColumnVisibility) > 0 {
+		m.leftPane.columns = m.settings.ColumnVisibility
+		m.rightPane.columns = m.settings.ColumnVisibility
+	}
+
+	if m.settings.SortColumnBy != "" {
+		m.sortColumnBy.column = m.settings.SortColumnBy
+	}
+	if m.settings.SortColumnDirection != "" {
+		m.sortColumnBy.direction = m.settings.SortColumnDirection
 	}
 
 	m.searchInput = m.SearchInput("> ", "Filter...")
-
 	m.commandInput = m.CommandInput("", "")
-
 	m.commandHistory = m.LoadCommandHistory()
 
 	m.CalcLayout()
 
 	ActiveTuiMode = ModeNormal
-	ActiveFileListMode = FileListModeList
 
 	m.UpdateFileInfoPane()
 
