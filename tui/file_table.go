@@ -324,7 +324,7 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 	bg := lipgloss.Color(bgColor)
 
 	baseStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color(theming.DefaultTheme().Foreground))
+		Foreground(lipgloss.Color(theming.GetTheme().Foreground))
 
 	permsHeading := "Permissions"
 	sizeHeading := "Size"

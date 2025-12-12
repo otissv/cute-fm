@@ -159,7 +159,6 @@ func (m *Model) GetCommandEnvironment() command.Environment {
 
 	return command.Environment{
 		Cwd:      pane.currentDir,
-		Config:   m.runtimeConfig,
 		Selected: m.GetSelectedEntry(),
 	}
 }

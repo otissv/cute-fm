@@ -1,0 +1,140 @@
+# Example theme.toml for cute-fm
+# Place this file at ~/.config/cute/theme.toml
+# Only specify the fields you want to override from the default theme
+
+# Top-level color settings
+foreground = "#F0EDED"
+background = "#1E1E1E"
+primary = "#F25D94"
+secondary = "#FFF1A8"
+muted = "#A8A7A7"
+borderColor = "#F25D94"
+
+# Command bar styling
+[commandBar]
+background = "#1E1E1E"
+foreground = "#F0EDED"
+border = "#F25D94"
+placeholder = "#A8A7A7"
+paddingTop = 0
+paddingBottom = 0
+paddingLeft = 1
+paddingRight = 1
+
+# Current directory display
+[currentDir]
+background = "#1E1E1E"
+foreground = "#F0EDED"
+
+# Dialog window styling
+[dialog]
+background = "#1E1E1E"
+foreground = "#F0EDED"
+border = "#F25D94"
+title = "#2072D5"
+paddingTop = 1
+paddingBottom = 1
+paddingLeft = 1
+paddingRight = 1
+
+# File list styling
+[fileList]
+background = "#1E1E1E"
+foreground = "#F0EDED"
+border = "#1E1E1E"
+marked = "#2072D5"
+paddingTop = 0
+paddingBottom = 1
+paddingLeft = 1
+paddingRight = 1
+
+# File type colors
+[fileTypeColors]
+directory = "#A8D2FF"
+symlink = "#FAD2E1"
+socket = "#FFF1A8"
+pipe = "#7CFFD2"
+device = "#FAD2E1"
+executable = "#FF9BC0"
+regular = "#F0EDED"
+
+# Field colors (for file info columns)
+[fieldColors]
+group = "#FFF1A8"
+nlink = "#F0EDED"
+size = "#FF9BC0"
+time = "#F0EDED"
+user = "#FFF1A8"
+
+# Header styling
+[header]
+background = "#1E1E1E"
+foreground = "#F0EDED"
+
+# Permissions colors
+[permissions]
+exec = "#FF9BC0"
+read = "#7CFFD2"
+write = "#FAD2E1"
+none = "#F0EDED"
+
+# File info/preview pane styling
+[fileInfo]
+background = "#1E1E1E"
+borderBackground = ""
+foreground = "#F0EDED"
+border = "#F25D94"
+paddingTop = 0
+paddingBottom = 1
+paddingLeft = 1
+paddingRight = 1
+
+# Search bar styling
+[searchBar]
+background = "#1E1E1E"
+foreground = "#F0EDED"
+border = "#F25D94"
+placeholder = "#33282E"
+paddingTop = 0
+paddingBottom = 0
+paddingLeft = 1
+paddingRight = 1
+
+# Selection highlighting
+[selection]
+background = "#3B3B3B"
+foreground = "#1E1E1E"
+
+# Status bar styling
+[statusBar]
+background = "#1E1E1E"
+foreground = "#F0EDED"
+border = "#1E1E1E"
+paddingTop = 0
+paddingBottom = 0
+paddingLeft = 0
+paddingRight = 0
+
+# Sudo mode styling
+[sudoMode]
+background = "#F00F00"
+foreground = "#F0EDED"
+
+# TUI mode indicators
+[tuiMode]
+normalModeBackground = ""
+normalModeForeground = "#FF9BC0"
+commandModeBackground = ""
+commandModeForeground = "#E37CFF"
+filterModeBackground = ""
+filterModeForeground = "#FF9BC0"
+helpModeBackground = ""
+helpModeForeground = "#7CFFD2"
+quitModeBackground = "#000000"
+quitModeForeground = "#F0EDED"
+
+# View mode styling
+[viewMode]
+background = "#1E1E1E"
+foreground = "#F0EDED"
+

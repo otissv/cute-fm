@@ -1,12 +1,14 @@
 package theming
 
 import (
-	"bufio"
-	"bytes"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"cute/config"
+
 	"charm.land/lipgloss/v2"
+	"github.com/pelletier/go-toml/v2"
 )
 
 var (
@@ -151,7 +153,7 @@ type TuiMode struct {
 	QuitModeForeground    string
 }
 
-type FilelistMode struct {
+type FileListMode struct {
 	ListModeBackground     string
 	ListModeModeForeground string
 	FileModeBackground     string
@@ -183,10 +185,8 @@ type Theme struct {
 	ViewMode       StyleColor
 }
 
-// DefaultTheme returns a sane fallback theme used when the config
-// file cannot be read or parsed.
-func DefaultTheme() Theme {
-	return Theme{
+func GetTheme() Theme {
+	theme := Theme{
 		Background:  background,
 		Foreground:  foreground,
 		BorderColor: borderColor,
@@ -321,92 +321,264 @@ func DefaultTheme() Theme {
 			Foreground: viewModForeground,
 		},
 	}
+
+	customTheme := loadThemeConfig()
+	return mergeTheme(theme, customTheme)
 }
 
-// LoadThemeFromMap constructs a theme from a simple key/value map. The keys are
-// the same as the ones previously used in the TOML-style configuration:
-//
-//   - File type colors: "directory", "symlink", "socket", "pipe", "device",
-//     "executable", "regular"
-//   - Field colors: "nlink", "user", "group", "size", "time"
-//   - Interface colors: "border", "selected_foreground", "selected_background",
-//     "foreground", "background"
-//
-// The map is applied as overrides on top of DefaultTheme.
-func LoadThemeFromMap(raw map[string]string) Theme {
-	theme := DefaultTheme()
+func loadThemeConfig() Theme {
+	customTheme := Theme{}
 
-	for k, v := range raw {
-		switch k {
-		// File type colors
-		case "directory", "symlink", "socket", "pipe", "device", "executable", "regular":
-			if theme.FileTypeColors == nil {
-				theme.FileTypeColors = map[string]string{}
-			}
-			theme.FileTypeColors[k] = v
+	configDir := config.GetConfigDir()
+	themePath := filepath.Join(configDir, "theme.toml")
 
-		// Field colors
-		case "nlink", "user", "group", "size", "time":
-			if theme.FieldColors == nil {
-				theme.FieldColors = map[string]string{}
-			}
-			theme.FieldColors[k] = v
-
-		// Interface colors
-		case "border":
-			theme.BorderColor = v
-		case "selected_foreground":
-			theme.Selection.Foreground = v
-		case "selected_background":
-			theme.Selection.Background = v
-		case "foreground":
-			theme.Foreground = v
-		case "background":
-			theme.Background = v
-		}
+	// Check if theme.toml exists
+	if _, err := os.Stat(themePath); os.IsNotExist(err) {
+		return customTheme
 	}
 
-	return theme
-}
-
-// LoadTheme loads theme colors from the given path. The format is a very small
-// subset of TOML: "key = \"value\"" lines, comments starting with '#', and
-// blank lines are ignored. This is intentionally lenient and does not require
-// a full TOML parser.
-//
-// This function remains for compatibility, but the main configuration path now
-// uses Lua (see config.LoadRuntimeConfig).
-func LoadTheme(path string) Theme {
-	data, err := os.ReadFile(path)
+	// Read the theme file
+	data, err := os.ReadFile(themePath)
 	if err != nil {
-		return DefaultTheme()
+		// If we can't read it, return default theme
+		return customTheme
 	}
 
-	raw := map[string]string{}
+	// Parse the TOML file
+	if err := toml.Unmarshal(data, &customTheme); err != nil {
+		// If parsing fails, return default theme
+		return customTheme
+	}
 
-	scanner := bufio.NewScanner(bytes.NewReader(data))
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
+	return customTheme
+}
+
+// mergeTheme merges a custom theme into the default theme, only overriding non-empty values
+func mergeTheme(defaultTheme, customTheme Theme) Theme {
+	merged := defaultTheme
+
+	// Merge top-level string fields
+	if customTheme.Foreground != "" {
+		merged.Foreground = customTheme.Foreground
+	}
+	if customTheme.Background != "" {
+		merged.Background = customTheme.Background
+	}
+	if customTheme.Primary != "" {
+		merged.Primary = customTheme.Primary
+	}
+	if customTheme.Secondary != "" {
+		merged.Secondary = customTheme.Secondary
+	}
+	if customTheme.Muted != "" {
+		merged.Muted = customTheme.Muted
+	}
+	if customTheme.BorderColor != "" {
+		merged.BorderColor = customTheme.BorderColor
+	}
+
+	// Merge nested structs
+	merged.CommandBar = mergeBarStyle(defaultTheme.CommandBar, customTheme.CommandBar)
+	merged.CurrentDir = mergeStyleColor(defaultTheme.CurrentDir, customTheme.CurrentDir)
+	merged.Dialog = mergeDialogStyle(defaultTheme.Dialog, customTheme.Dialog)
+	merged.FileList = mergeFileListStyle(defaultTheme.FileList, customTheme.FileList)
+	merged.Header = mergeStyleColor(defaultTheme.Header, customTheme.Header)
+	merged.Permissions = mergePermissionsStyle(defaultTheme.Permissions, customTheme.Permissions)
+	merged.FileInfo = mergeStyle(defaultTheme.FileInfo, customTheme.FileInfo)
+	merged.SearchBar = mergeBarStyle(defaultTheme.SearchBar, customTheme.SearchBar)
+	merged.Selection = mergeStyleColor(defaultTheme.Selection, customTheme.Selection)
+	merged.StatusBar = mergeStyle(defaultTheme.StatusBar, customTheme.StatusBar)
+	merged.SudoMode = mergeStyleColor(defaultTheme.SudoMode, customTheme.SudoMode)
+	merged.TuiMode = mergeTuiMode(defaultTheme.TuiMode, customTheme.TuiMode)
+	merged.ViewMode = mergeStyleColor(defaultTheme.ViewMode, customTheme.ViewMode)
+
+	// Merge maps (only override keys that exist in custom theme)
+	if customTheme.FieldColors != nil {
+		if merged.FieldColors == nil {
+			merged.FieldColors = make(map[string]string)
 		}
-
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) != 2 {
-			continue
-		}
-
-		key := strings.TrimSpace(parts[0])
-		val := strings.TrimSpace(parts[1])
-		// Strip surrounding quotes if present.
-		val = strings.Trim(val, `"`)
-
-		if key != "" {
-			raw[key] = val
+		for k, v := range customTheme.FieldColors {
+			if v != "" {
+				merged.FieldColors[k] = v
+			}
 		}
 	}
 
-	return LoadThemeFromMap(raw)
+	if customTheme.FileTypeColors != nil {
+		if merged.FileTypeColors == nil {
+			merged.FileTypeColors = make(map[string]string)
+		}
+		for k, v := range customTheme.FileTypeColors {
+			if v != "" {
+				merged.FileTypeColors[k] = v
+			}
+		}
+	}
+
+	return merged
+}
+
+// Helper functions to merge nested structs
+func mergeStyleColor(defaultStyle, customStyle StyleColor) StyleColor {
+	merged := defaultStyle
+	if customStyle.Background != "" {
+		merged.Background = customStyle.Background
+	}
+	if customStyle.Foreground != "" {
+		merged.Foreground = customStyle.Foreground
+	}
+	return merged
+}
+
+func mergeBarStyle(defaultStyle, customStyle BarStyle) BarStyle {
+	merged := defaultStyle
+	if customStyle.Background != "" {
+		merged.Background = customStyle.Background
+	}
+	if customStyle.Foreground != "" {
+		merged.Foreground = customStyle.Foreground
+	}
+	if customStyle.Placeholder != "" {
+		merged.Placeholder = customStyle.Placeholder
+	}
+	if customStyle.Border != "" {
+		merged.Border = customStyle.Border
+	}
+	// Only override padding if explicitly set (non-zero)
+	if customStyle.PaddingTop != 0 || customStyle.PaddingBottom != 0 || customStyle.PaddingLeft != 0 || customStyle.PaddingRight != 0 {
+		merged.PaddingTop = customStyle.PaddingTop
+		merged.PaddingBottom = customStyle.PaddingBottom
+		merged.PaddingLeft = customStyle.PaddingLeft
+		merged.PaddingRight = customStyle.PaddingRight
+	}
+	return merged
+}
+
+func mergeStyle(defaultStyle, customStyle Style) Style {
+	merged := defaultStyle
+	if customStyle.Background != "" {
+		merged.Background = customStyle.Background
+	}
+	if customStyle.BorderBackground != "" {
+		merged.BorderBackground = customStyle.BorderBackground
+	}
+	if customStyle.Foreground != "" {
+		merged.Foreground = customStyle.Foreground
+	}
+	if customStyle.Border != "" {
+		merged.Border = customStyle.Border
+	}
+	// Only override padding if explicitly set (non-zero)
+	if customStyle.PaddingTop != 0 || customStyle.PaddingBottom != 0 || customStyle.PaddingLeft != 0 || customStyle.PaddingRight != 0 {
+		merged.PaddingTop = customStyle.PaddingTop
+		merged.PaddingBottom = customStyle.PaddingBottom
+		merged.PaddingLeft = customStyle.PaddingLeft
+		merged.PaddingRight = customStyle.PaddingRight
+	}
+	return merged
+}
+
+func mergeDialogStyle(defaultStyle, customStyle DialogStyle) DialogStyle {
+	merged := defaultStyle
+	if customStyle.Background != "" {
+		merged.Background = customStyle.Background
+	}
+	if customStyle.Foreground != "" {
+		merged.Foreground = customStyle.Foreground
+	}
+	if customStyle.Border != "" {
+		merged.Border = customStyle.Border
+	}
+	if customStyle.Title != "" {
+		merged.Title = customStyle.Title
+	}
+	// Only override padding if explicitly set (non-zero)
+	if customStyle.PaddingTop != 0 || customStyle.PaddingBottom != 0 || customStyle.PaddingLeft != 0 || customStyle.PaddingRight != 0 {
+		merged.PaddingTop = customStyle.PaddingTop
+		merged.PaddingBottom = customStyle.PaddingBottom
+		merged.PaddingLeft = customStyle.PaddingLeft
+		merged.PaddingRight = customStyle.PaddingRight
+	}
+	return merged
+}
+
+func mergeFileListStyle(defaultStyle, customStyle FileListStyle) FileListStyle {
+	merged := defaultStyle
+	if customStyle.Background != "" {
+		merged.Background = customStyle.Background
+	}
+	if customStyle.BorderBackground != "" {
+		merged.BorderBackground = customStyle.BorderBackground
+	}
+	if customStyle.Foreground != "" {
+		merged.Foreground = customStyle.Foreground
+	}
+	if customStyle.Border != "" {
+		merged.Border = customStyle.Border
+	}
+	if customStyle.Marked != "" {
+		merged.Marked = customStyle.Marked
+	}
+	// Only override padding if explicitly set (non-zero)
+	if customStyle.PaddingTop != 0 || customStyle.PaddingBottom != 0 || customStyle.PaddingLeft != 0 || customStyle.PaddingRight != 0 {
+		merged.PaddingTop = customStyle.PaddingTop
+		merged.PaddingBottom = customStyle.PaddingBottom
+		merged.PaddingLeft = customStyle.PaddingLeft
+		merged.PaddingRight = customStyle.PaddingRight
+	}
+	return merged
+}
+
+func mergePermissionsStyle(defaultStyle, customStyle PermissionsStyle) PermissionsStyle {
+	merged := defaultStyle
+	if customStyle.Exec != "" {
+		merged.Exec = customStyle.Exec
+	}
+	if customStyle.Read != "" {
+		merged.Read = customStyle.Read
+	}
+	if customStyle.Write != "" {
+		merged.Write = customStyle.Write
+	}
+	if customStyle.None != "" {
+		merged.None = customStyle.None
+	}
+	return merged
+}
+
+func mergeTuiMode(defaultMode, customMode TuiMode) TuiMode {
+	merged := defaultMode
+	if customMode.NormalModeBackground != "" {
+		merged.NormalModeBackground = customMode.NormalModeBackground
+	}
+	if customMode.NormalModeForeground != "" {
+		merged.NormalModeForeground = customMode.NormalModeForeground
+	}
+	if customMode.CommandModeBackground != "" {
+		merged.CommandModeBackground = customMode.CommandModeBackground
+	}
+	if customMode.CommandModeForeground != "" {
+		merged.CommandModeForeground = customMode.CommandModeForeground
+	}
+	if customMode.FilterModeBackground != "" {
+		merged.FilterModeBackground = customMode.FilterModeBackground
+	}
+	if customMode.FilterModeForeground != "" {
+		merged.FilterModeForeground = customMode.FilterModeForeground
+	}
+	if customMode.HelpModeBackground != "" {
+		merged.HelpModeBackground = customMode.HelpModeBackground
+	}
+	if customMode.HelpModeForeground != "" {
+		merged.HelpModeForeground = customMode.HelpModeForeground
+	}
+	if customMode.QuitModeBackground != "" {
+		merged.QuitModeBackground = customMode.QuitModeBackground
+	}
+	if customMode.QuitModeForeground != "" {
+		merged.QuitModeForeground = customMode.QuitModeForeground
+	}
+	return merged
 }
 
 // StyleFromSpec builds a lipgloss style from a specification string, such as:

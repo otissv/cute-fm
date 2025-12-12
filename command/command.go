@@ -8,10 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	lua "github.com/yuin/gopher-lua"
-
-	"cute/config"
 )
 
 // SelectedEntry describes the currently selected file or directory in the UI.
@@ -30,8 +26,6 @@ type SelectedEntry struct {
 type Environment struct {
 	// Cwd is the current working directory of the file manager.
 	Cwd string
-	// Config is the Lua-backed runtime configuration (theme + commands).
-	Config *config.RuntimeConfig
 	// Selected is the currently selected file or directory, if any.
 	Selected *SelectedEntry
 }
@@ -102,13 +96,6 @@ func Execute(env Environment, input string) (Result, error) {
 	case "quit", "q":
 		return Result{Quit: true}, nil
 	default:
-		// Try Lua-defined commands from the runtime configuration.
-		if env.Config != nil {
-			if fn := env.Config.Command(name); fn != nil {
-				return executeLuaCommand(env, fn, args)
-			}
-		}
-
 		// As a last resort, try to execute the input as a shell command.
 		out, err := runShell(env.Cwd, input)
 		return Result{Output: out}, err
@@ -380,121 +367,6 @@ func cmdLn(env Environment, args []string) (Result, error) {
 	}
 
 	return Result{Output: fmt.Sprintf("ln: %s -> %s", src, dst), Refresh: true}, nil
-}
-
-// executeLuaCommand runs a Lua-defined command function. The Lua function is
-// called as:
-//
-//	fn(ctx, args)
-//
-// where:
-//   - ctx is a table describing the selected file/dir (if any):
-//     ctx.cwd    : string
-//     ctx.path   : string
-//     ctx.name   : string
-//     ctx.is_dir : boolean
-//     ctx.type   : string
-//   - args is an array-like table (1-based) containing any additional CLI
-//     arguments typed after the command name.
-//
-// The function must return either:
-//   - a table mapping to Result fields:
-//     { output = "...", cwd = "...", refresh = true,
-//     view_mode = "ll", open_help = false, quit = false }
-//   - or a string, which is treated as Result.Output.
-func executeLuaCommand(env Environment, fn *lua.LFunction, args []string) (Result, error) {
-	if env.Config == nil || env.Config.L == nil || fn == nil {
-		return Result{}, fmt.Errorf("lua command: configuration not available")
-	}
-
-	L := env.Config.L
-
-	// Push the function to call.
-	L.Push(fn)
-
-	// Build ctx table.
-	ctx := L.NewTable()
-	ctx.RawSetString("cwd", lua.LString(env.Cwd))
-	if env.Selected != nil {
-		ctx.RawSetString("path", lua.LString(env.Selected.Path))
-		ctx.RawSetString("name", lua.LString(env.Selected.Name))
-		ctx.RawSetString("type", lua.LString(env.Selected.Type))
-		ctx.RawSetString("is_dir", lua.LBool(env.Selected.IsDir))
-	}
-	L.Push(ctx)
-
-	// Build args table.
-	argTable := L.NewTable()
-	for i, a := range args {
-		argTable.RawSetInt(i+1, lua.LString(a))
-	}
-	L.Push(argTable)
-
-	// Call fn(ctx, args) -> 1 result.
-	if err := L.PCall(2, 1, nil); err != nil {
-		return Result{Output: err.Error()}, err
-	}
-
-	ret := L.Get(-1)
-	L.Pop(1)
-
-	switch v := ret.(type) {
-	case *lua.LTable:
-		return luaTableToResult(v), nil
-	case lua.LString:
-		return Result{Output: string(v)}, nil
-	case *lua.LNilType:
-		return Result{}, nil
-	default:
-		return Result{}, nil
-	}
-}
-
-// luaTableToResult converts a Lua table into a Result. Recognized keys:
-//
-//	output     : string
-//	cwd        : string
-//	refresh    : boolean
-//	view_mode  : string
-//	open_help  : boolean
-//	quit       : boolean
-func luaTableToResult(tbl *lua.LTable) Result {
-	var res Result
-
-	tbl.ForEach(func(k, v lua.LValue) {
-		key, ok := k.(lua.LString)
-		if !ok {
-			return
-		}
-		switch string(key) {
-		case "output":
-			if s, ok := v.(lua.LString); ok {
-				res.Output = string(s)
-			}
-		case "cwd":
-			if s, ok := v.(lua.LString); ok {
-				res.Cwd = string(s)
-			}
-		case "refresh":
-			if b, ok := v.(lua.LBool); ok {
-				res.Refresh = bool(b)
-			}
-		case "view_mode":
-			if s, ok := v.(lua.LString); ok {
-				res.ViewMode = string(s)
-			}
-		case "open_help":
-			if b, ok := v.(lua.LBool); ok {
-				res.OpenHelp = bool(b)
-			}
-		case "quit":
-			if b, ok := v.(lua.LBool); ok {
-				res.Quit = bool(b)
-			}
-		}
-	})
-
-	return res
 }
 
 // expandPath resolves "~", "$HOME" (and other environment variables), and

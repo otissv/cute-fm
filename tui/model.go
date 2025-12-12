@@ -6,7 +6,6 @@ import (
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 
-	"cute/config"
 	"cute/filesystem"
 	"cute/theming"
 )
@@ -195,7 +194,6 @@ type Model struct {
 	leftPane           filePane
 	menuCursorIndex    int
 	rightPane          filePane
-	runtimeConfig      *config.RuntimeConfig // runtimeConfig holds the Lua-backed configuration (theme and commands).
 	searchInput        textinput.Model
 	showRightPane      bool
 	settings           Settings

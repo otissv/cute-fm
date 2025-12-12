@@ -2,13 +2,13 @@ package tui
 
 import (
 	"os"
-	"path/filepath"
 
 	"charm.land/bubbles/v2/list"
 	"charm.land/bubbles/v2/viewport"
 
 	"cute/config"
 	"cute/filesystem"
+	"cute/theming"
 )
 
 // InitialModel creates a new model with default values.
@@ -25,16 +25,15 @@ func InitialModel(startDir string) Model {
 			leftCurrentDir = "."
 		}
 	}
-	cfgDir := getConfigDir()
-
-	// Load Lua-based runtime configuration (theme + commands).
-	runtimeCfg := config.LoadRuntimeConfig(cfgDir)
+	configDir := config.GetConfigDir()
 
 	// Load the initial directory.
 	files := loadDirectory(leftCurrentDir)
 
+	theme := theming.GetTheme()
+
 	// Create the bubbles lists with file items for both panes.
-	delegate := NewFileItemDelegate(runtimeCfg.Theme, 0, filesystem.ColumnNames)
+	delegate := NewFileItemDelegate(theme, 0, filesystem.ColumnNames)
 	items := FileInfosToItems(files, nil)
 
 	newList := func() list.Model {
@@ -67,7 +66,7 @@ func InitialModel(startDir string) Model {
 	m := Model{
 		activeSplitPane:  FileInfoSplitPaneType,
 		activeViewport:   LeftViewportType,
-		configDir:        cfgDir,
+		configDir:        configDir,
 		fileInfoViewport: fileInfoViewport,
 		historyIndex:     -1,
 		historyMatches:   []string{},
@@ -95,14 +94,13 @@ func InitialModel(startDir string) Model {
 			columns:     defaultColumns,
 			marked:      make(map[string]bool),
 		},
-		runtimeConfig: runtimeCfg,
 		showRightPane: true,
 		sortColumnBy: SortColumnBy{
 			column:    filesystem.ColumnName,
 			direction: SortingAsc,
 		},
 		terminalType:   string(detectTerminalType()),
-		theme:          runtimeCfg.Theme,
+		theme:          theme,
 		titleText:      "Cute File Manager",
 		viewportHeight: 0,
 		viewportWidth:  0,
@@ -146,23 +144,4 @@ func (m *Model) UpdateFileListDelegate(width int) {
 
 	rightDelegate := NewFileItemDelegate(m.theme, width, m.rightPane.columns)
 	m.rightPane.fileList.SetDelegate(rightDelegate)
-}
-
-func getConfigDir() string {
-	// Resolve and ensure the configuration directory exists.
-	userConfigDir, err := os.UserConfigDir()
-	if err != nil || userConfigDir == "" {
-		// Fallback to $HOME/.config if UserConfigDir is unavailable.
-		homeDir, herr := os.UserHomeDir()
-		if herr != nil || homeDir == "" {
-			userConfigDir = "."
-		} else {
-			userConfigDir = filepath.Join(homeDir, ".config")
-		}
-	}
-	cfgDir := filepath.Join(userConfigDir, "cute")
-	// Best-effort creation; ignore error so the TUI can still start.
-	_ = os.MkdirAll(cfgDir, 0o755)
-
-	return cfgDir
 }

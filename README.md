@@ -5,7 +5,6 @@
 - A two‑pane layout (file list + preview)
 - Text previews (with `bat` when available)
 - Image previews using Kitty graphics (with debounced, libvips‑powered thumbnails)
-- Lua‑based configuration for themes and commands
 
 ---
 
@@ -72,25 +71,6 @@ Image previews will appear on the right when:
 
 - You are running inside a Kitty‑compatible terminal, and
 - The selected file is an image within the configured size limit.
-
----
-
-## Configuration (Lua)
-
-`cute-fm` loads a Lua configuration file to customize **themes** and **commands**.
-
-Search order for `config.lua`:
-
-1. `$XDG_CONFIG_HOME/cute/config.lua` (or `~/.config/cute/config.lua` on most systems)
-2. `<binary-dir>/config/config.lua`
-3. `./config/config.lua` (useful during development)
-
-The Lua file can define:
-
-- A `theme` table with simple color overrides.
-- A `commands` table mapping command names to Lua functions that receive context about the selected file and can return output, new working directory, view mode, etc.
-
-See `config/config.lua` in the repo as a starting point.
 
 ---
 
