@@ -5,7 +5,7 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-func GetSettings() []MenuChoice {
+func GetSettingChoices() []MenuChoice {
 	customStartDirInput := textinput.New()
 	customStartDirInput.Placeholder = "Custom..."
 	customStartDirInputStyle := lipgloss.NewStyle().
@@ -24,6 +24,7 @@ func GetSettings() []MenuChoice {
 		},
 		{
 			Label: "Current directory",
+			Type:  CHOICE_TYPE,
 		},
 		{
 			Label: customStartDirInputStyle,
@@ -48,6 +49,7 @@ func GetSettings() []MenuChoice {
 		},
 		{
 			Label: "Preview",
+			Type:  CHOICE_TYPE,
 		},
 
 		// {

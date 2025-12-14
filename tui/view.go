@@ -185,21 +185,21 @@ func (m Model) View() tea.View {
 
 	case ModeColumnVisibility:
 		windowLayer := m.Windows.Column(m, ColumnWindowArgs{
-			Title: "Column Visibilty",
+			Title: "Column Visibility",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, windowLayer)
 
 	case ModeCommand:
 		commandLayer := m.Windows.Command(m, CommandWindowArgs{
 			Title:       "Command",
-			Placeholder: "Enter commnad..",
+			Placeholder: "Enter command..",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case ModeCopy:
 		commandLayer := m.Windows.Command(m, CommandWindowArgs{
 			Title:       "Copy",
-			Placeholder: "Enter desination...",
+			Placeholder: "Enter destination...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
@@ -217,7 +217,7 @@ func (m Model) View() tea.View {
 	case ModeMove:
 		commandLayer := m.Windows.Command(m, CommandWindowArgs{
 			Title:       "Move",
-			Placeholder: "Enter desination...",
+			Placeholder: "Enter destination...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
@@ -237,7 +237,7 @@ func (m Model) View() tea.View {
 
 	case ModeRename:
 		commandLayer := m.Windows.Command(m, CommandWindowArgs{
-			Title:       "Remane",
+			Title:       "Rename",
 			Placeholder: "New name...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)

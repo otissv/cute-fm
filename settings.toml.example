@@ -1,0 +1,8 @@
+startDir = 'Home'
+splitPane = 'Info'
+fileMode = 'All'
+ColumnVisibility = ['Permissions', 'User', 'Group', 'DateModified', 'Name']
+
+[sorting]
+column = 'Name'
+direction = 'asc'

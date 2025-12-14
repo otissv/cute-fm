@@ -11,7 +11,6 @@ import (
 	"cute/filesystem"
 )
 
-// SettingsTOML represents the TOML structure for settings
 type SettingsTOML struct {
 	StartDir  string   `toml:"startDir"`
 	SplitPane string   `toml:"splitPane"`
@@ -100,9 +99,9 @@ func MergeSettings(defaultSettings Settings, tomlSettings *SettingsTOML) Setting
 
 	if tomlSettings.SplitPane != "" {
 		switch strings.ToLower(tomlSettings.SplitPane) {
-		case "info", "file_info":
+		case "info":
 			merged.SplitPane = FileInfoSplitPaneType
-		case "list", "file_list":
+		case "list":
 			merged.SplitPane = FileListSplitPaneType
 		case "preview":
 			merged.SplitPane = PreviewPaneType
@@ -176,5 +175,106 @@ func parseColumnName(name string) filesystem.FileInfoColumn {
 		return filesystem.ColumnName
 	default:
 		return ""
+	}
+}
+
+func SaveSettings(m Model) error {
+	configDir := m.GetConfigDir()
+	settingsPath := filepath.Join(configDir, "settings.toml")
+	tomlSettings := SettingsToTOML(m)
+
+	data, err := toml.Marshal(tomlSettings)
+	if err != nil {
+		return fmt.Errorf("failed to marshal settings: %w", err)
+	}
+
+	if err := os.WriteFile(settingsPath, data, 0o644); err != nil {
+		return fmt.Errorf("failed to write settings.toml: %w", err)
+	}
+
+	return nil
+}
+
+func SettingsToTOML(m Model) SettingsTOML {
+	settings := m.settings
+	sortBy := m.GetSortColumnBy()
+	startDir := settings.StartDir
+
+	if startDir != "" {
+		if homeDir, err := os.UserHomeDir(); err == nil && startDir == homeDir {
+			startDir = "Home"
+		}
+	}
+
+	splitPane := ""
+	switch settings.SplitPane {
+	case FileInfoSplitPaneType:
+		splitPane = "info"
+	case FileListSplitPaneType:
+		splitPane = "list"
+	case PreviewPaneType:
+		splitPane = "preview"
+	default:
+		splitPane = "info"
+	}
+
+	fileMode := ""
+	switch settings.FileListMode {
+	case FileListModeList:
+		fileMode = "all"
+	case FileListModeFile:
+		fileMode = "files"
+	case FileListModeDir:
+		fileMode = "dirs"
+	default:
+		fileMode = "all"
+	}
+
+	columns := make([]string, 0, len(settings.ColumnVisibility))
+	for _, col := range settings.ColumnVisibility {
+		columns = append(columns, string(col))
+	}
+
+	sortColumn := ""
+	if sortBy.Column() != "" {
+		sortColumn = string(sortBy.Column())
+	} else if settings.SortColumnBy != "" {
+		sortColumn = string(settings.SortColumnBy)
+	} else {
+		sortColumn = "Name"
+	}
+
+	sortDirection := ""
+	if sortBy.Direction() != "" {
+		switch sortBy.Direction() {
+		case SortingAsc:
+			sortDirection = "asc"
+		case SortingDesc:
+			sortDirection = "desc"
+		default:
+			sortDirection = "asc"
+		}
+	} else if settings.SortColumnDirection != "" {
+		switch settings.SortColumnDirection {
+		case SortingAsc:
+			sortDirection = "asc"
+		case SortingDesc:
+			sortDirection = "desc"
+		default:
+			sortDirection = "asc"
+		}
+	} else {
+		sortDirection = "asc"
+	}
+
+	return SettingsTOML{
+		StartDir:  startDir,
+		SplitPane: splitPane,
+		FileMode:  fileMode,
+		Sorting: Sorting{
+			Column:    sortColumn,
+			Direction: sortDirection,
+		},
+		Columns: columns,
 	}
 }

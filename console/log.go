@@ -1,6 +1,7 @@
 package console
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -25,4 +26,12 @@ func Log(format string, args ...interface{}) {
 	defer f.Close()
 
 	_, _ = f.WriteString(line)
+}
+
+func Json[T any](value T) {
+	data, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		// handle error
+	}
+	Log("%s", data)
 }

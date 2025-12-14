@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"os"
+
 	"charm.land/lipgloss/v2"
 )
 
@@ -8,11 +10,29 @@ func SettingsWindow(m Model) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()
 
-	settings := GetSettings()
+	settings := GetSettingChoices()
 	choices := settings
+	selected := map[string]string{}
 
-	selected := map[string]string{
-		choices[0].Label: choices[0].Label,
+	// Map SplitPane setting to menu label
+	switch m.settings.SplitPane {
+	case PreviewPaneType:
+		selected["Preview"] = "Preview"
+	case FileInfoSplitPaneType:
+		selected["File Info"] = "File Info"
+	case FileListSplitPaneType:
+		selected["File List"] = "File List"
+	default:
+		selected["None"] = "None"
+	}
+
+	// Map StartDir setting to menu label
+	if m.settings.StartDir != "" {
+		if homeDir, err := os.UserHomeDir(); err == nil && m.settings.StartDir == homeDir {
+			selected["Home directory"] = "Home directory"
+		} else {
+			selected["Current directory"] = "Current directory"
+		}
 	}
 
 	menu := NewMenu(MenuArgs{

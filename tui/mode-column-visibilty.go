@@ -85,9 +85,17 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.Quit.Matches(keyMsg.String()):
 		SetQuitMode()
 		return m, nil
+
 	// Enter normal mode
 	case bindings.Select.Matches(keyMsg.String()) ||
 		bindings.Cancel.Matches(keyMsg.String()):
+		pane := m.GetActivePane()
+		m.settings.ColumnVisibility = pane.columns
+
+		if err := SaveSettings(m); err != nil {
+			_ = err
+		}
+
 		ActiveTuiMode = ModeNormal
 		m.menuCursorIndex = 0
 		return m, nil

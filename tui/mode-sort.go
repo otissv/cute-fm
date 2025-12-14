@@ -52,8 +52,7 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		col := filesystem.ColumnNames[cur]
 
-		// Toggle sort direction when selecting the same column; otherwise start
-		// with ascending order for a newly selected column.
+		// Toggle sort direction when selecting the same column
 		if m.sortColumnBy.column == col {
 			if m.sortColumnBy.direction == SortingAsc {
 				m.sortColumnBy.direction = SortingDesc
@@ -71,6 +70,13 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case bindings.Cancel.Matches(keyMsg.String()):
+		m.settings.SortColumnBy = m.sortColumnBy.column
+		m.settings.SortColumnDirection = m.sortColumnBy.direction
+
+		if err := SaveSettings(m); err != nil {
+			_ = err
+		}
+
 		ActiveTuiMode = ModeNormal
 		m.menuCursorIndex = 0
 		return m, nil

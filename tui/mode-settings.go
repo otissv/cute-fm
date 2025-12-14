@@ -20,7 +20,7 @@ var (
 
 func (m Model) SettingsMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	bindings := GetKeyBindings()
-	settings := GetSettings()
+	settings := GetSettingChoices()
 
 	// Only handle key messages here; ignore everything else.
 	keyMsg, ok := msg.(tea.KeyMsg)
@@ -34,8 +34,11 @@ func (m Model) SettingsMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		SetQuitMode()
 		return m, nil
 
-	// Enter normal mode-
+	// Enter normal mode
 	case bindings.Cancel.Matches(keyMsg.String()):
+		if err := SaveSettings(m); err != nil {
+			_ = err
+		}
 		ActiveTuiMode = ModeNormal
 		return m, nil
 
@@ -43,7 +46,7 @@ func (m Model) SettingsMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		SettingCursorIndex += 1
 
-		if SettingCursorIndex == len(GetSettings()) {
+		if SettingCursorIndex == len(GetSettingChoices()) {
 			SettingCursorIndex = 1
 		}
 

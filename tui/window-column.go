@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"cute/console"
 	"cute/filesystem"
 
 	"charm.land/lipgloss/v2"
@@ -36,8 +35,6 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 		}
 	}
 
-	console.Log("%v", menuChoices)
-
 	menuCursorIndex := m.GetMenuCursorIndex()
 	if menuCursorIndex < 0 {
 		menuCursorIndex = 0
@@ -52,6 +49,9 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 		sortBy := m.GetSortColumnBy()
 		if sortByColumn := sortBy.Column(); sortByColumn != "" {
 			selectedColumns = []filesystem.FileInfoColumn{sortByColumn}
+		} else if m.settings.SortColumnBy != "" {
+			// Fall back to settings if current sort column is not set
+			selectedColumns = []filesystem.FileInfoColumn{m.settings.SortColumnBy}
 		}
 	} else {
 		selectedColumns = m.GetColumnVisibility()
