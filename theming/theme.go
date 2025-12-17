@@ -27,7 +27,8 @@ var (
 
 	background               = ""
 	foreground               = color1
-	borderColor              = color2
+	borderColor              = color11
+	activeBorderColor        = color2
 	primary                  = color2
 	muted                    = color11
 	secondary                = color3
@@ -162,37 +163,39 @@ type FileListMode struct {
 }
 
 type Theme struct {
-	Foreground     string
-	Background     string
-	Primary        string
-	Secondary      string
-	Muted          string
-	BorderColor    string
-	CommandBar     BarStyle
-	CurrentDir     StyleColor
-	Dialog         DialogStyle
-	FieldColors    map[string]string
-	FileList       FileListStyle
-	FileTypeColors map[string]string
-	Header         StyleColor
-	Permissions    PermissionsStyle
-	FileInfo       Style
-	SearchBar      BarStyle
-	Selection      StyleColor
-	StatusBar      Style
-	SudoMode       StyleColor
-	TuiMode        TuiMode
-	ViewMode       StyleColor
+	Foreground        string
+	Background        string
+	Primary           string
+	Secondary         string
+	Muted             string
+	BorderColor       string
+	ActiveBorderColor string
+	CommandBar        BarStyle
+	CurrentDir        StyleColor
+	Dialog            DialogStyle
+	FieldColors       map[string]string
+	FileList          FileListStyle
+	FileTypeColors    map[string]string
+	Header            StyleColor
+	Permissions       PermissionsStyle
+	FileInfo          Style
+	SearchBar         BarStyle
+	Selection         StyleColor
+	StatusBar         Style
+	SudoMode          StyleColor
+	TuiMode           TuiMode
+	ViewMode          StyleColor
 }
 
 func GetTheme() Theme {
 	theme := Theme{
-		Background:  background,
-		Foreground:  foreground,
-		BorderColor: borderColor,
-		Primary:     primary,
-		Secondary:   secondary,
-		Muted:       muted,
+		Background:        background,
+		Foreground:        foreground,
+		BorderColor:       borderColor,
+		Primary:           primary,
+		Secondary:         secondary,
+		Muted:             muted,
+		ActiveBorderColor: activeBorderColor,
 
 		CommandBar: BarStyle{
 			Background:    commandBarBackground,

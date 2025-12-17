@@ -38,16 +38,11 @@ func (m Model) GotoMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.Enter.Matches(keyMsg.String()):
 		inputValue := strings.TrimSpace(m.commandInput.Value())
 
-		// Delegate the actual movement to a shared helper so that command
-		// mode and goto mode both support the same relative-jump syntax:
-		//
-		//   "10"   -> move 10 rows down
-		//   "10-"  -> move 10 rows up
-		//   "-10"  -> move 10 rows up
-		//   "10"   -> move 10 rows down
-		//   "10-"  -> move 10 rows up
-		//   "-10"  -> move 10 rows up
-		m.applyRelativeGoto(inputValue)
+		if PreviousTuiMode == ModeComputer {
+			m.applyRelativeGotoComputerList(inputValue)
+		} else {
+			m.applyRelativeGoto(inputValue)
+		}
 
 		m.commandInput.Blur()
 		m.commandInput.SetValue("")
@@ -68,17 +63,6 @@ func (m Model) GotoMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-// applyRelativeGoto moves the current selection in the file list according to
-// a Vim-style relative offset encoded in inputValue.
-//
-// Supported forms (after trimming whitespace):
-//
-//	"10"   -> move 10 rows down
-//	"10-"  -> move 10 rows up
-//	"-10"  -> move 10 rows up
-//
-// It returns true if a valid movement was performed, or false if the input was
-// not a valid relative offset or if there are no files to move between.
 func (m *Model) applyRelativeGoto(inputValue string) bool {
 	inputValue = strings.TrimSpace(inputValue)
 	pane := m.GetActivePane()
@@ -138,6 +122,68 @@ func (m *Model) applyRelativeGoto(inputValue string) bool {
 
 	pane.fileList.Select(target)
 	m.UpdateFileInfoPane()
+
+	return true
+}
+
+func (m *Model) applyRelativeGotoComputerList(inputValue string) bool {
+	inputValue = strings.TrimSpace(inputValue)
+	items := m.computerList.Items()
+
+	if inputValue == "" || len(items) == 0 {
+		return false
+	}
+
+	moveBackward := false
+
+	// A trailing "-" or starts with "-" means "move up".
+	if strings.HasSuffix(inputValue, "-") || strings.HasPrefix(inputValue, "-") {
+		moveBackward = true
+		inputValue = strings.TrimSpace(strings.TrimSuffix(inputValue, "-"))
+		if inputValue == "" {
+			return false
+		}
+	}
+
+	n, err := strconv.Atoi(inputValue)
+	if err != nil {
+		return false
+	}
+
+	// A leading "-" also means "move up".
+	if n < 0 {
+		moveBackward = true
+		n = -n
+	}
+
+	if n <= 0 {
+		return false
+	}
+
+	current := m.computerList.Index()
+	if current < 0 {
+		current = 0
+	}
+
+	var target int
+	if moveBackward {
+		target = current - n
+	} else {
+		target = current + n
+	}
+
+	if target < 0 {
+		target = 0
+	}
+	if target >= len(items) {
+		target = len(items) - 1
+	}
+
+	if target == current {
+		return false
+	}
+
+	m.computerList.Select(target)
 
 	return true
 }

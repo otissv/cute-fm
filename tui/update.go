@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -23,6 +24,45 @@ func SetQuitMode() {
 // Update handles messages and updates the model
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case filesystem.DeviceChangeMsg:
+		deviceMsg := msg
+		m.lastDevices = deviceMsg.Devices
+		filesystem.CleanDeviceNames(deviceMsg.Devices)
+		deviceItems := DeviceInfosToItems(deviceMsg.Devices)
+		m.computerList.SetItems(deviceItems)
+		currentIdx := m.computerList.Index()
+		if currentIdx < 0 || currentIdx >= len(deviceItems) {
+			if len(deviceItems) > 0 {
+				m.computerList.Select(0)
+			}
+		}
+
+		// Handle added devices (newly mounted)
+		if len(deviceMsg.Added) > 0 {
+			// Optionally: reload current directory if a device was mounted
+			// or show a notification. For now, we just track the change.
+			// You can extend this to show notifications or update UI.
+		}
+
+		// Handle removed devices (unmounted)
+		if len(deviceMsg.Removed) > 0 {
+			// If current directory is on an unmounted device, navigate away
+			pane := m.GetActivePane()
+			for _, removed := range deviceMsg.Removed {
+				if strings.HasPrefix(pane.currentDir, removed.MountPoint) {
+					// Navigate to home directory or parent
+					if homeDir, err := os.UserHomeDir(); err == nil {
+						m.ChangeDirectory(homeDir)
+					} else {
+						m.ChangeDirectory("/")
+					}
+					break
+				}
+			}
+		}
+
+		return m, filesystem.WatchDevicesWithState(2*time.Second, m.lastDevices)
+
 	case tea.WindowSizeMsg:
 		// Handle window resize
 		m.width = msg.Width
@@ -41,6 +81,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return m, nil
 
+	case tea.MouseClickMsg:
+		// Handle mouse clicks
+		// You can add button click handling here
+		// Example:
+		// if msg.Button == tea.MouseButtonLeft {
+		//     // Check if click is on any button
+		//     // Handle button clicks
+		// }
+		// For now, pass through to allow other components to handle mouse events
+		return m, nil
+	case tea.MouseMotionMsg:
+		// Handle mouse movement (for hover effects, etc.)
+		// Pass through to allow other components to handle mouse events
+		return m, nil
+
 	case tea.KeyMsg:
 
 		if ActiveTuiMode == ModeAddFile {
@@ -57,6 +112,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if ActiveTuiMode == ModeCommand {
 			return m.CommandMode(msg)
+		}
+
+		if ActiveTuiMode == ModeComputer {
+			return m.ComputerMode(msg)
 		}
 
 		if ActiveTuiMode == ModeCopy {
@@ -377,19 +436,19 @@ func (m *Model) applySorting(pane *filePane) {
 		var less bool
 
 		switch sortBy.column {
-		case filesystem.ColumnPermissions:
+		case filesystem.FileInfoColumns.Permissions:
 			less = a.Permissions < b.Permissions
-		case filesystem.ColumnSize:
+		case filesystem.FileInfoColumns.Size:
 			less = parseHumanSize(a.Size) < parseHumanSize(b.Size)
-		case filesystem.ColumnMimeType:
+		case filesystem.FileInfoColumns.MimeType:
 			less = a.MimeType < b.MimeType
-		case filesystem.ColumnUser:
+		case filesystem.FileInfoColumns.User:
 			less = strings.ToLower(a.User) < strings.ToLower(b.User)
-		case filesystem.ColumnGroup:
+		case filesystem.FileInfoColumns.Group:
 			less = strings.ToLower(a.Group) < strings.ToLower(b.Group)
-		case filesystem.ColumnDateModified:
+		case filesystem.FileInfoColumns.Modified:
 			less = parseDateModified(a.DateModified).Before(parseDateModified(b.DateModified))
-		case filesystem.ColumnName:
+		case filesystem.FileInfoColumns.Name:
 			if a.IsDir && !b.IsDir {
 				return true
 			}

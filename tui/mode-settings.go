@@ -42,7 +42,7 @@ func (m Model) SettingsMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		ActiveTuiMode = ModeNormal
 		return m, nil
 
-	case bindings.Down.Matches(keyMsg.String()):
+	case bindings.CursorDown.Matches(keyMsg.String()):
 
 		SettingCursorIndex += 1
 
@@ -56,7 +56,7 @@ func (m Model) SettingsMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return m, nil
 
-	case bindings.Up.Matches(keyMsg.String()):
+	case bindings.CursorUp.Matches(keyMsg.String()):
 		SettingCursorIndex -= 1
 
 		if SettingCursorIndex == 0 {

@@ -17,15 +17,15 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch {
 	// Move cursor up within the column list.
-	case bindings.Up.Matches(keyMsg.String()):
+	case bindings.CursorUp.Matches(keyMsg.String()):
 		if m.menuCursorIndex > 0 {
 			m.menuCursorIndex--
 		}
 		return m, nil
 
 	// Move cursor down within the column list.
-	case bindings.Down.Matches(keyMsg.String()):
-		maxIdx := len(filesystem.ColumnNames) - 1
+	case bindings.CursorDown.Matches(keyMsg.String()):
+		maxIdx := len(filesystem.FileInfoColumnNames) - 1
 		if m.menuCursorIndex < maxIdx {
 			m.menuCursorIndex++
 		}
@@ -38,7 +38,7 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Apply sorting based on the currently focused column.
 	case bindings.Select.Matches(keyMsg.String()):
-		if len(filesystem.ColumnNames) == 0 {
+		if len(filesystem.FileInfoColumnNames) == 0 {
 			return m, nil
 		}
 
@@ -46,11 +46,11 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if cur < 0 {
 			cur = 0
 		}
-		if cur >= len(filesystem.ColumnNames) {
-			cur = len(filesystem.ColumnNames) - 1
+		if cur >= len(filesystem.FileInfoColumnNames) {
+			cur = len(filesystem.FileInfoColumnNames) - 1
 		}
 
-		col := filesystem.ColumnNames[cur]
+		col := filesystem.FileInfoColumnNames[cur]
 
 		// Toggle sort direction when selecting the same column
 		if m.sortColumnBy.column == col {

@@ -14,14 +14,15 @@ import (
 )
 
 const (
-	colMarker = 5
-	colIndex  = 5
-	colPerms  = 11
-	colSize   = 6
-	colType   = 16
-	colUser   = 8
-	colGroup  = 8
-	colDate   = 14
+	colMarkerWidth = 5
+	colIndexWidth  = 5
+	colPermsWidth  = 11
+	colSizeWidth   = 6
+	colTypeWidth   = 16
+	colUserWidth   = 8
+	colGroupWidth  = 8
+	colDateWidth   = 14
+	colNameWidth   = 20
 )
 
 type FileItem struct {
@@ -29,24 +30,19 @@ type FileItem struct {
 	Marked bool
 }
 
-// FilterValue returns the file name for filtering.
 func (i FileItem) FilterValue() string {
 	return i.Info.Name
 }
 
-// FileItemDelegate handles rendering of file items in the list.
 type FileItemDelegate struct {
 	theme      theming.Theme
 	totalWidth int
-	// columns defines which FileInfo columns should be rendered for each row,
-	// in order, excluding the leading index column which is always shown.
-	columns []filesystem.FileInfoColumn
+	columns    []filesystem.FileInfoColumn
 }
 
-// NewFileItemDelegate creates a new delegate for rendering file items.
 func NewFileItemDelegate(theme theming.Theme, width int, columns []filesystem.FileInfoColumn) FileItemDelegate {
 	if len(columns) == 0 {
-		columns = filesystem.ColumnNames
+		columns = filesystem.FileInfoColumnNames
 	}
 	return FileItemDelegate{
 		theme:      theme,
@@ -75,9 +71,8 @@ func (d FileItemDelegate) Render(w io.Writer, m list.Model, index int, item list
 
 	isCursor := index == m.Index()
 	isMarked := fi.Marked
+
 	// Compute a Vim-style line number:
-	//   - The currently selected row shows 0.
-	//   - All other rows show the absolute distance from the selection.
 	displayIndex := index + 1
 	current := m.Index()
 	if current >= 0 {
@@ -134,22 +129,22 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 	}
 
 	permTextRaw := renderPermissions(theme, fi, bgColor)
-	permText := padCellWithBG(permTextRaw, colPerms, bgColor)
+	permText := truncateAndPadCell(permTextRaw, colPermsWidth, bgColor)
 
-	// Index column: value is already prepared by the caller (relative/absolute).
-	indexText := padCellWithBG(indexStyle.Render(fmt.Sprintf("%d", index)), colIndex, bgColor)
-	userText := padCellWithBG(userStyle.Render(user), colUser, bgColor)
-	groupText := padCellWithBG(groupStyle.Render(group), colGroup, bgColor)
-	sizeText := padCellWithBG(sizeStyle.Render(size), colSize, bgColor)
-	typeText := padCellWithBG(typeStyle.Render(mime), colType, bgColor)
-	timeText := padCellWithBG(timeStyle.Render(date), colDate, bgColor)
+	indexText := truncateAndPadCell(indexStyle.Render(fmt.Sprintf("%d", index)), colIndexWidth, bgColor)
+	userText := truncateAndPadCell(userStyle.Render(user), colUserWidth, bgColor)
+	groupText := truncateAndPadCell(groupStyle.Render(group), colGroupWidth, bgColor)
+	sizeText := truncateAndPadCell(sizeStyle.Render(size), colSizeWidth, bgColor)
+	typeText := truncateAndPadCell(typeStyle.Render(mime), colTypeWidth, bgColor)
+	timeText := truncateAndPadCell(timeStyle.Render(date), colDateWidth, bgColor)
 
 	nameColorSpec := theme.FileTypeColors[fi.Type]
 	nameStyle := theming.StyleFromSpec(nameColorSpec)
 	if bgColor != "" {
 		nameStyle = nameStyle.Background(lipgloss.Color(bgColor))
 	}
-	nameText := nameStyle.Render(name)
+
+	nameText := truncateAndPadCell(nameStyle.Render(name), colNameWidth, bgColor)
 
 	lineCols := []string{}
 
@@ -166,28 +161,31 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 			markerStyle = markerStyle.Background(lipgloss.Color(bgColor))
 		}
 
-		markerText := padCellWithBG(markerStyle.Render(markerContent), colMarker, bgColor)
+		markerText := truncateAndPadCell(markerStyle.Render(markerContent), colMarkerWidth, bgColor)
 		lineCols = append(lineCols, markerText)
 	}
 
 	lineCols = append(lineCols, indexText)
+	lineCols = append(lineCols, nameText)
 
 	for _, col := range d.columns {
+		// Skip name column since it's already added above
+		if col == filesystem.FileInfoColumns.Name {
+			continue
+		}
 		switch col {
-		case filesystem.ColumnPermissions:
+		case filesystem.FileInfoColumns.Permissions:
 			lineCols = append(lineCols, permText)
-		case filesystem.ColumnSize:
+		case filesystem.FileInfoColumns.Size:
 			lineCols = append(lineCols, sizeText)
-		case filesystem.ColumnMimeType:
+		case filesystem.FileInfoColumns.MimeType:
 			lineCols = append(lineCols, typeText)
-		case filesystem.ColumnUser:
+		case filesystem.FileInfoColumns.User:
 			lineCols = append(lineCols, userText)
-		case filesystem.ColumnGroup:
+		case filesystem.FileInfoColumns.Group:
 			lineCols = append(lineCols, groupText)
-		case filesystem.ColumnDateModified:
+		case filesystem.FileInfoColumns.Modified:
 			lineCols = append(lineCols, timeText)
-		case filesystem.ColumnName:
-			lineCols = append(lineCols, nameText)
 		}
 	}
 
@@ -198,20 +196,29 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 
 	line := strings.Join(lineCols, sep)
 
-	// Pad the end of the line so that the row's background extends to the edge.
-	if d.totalWidth > 0 && bgColor != "" {
+	// Ensure the line never exceeds totalWidth - truncate if necessary
+	if d.totalWidth > 0 {
 		lineWidth := lipgloss.Width(line)
-		if lineWidth < d.totalWidth {
-			missing := d.totalWidth - lineWidth
-			bg := lipgloss.Color(bgColor)
-			spaceStyle := lipgloss.NewStyle().Background(bg)
-			pad := spaceStyle.Render(" ")
+		if lineWidth > d.totalWidth {
+			// Truncate the entire line to fit
+			line = truncateString(line, d.totalWidth)
+		}
 
-			var tail strings.Builder
-			for i := 0; i < missing; i++ {
-				tail.WriteString(pad)
+		// Pad the end of the line so that the row's background extends to the edge.
+		if bgColor != "" {
+			lineWidth = lipgloss.Width(line)
+			if lineWidth < d.totalWidth {
+				missing := d.totalWidth - lineWidth
+				bg := lipgloss.Color(bgColor)
+				spaceStyle := lipgloss.NewStyle().Background(bg)
+				pad := spaceStyle.Render(" ")
+
+				var tail strings.Builder
+				for i := 0; i < missing; i++ {
+					tail.WriteString(pad)
+				}
+				line += tail.String()
 			}
-			line += tail.String()
 		}
 	}
 
@@ -263,43 +270,6 @@ func renderPermissions(theme theming.Theme, fi filesystem.FileInfo, bgColor stri
 	return b.String()
 }
 
-// padCell right-pads the given content with spaces so that its visible width
-// (taking into account ANSI escape sequences used by lipgloss) is at least w.
-func padCell(content string, w int) string {
-	width := lipgloss.Width(content)
-	if width >= w {
-		return content
-	}
-	return content + strings.Repeat(" ", w-width)
-}
-
-func padCellWithBG(content string, w int, bgColor string) string {
-	width := lipgloss.Width(content)
-	if width >= w {
-		return content
-	}
-
-	// If no background color is specified, fall back to the plain padding.
-	if bgColor == "" {
-		return padCell(content, w)
-	}
-
-	missing := w - width
-	bg := lipgloss.Color(bgColor)
-	spaceStyle := lipgloss.NewStyle().Background(bg)
-
-	var b strings.Builder
-	b.WriteString(content)
-
-	// Render one styled space and reuse it to avoid repeated allocations.
-	pad := spaceStyle.Render(" ")
-	for i := 0; i < missing; i++ {
-		b.WriteString(pad)
-	}
-
-	return b.String()
-}
-
 func FileInfosToItems(files []filesystem.FileInfo, marked map[string]bool) []list.Item {
 	items := make([]list.Item, len(files))
 	for i, f := range files {
@@ -341,30 +311,30 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 	}
 
 	switch args.SortColumnBy.column {
-	case filesystem.ColumnPermissions:
+	case filesystem.FileInfoColumns.Permissions:
 		permsHeading = sortByDirection + permsHeading
-	case filesystem.ColumnSize:
+	case filesystem.FileInfoColumns.Size:
 		sizeHeading = sortByDirection + sizeHeading
-	case filesystem.ColumnMimeType:
+	case filesystem.FileInfoColumns.MimeType:
 		typeHeading = sortByDirection + typeHeading
-	case filesystem.ColumnUser:
+	case filesystem.FileInfoColumns.User:
 		userHeading = sortByDirection + userHeading
-	case filesystem.ColumnGroup:
+	case filesystem.FileInfoColumns.Group:
 		groupHeading = sortByDirection + groupHeading
-	case filesystem.ColumnDateModified:
+	case filesystem.FileInfoColumns.Modified:
 		dateHeading = sortByDirection + dateHeading
-	case filesystem.ColumnName:
+	case filesystem.FileInfoColumns.Name:
 		nameHeading = sortByDirection + nameHeading
 	}
 
-	indexText := padCellWithBG(baseStyle.Render(" "), colIndex, bgColor)
-	permsText := padCellWithBG(baseStyle.Render(permsHeading), colPerms, bgColor)
-	sizeText := padCellWithBG(baseStyle.Render(sizeHeading), colSize, bgColor)
-	typeText := padCellWithBG(baseStyle.Render(typeHeading), colType, bgColor)
-	userText := padCellWithBG(baseStyle.Render(userHeading), colUser, bgColor)
-	groupText := padCellWithBG(baseStyle.Render(groupHeading), colGroup, bgColor)
-	dateText := padCellWithBG(baseStyle.Render(dateHeading), colDate, bgColor)
-	nameText := baseStyle.Render(nameHeading) // last column can flow to the right
+	indexText := truncateAndPadCell(baseStyle.Render(" "), colIndexWidth, bgColor)
+	permsText := truncateAndPadCell(baseStyle.Render(permsHeading), colPermsWidth, bgColor)
+	sizeText := truncateAndPadCell(baseStyle.Render(sizeHeading), colSizeWidth, bgColor)
+	typeText := truncateAndPadCell(baseStyle.Render(typeHeading), colTypeWidth, bgColor)
+	userText := truncateAndPadCell(baseStyle.Render(userHeading), colUserWidth, bgColor)
+	groupText := truncateAndPadCell(baseStyle.Render(groupHeading), colGroupWidth, bgColor)
+	dateText := truncateAndPadCell(baseStyle.Render(dateHeading), colDateWidth, bgColor)
+	nameText := truncateAndPadCell(baseStyle.Render(nameHeading), colNameWidth, bgColor) // Now also truncated and padded
 
 	lineCols := []string{}
 
@@ -372,47 +342,60 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 	if ActiveTuiMode == ModeSelect {
 		markerStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color(args.Theme.FileList.Foreground))
-		markerText := padCellWithBG(markerStyle.Render("[   ]"), colMarker, bgColor)
+		markerText := truncateAndPadCell(markerStyle.Render("[   ]"), colMarkerWidth, bgColor)
 		lineCols = append(lineCols, markerText)
 	}
 
 	lineCols = append(lineCols, indexText)
 
+	// Name column is always first (column 1) after index
+	lineCols = append(lineCols, nameText)
+
 	for _, col := range args.Columns {
+		// Skip name column since it's already added above
+		if col == filesystem.FileInfoColumns.Name {
+			continue
+		}
 		switch col {
-		case filesystem.ColumnPermissions:
+		case filesystem.FileInfoColumns.Permissions:
 			lineCols = append(lineCols, permsText)
-		case filesystem.ColumnSize:
+		case filesystem.FileInfoColumns.Size:
 			lineCols = append(lineCols, sizeText)
-		case filesystem.ColumnMimeType:
+		case filesystem.FileInfoColumns.MimeType:
 			lineCols = append(lineCols, typeText)
-		case filesystem.ColumnUser:
+		case filesystem.FileInfoColumns.User:
 			lineCols = append(lineCols, userText)
-		case filesystem.ColumnGroup:
+		case filesystem.FileInfoColumns.Group:
 			lineCols = append(lineCols, groupText)
-		case filesystem.ColumnDateModified:
+		case filesystem.FileInfoColumns.Modified:
 			lineCols = append(lineCols, dateText)
-		case filesystem.ColumnName:
-			lineCols = append(lineCols, nameText)
 		}
 	}
 
 	sep := lipgloss.NewStyle().Background(bg).Render(" ")
 	line := strings.Join(lineCols, sep)
 
-	// Pad out to totalWidth so the background fills the entire content area.
-	if args.TotalWidth > 0 && bgColor != "" {
+	// Ensure header line never exceeds totalWidth
+	if args.TotalWidth > 0 {
 		lineWidth := lipgloss.Width(line)
-		if lineWidth < args.TotalWidth {
-			missing := args.TotalWidth - lineWidth
-			spaceStyle := lipgloss.NewStyle().Background(bg)
-			pad := spaceStyle.Render(" ")
+		if lineWidth > args.TotalWidth {
+			line = truncateString(line, args.TotalWidth)
+		}
 
-			var tail strings.Builder
-			for i := 0; i < missing; i++ {
-				tail.WriteString(pad)
+		// Pad out to totalWidth so the background fills the entire content area.
+		if bgColor != "" {
+			lineWidth = lipgloss.Width(line)
+			if lineWidth < args.TotalWidth {
+				missing := args.TotalWidth - lineWidth
+				spaceStyle := lipgloss.NewStyle().Background(bg)
+				pad := spaceStyle.Render(" ")
+
+				var tail strings.Builder
+				for i := 0; i < missing; i++ {
+					tail.WriteString(pad)
+				}
+				line += tail.String()
 			}
-			line += tail.String()
 		}
 	}
 

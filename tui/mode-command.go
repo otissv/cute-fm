@@ -45,20 +45,20 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		ActiveTuiMode = PreviousTuiMode
 		return m, nil
 
-	// Auto complete command
+		// Auto complete command
 	case bindings.AutoComplete.Matches(keyMsg.String()):
 		m.completeCommand()
 		return m, nil
 
 	// Get previous command
-	case bindings.Up.Matches(keyMsg.String()):
+	case bindings.CursorUp.Matches(keyMsg.String()):
 		if len(m.commandHistory) > 0 {
 			m.navigateHistory(-1)
 			return m, nil
 		}
 
 	// Get next command
-	case bindings.Down.Matches(keyMsg.String()):
+	case bindings.CursorDown.Matches(keyMsg.String()):
 		if len(m.commandHistory) > 0 {
 			m.navigateHistory(1)
 			return m, nil
@@ -99,7 +99,7 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if res.OpenHelp {
-				m.activeWindow = WindowHelp
+				ActiveTuiMode = ModeHelp
 			}
 
 			if res.Output != "" {

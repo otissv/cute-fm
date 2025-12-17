@@ -125,8 +125,8 @@ func MergeSettings(defaultSettings Settings, tomlSettings *SettingsTOML) Setting
 
 	if len(tomlSettings.Columns) > 0 {
 		columns := make([]filesystem.FileInfoColumn, 0, len(tomlSettings.Columns))
-		for _, colName := range tomlSettings.Columns {
-			col := parseColumnName(colName)
+		for _, colNameWidth := range tomlSettings.Columns {
+			col := parseName(colNameWidth)
 			if col != "" {
 				columns = append(columns, col)
 			}
@@ -137,7 +137,7 @@ func MergeSettings(defaultSettings Settings, tomlSettings *SettingsTOML) Setting
 	}
 
 	if tomlSettings.Sorting.Column != "" {
-		col := parseColumnName(tomlSettings.Sorting.Column)
+		col := parseName(tomlSettings.Sorting.Column)
 		if col != "" {
 			merged.SortColumnBy = col
 		}
@@ -157,22 +157,22 @@ func MergeSettings(defaultSettings Settings, tomlSettings *SettingsTOML) Setting
 	return merged
 }
 
-func parseColumnName(name string) filesystem.FileInfoColumn {
+func parseName(name string) filesystem.FileInfoColumn {
 	switch strings.ToLower(name) {
 	case "permissions", "Permissions":
-		return filesystem.ColumnPermissions
+		return filesystem.FileInfoColumns.Permissions
 	case "size", "Size":
-		return filesystem.ColumnSize
+		return filesystem.FileInfoColumns.Size
 	case "type", "mimetype", "Type", "Mimetype":
-		return filesystem.ColumnMimeType
+		return filesystem.FileInfoColumns.MimeType
 	case "user", "User":
-		return filesystem.ColumnUser
+		return filesystem.FileInfoColumns.User
 	case "group", "Group":
-		return filesystem.ColumnGroup
+		return filesystem.FileInfoColumns.Group
 	case "datemodified", "date_modified", "date", "dateModified", "Date":
-		return filesystem.ColumnDateModified
+		return filesystem.FileInfoColumns.Modified
 	case "name", "Name":
-		return filesystem.ColumnName
+		return filesystem.FileInfoColumns.Name
 	default:
 		return ""
 	}

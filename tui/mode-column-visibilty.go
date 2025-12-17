@@ -16,16 +16,21 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch {
+	// Quit application
+	case bindings.Quit.Matches(keyMsg.String()):
+		SetQuitMode()
+		return m, nil
+
 	// Move cursor up within the column list.
-	case bindings.Up.Matches(keyMsg.String()):
+	case bindings.CursorUp.Matches(keyMsg.String()):
 		if m.menuCursorIndex > 0 {
 			m.menuCursorIndex--
 		}
 		return m, nil
 
 	// Move cursor down within the column list.
-	case bindings.Down.Matches(keyMsg.String()):
-		maxIdx := len(filesystem.ColumnNames) - 1
+	case bindings.CursorDown.Matches(keyMsg.String()):
+		maxIdx := len(filesystem.FileInfoColumnNames) - 1
 		if m.menuCursorIndex < maxIdx {
 			m.menuCursorIndex++
 		}
@@ -33,7 +38,7 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Toggle the currently focused column and stay in this mode.
 	case bindings.Select.Matches(keyMsg.String()):
-		if len(filesystem.ColumnNames) == 0 {
+		if len(filesystem.FileInfoColumnNames) == 0 {
 			return m, nil
 		}
 
@@ -41,17 +46,17 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if cur < 0 {
 			cur = 0
 		}
-		if cur >= len(filesystem.ColumnNames) {
-			cur = len(filesystem.ColumnNames) - 1
+		if cur >= len(filesystem.FileInfoColumnNames) {
+			cur = len(filesystem.FileInfoColumnNames) - 1
 		}
 
-		col := filesystem.ColumnNames[cur]
+		col := filesystem.FileInfoColumnNames[cur]
 
 		// Work on the active pane's column visibility.
 		pane := m.GetActivePane()
 
 		// Toggle presence of col in the columnVisibility set, but always rebuild
-		visible := make(map[filesystem.FileInfoColumn]bool, len(filesystem.ColumnNames))
+		visible := make(map[filesystem.FileInfoColumn]bool, len(filesystem.FileInfoColumnNames))
 		for _, c := range pane.columns {
 			visible[c] = true
 		}
@@ -64,7 +69,7 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Rebuild in canonical order.
 		newCols := make([]filesystem.FileInfoColumn, 0, len(visible))
-		for _, c := range filesystem.ColumnNames {
+		for _, c := range filesystem.FileInfoColumnNames {
 			if visible[c] {
 				newCols = append(newCols, c)
 			}
@@ -79,11 +84,6 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.UpdateFileListDelegate(listContentWidth)
 
-		return m, nil
-
-	// Quit application
-	case bindings.Quit.Matches(keyMsg.String()):
-		SetQuitMode()
 		return m, nil
 
 	// Enter normal mode

@@ -17,9 +17,7 @@ func main() {
 
 	m := tui.InitialModel(startDir)
 
-	tui.InjectIntoModel(&m)
-
-	p := tea.NewProgram(m)
+	p := tea.NewProgram(m) // Mouse support is enabled in View() via MouseMode
 
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error running program: %v\n", err)

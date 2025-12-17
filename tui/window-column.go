@@ -26,7 +26,7 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 		windowWidth = 30
 	}
 
-	columnNames := filesystem.ColumnNames
+	columnNames := filesystem.FileInfoColumnNames
 	menuChoices := make([]MenuChoice, len(columnNames))
 	for i, col := range columnNames {
 		menuChoices[i] = MenuChoice{

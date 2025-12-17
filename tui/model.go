@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"time"
+
 	"charm.land/bubbles/v2/list"
 	"charm.land/bubbles/v2/textinput"
 	"charm.land/bubbles/v2/viewport"
@@ -39,15 +41,7 @@ type TUIModes struct {
 	ModeSettings          TUIMode
 }
 
-type (
-	FileListMode  string
-	FileListModes struct {
-		ModeNormal  FileListMode
-		ModeCommand FileListMode
-		ModeFilter  FileListMode
-		ModeHelp    FileListMode
-	}
-)
+type FileListMode string
 
 type ViewPrimitiveView interface {
 	View() string
@@ -106,8 +100,9 @@ func (s SortColumnBy) Direction() SortColumnByDirection {
 const (
 	ModeAddFile           TUIMode = "ADD_FILE"
 	ModeCd                TUIMode = "CD"
-	ModeColumnVisibility  TUIMode = "COLUMN VISIBILIY"
+	ModeColumnVisibility  TUIMode = "COLUMN VISIBILITY"
 	ModeCommand           TUIMode = "COMMAND"
+	ModeComputer          TUIMode = "COMPUTER"
 	ModeCopy              TUIMode = "COPY"
 	ModeFilter            TUIMode = "FILTER"
 	ModeGoto              TUIMode = "GOTO"
@@ -124,9 +119,6 @@ const (
 	ModeFileListSplitPane TUIMode = "SPLIT PANE"
 	ModeSettings          TUIMode = "SETTINGS"
 
-	WindowNone WindowKind = "None"
-	WindowHelp WindowKind = "Help"
-
 	SortingAsc  SortColumnByDirection = "ASC"
 	SortingDesc SortColumnByDirection = "DESC"
 
@@ -137,9 +129,10 @@ const (
 	LeftViewportType  ActiveViewportType = "LEFT"
 	RightViewportType ActiveViewportType = "RIGHT"
 
-	FileListModeList FileListMode = "ll"
-	FileListModeFile FileListMode = "lf"
-	FileListModeDir  FileListMode = "ld"
+	FileListModeList     FileListMode = "ll"
+	FileListModeFile     FileListMode = "lf"
+	FileListModeDir      FileListMode = "ld"
+	FileListModeComputer FileListMode = "computer"
 
 	SETTING_START                 ActiveSetting = "SETTING_START"
 	SETTING_SPLIT_PANE            ActiveSetting = "SETTING_SPLIT_PANE"
@@ -150,9 +143,11 @@ const (
 )
 
 var (
-	ActiveFileListMode         = FileListModeList
-	ActiveTuiMode      TUIMode = ModeNormal
-	PreviousTuiMode    TUIMode = ModeNormal
+	ActiveTuiMode   TUIMode = ModeNormal
+	PreviousTuiMode TUIMode = ModeNormal
+
+	ActiveFileListMode   FileListMode = FileListModeList
+	PreviousFileListMode FileListMode = FileListModeList
 
 	TuiModes = TUIModes{
 		ModeAddFile:          ModeAddFile,
@@ -178,6 +173,7 @@ type Model struct {
 	activeViewport     ActiveViewportType
 	commandHistory     []string // Command history for auto-complete
 	commandInput       textinput.Model
+	computerList       list.Model // Computer/device list for navigation
 	configDir          string
 	countPrefix        int            // countPrefix stores a pending numeric prefix for Vim-style navigation (e.g. "10j" / "3↓" in the file list). A value of 0 means "no active prefix".
 	fileInfoViewport   viewport.Model // Independent state for each file-list pane.
@@ -186,17 +182,19 @@ type Model struct {
 	historyIndex       int      // Current index in historyMatches for navigation
 	historyMatches     []string // Filtered matches based on current input
 	isActionInProgress bool
+	isSidePanelOpen    bool
 	isSplitPaneOpen    bool
 	isSudo             bool
 	jumpTo             string
+	lastDevices        []filesystem.DeviceInfo // Track last known devices for change detection
 	layout             string
 	layoutRows         []string
 	leftPane           filePane
 	menuCursorIndex    int
 	rightPane          filePane
 	searchInput        textinput.Model
-	showRightPane      bool
 	settings           Settings
+	showRightPane      bool
 	sortColumnBy       SortColumnBy
 	terminalType       string // Terminal / preview state
 	theme              theming.Theme
@@ -204,13 +202,16 @@ type Model struct {
 	viewportHeight     int
 	viewportWidth      int
 	width              int
-
-	Components Components
-	Windows    Windows
+	deviceColumns      []filesystem.DeviceInfoColumn
 }
 
 func (m Model) Init() tea.Cmd {
-	return textinput.Blink
+	// Start device monitoring and text input blinking
+	// Note: lastDevices should already be initialized in InitialModel()
+	return tea.Batch(
+		textinput.Blink,
+		filesystem.WatchDevicesWithState(2*time.Second, m.lastDevices),
+	)
 }
 
 func (m Model) GetActiveWindow() WindowKind {

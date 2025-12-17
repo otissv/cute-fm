@@ -51,7 +51,7 @@ func InitialModel(startDir string) Model {
 	theme := theming.GetTheme()
 
 	// Create the bubbles lists with file items for both panes.
-	delegate := NewFileItemDelegate(theme, 0, filesystem.ColumnNames)
+	delegate := NewFileItemDelegate(theme, 0, filesystem.FileInfoColumnNames)
 	items := FileInfosToItems(files, nil)
 
 	newList := func() list.Model {
@@ -72,15 +72,6 @@ func InitialModel(startDir string) Model {
 	leftList := newList()
 	rightList := newList()
 
-	// Default visible columns for new panes.
-	defaultColumns := []filesystem.FileInfoColumn{
-		filesystem.ColumnPermissions,
-		filesystem.ColumnUser,
-		filesystem.ColumnGroup,
-		filesystem.ColumnDateModified,
-		filesystem.ColumnName,
-	}
-
 	m := Model{
 		activeSplitPane:  FileInfoSplitPaneType,
 		activeViewport:   LeftViewportType,
@@ -89,6 +80,7 @@ func InitialModel(startDir string) Model {
 		historyIndex:     -1,
 		historyMatches:   []string{},
 		isSplitPaneOpen:  false,
+		isSidePanelOpen:  false,
 		isSudo:           false,
 		jumpTo:           "",
 		layout:           "",
@@ -99,7 +91,7 @@ func InitialModel(startDir string) Model {
 			files:       files,
 			fileList:    leftList,
 			filterQuery: "",
-			columns:     defaultColumns,
+			columns:     filesystem.FileInfoColumnNames,
 			marked:      make(map[string]bool),
 		},
 		menuCursorIndex: 0,
@@ -109,12 +101,12 @@ func InitialModel(startDir string) Model {
 			files:       files,
 			fileList:    rightList,
 			filterQuery: "",
-			columns:     defaultColumns,
+			columns:     filesystem.FileInfoColumnNames,
 			marked:      make(map[string]bool),
 		},
 		showRightPane: true,
 		sortColumnBy: SortColumnBy{
-			column:    filesystem.ColumnName,
+			column:    filesystem.FileInfoColumns.Name,
 			direction: SortingAsc,
 		},
 		terminalType:   string(detectTerminalType()),
@@ -122,12 +114,13 @@ func InitialModel(startDir string) Model {
 		titleText:      "Cute File Manager",
 		viewportHeight: 0,
 		viewportWidth:  0,
+		lastDevices:    []filesystem.DeviceInfo{}, // Initialize empty device list
 	}
 
 	// Initialize default settings
 	defaultSettings := Settings{
 		StartDir:            leftCurrentDir,
-		SortColumnBy:        filesystem.ColumnName,
+		SortColumnBy:        filesystem.FileInfoColumns.Name,
 		SortColumnDirection: SortingAsc,
 		ColumnVisibility:    m.leftPane.columns,
 		SplitPane:           FileInfoSplitPaneType,
@@ -161,6 +154,29 @@ func InitialModel(startDir string) Model {
 	m.searchInput = m.SearchInput("> ", "Filter...")
 	m.commandInput = m.CommandInput("", "")
 	m.commandHistory = m.LoadCommandHistory()
+
+	// Initialize device list for monitoring
+	devices, _ := filesystem.ListDevices()
+	m.lastDevices = devices
+
+	m.deviceColumns = filesystem.DeviceInfoColumnNames
+
+	// Initialize computer list
+	filesystem.CleanDeviceNames(devices)
+	deviceItems := DeviceInfosToItems(devices)
+	deviceDelegate := NewDeviceItemDelegate(theme, 0, m.deviceColumns)
+	computerList := list.New(deviceItems, deviceDelegate, 0, 0)
+	computerList.SetShowTitle(false)
+	computerList.SetShowStatusBar(false)
+	computerList.SetShowFilter(false)
+	computerList.SetShowHelp(false)
+	computerList.SetShowPagination(false)
+	computerList.DisableQuitKeybindings()
+	computerList.Styles.NoItems = computerList.Styles.NoItems.Foreground(nil)
+	if len(deviceItems) > 0 {
+		computerList.Select(0)
+	}
+	m.computerList = computerList
 
 	m.CalcLayout()
 

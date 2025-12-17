@@ -5,6 +5,8 @@ import (
 	"unicode"
 
 	tea "charm.land/bubbletea/v2"
+
+	"cute/filesystem"
 )
 
 func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -19,15 +21,6 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	key := keyMsg.String()
 
 	// Vim-style numeric prefix: accumulate digits which will be applied
-	// to the next navigation command in the file list.
-	//
-	// NOTE: if a digit key is also configured as a dedicated "Goto" binding,
-	// we must *not* swallow it here; otherwise the Goto handler below would
-	// never see the key press and the mode would never change.
-	//
-	// Examples:
-	//   "5↓"  -> move 5 entries down
-	//   "10↑" -> move 10 entries up
 	if len(key) == 1 && unicode.IsDigit(rune(key[0])) && !bindings.Goto.Matches(key) {
 		d := int(key[0] - '0')
 		m.countPrefix = m.countPrefix*10 + d
@@ -48,6 +41,10 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}()
 
 	switch {
+	// Quit application
+	case bindings.Quit.Matches(key):
+		SetQuitMode()
+		return m, nil
 
 	// Change to sudo mode
 	case bindings.Sudo.Matches(key):
@@ -90,20 +87,58 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.commandInput.Focus()
 			m.historyMatches = []string{}
 			m.historyIndex = -1
-
-			return m, nil
 		}
+		return m, nil
+
+		// Switch to computer view
+	case bindings.Computer.Matches(key):
+		if ActiveTuiMode != ModeComputer {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = ModeComputer
+			ActiveFileListMode = FileListModeComputer
+
+			// Refresh computer list when entering computer mode
+			devices, err := filesystem.ListDevices()
+			if err == nil {
+				filesystem.CleanDeviceNames(devices)
+				deviceItems := DeviceInfosToItems(devices)
+				m.computerList.SetItems(deviceItems)
+				if len(deviceItems) > 0 {
+					currentIdx := m.computerList.Index()
+					if currentIdx < 0 || currentIdx >= len(deviceItems) {
+						m.computerList.Select(0)
+					}
+				}
+			}
+		} else {
+			ActiveTuiMode = PreviousTuiMode
+			ActiveFileListMode = PreviousFileListMode
+		}
+		return m, nil
 
 		// Open column visibility window
 	case bindings.ColumnVisibility.Matches(key):
 		if ActiveTuiMode != ModeColumnVisibility {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeColumnVisibility
-
-			return m, nil
 		} else {
 			ActiveTuiMode = PreviousTuiMode
 		}
+		return m, nil
+
+	// Move cursor down in file list (with optional count)
+	case bindings.CursorDown.Matches(key):
+		pane := m.GetActivePane()
+		pane.fileList.CursorDown()
+		m.UpdateFileInfoPane()
+		return m, nil
+
+	// Move cursor up in file list (with optional count)
+	case bindings.CursorUp.Matches(key):
+		pane := m.GetActivePane()
+		pane.fileList.CursorUp()
+		m.UpdateFileInfoPane()
+		return m, nil
 
 	// Copy file or folder
 	case bindings.Copy.Matches(key):
@@ -124,13 +159,6 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ApplyFilter()
 		return m, nil
 
-	// Move cursor down in file list (with optional count)
-	case bindings.Down.Matches(key):
-		pane := m.GetActivePane()
-		pane.fileList.CursorDown()
-		m.UpdateFileInfoPane()
-		return m, nil
-
 	// Navigate into the selected directory.
 	case bindings.Enter.Matches(key):
 		pane := m.GetActivePane()
@@ -139,9 +167,9 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			fi := pane.files[selectedIdx]
 			if fi.IsDir {
 				m.ChangeDirectory(fi.Path)
-				return m, nil
 			}
 		}
+		return m, nil
 
 	// Open file info split pane;
 	case bindings.FileInfoPane.Matches(key):
@@ -165,9 +193,8 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			pane := m.GetActivePane()
 			m.searchInput.SetValue(pane.filterQuery)
 			m.searchInput.Focus()
-
-			return m, nil
 		}
+		return m, nil
 
 	// Enter Goto mode
 	case bindings.Goto.Matches(key):
@@ -195,7 +222,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.UpdateFileInfoPane()
 		return m, nil
 
-		// Gotto home directory
+		// Goto home directory
 	case bindings.Home.Matches(keyMsg.String()):
 		res, _ := m.ExecuteCommand("cd ~/")
 
@@ -274,11 +301,6 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.isSplitPaneOpen = false
 		return m, nil
 
-	// Quit application
-	case bindings.Quit.Matches(key):
-		SetQuitMode()
-		return m, nil
-
 	// Remove file or directory
 	case bindings.Remove.Matches(key):
 		if ActiveTuiMode != ModeRemove {
@@ -311,8 +333,8 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeSelect
 			(&m).toggleCurrentSelection()
-			return m, nil
 		}
+		return m, nil
 
 		// Open settings window
 	case bindings.Settings.Matches(key):
@@ -322,6 +344,12 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			ActiveTuiMode = PreviousTuiMode
 		}
+		return m, nil
+
+		// Open settings window
+	case bindings.SidePanel.Matches(key):
+		m.isSidePanelOpen = !m.isSidePanelOpen
+		m.CalcLayout()
 		return m, nil
 
 		// Open sort window
@@ -360,13 +388,6 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.ToggleRightPane.Matches(key):
 		m.showRightPane = !m.showRightPane
 		m.CalcLayout()
-		return m, nil
-
-	// Move cursor up in file list (with optional count)
-	case bindings.Up.Matches(key):
-		pane := m.GetActivePane()
-		pane.fileList.CursorUp()
-		m.UpdateFileInfoPane()
 		return m, nil
 
 		// Page down in file list (with optional count)

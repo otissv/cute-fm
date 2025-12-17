@@ -12,20 +12,20 @@ func (m Model) View() tea.View {
 		return v
 	}
 
-	isLeftViewportActivce := m.activeViewport == LeftViewportType
+	isLeftViewportActive := m.activeViewport == LeftViewportType
 
-	tuiMode := m.Components.TuiMode(m, TuiModeComponentArgs{
+	tuiMode := TuiMode(m, TuiModeComponentArgs{
 		Height: 1,
 		Width:  20,
 	})
 
-	viewModeText := m.Components.ViewModeText(
+	viewModeText := ViewModeText(
 		m, ViewModeTextComponentArgs{
 			Height: 1,
 			Width:  20,
 		})
 
-	header := m.Components.Header(m, HeaderComponentArgs{
+	header := Header(m, HeaderComponentArgs{
 		Height: 1,
 		Width:  m.width - 40,
 	})
@@ -34,13 +34,13 @@ func (m Model) View() tea.View {
 		PaddingBottom(1).
 		Render(lipgloss.JoinHorizontal(lipgloss.Left, tuiMode, viewModeText, header))
 
-	searchBar := m.Components.SearchBar(
+	searchBar := SearchBar(
 		m, SearchBarComponentArgs{
 			Width:  m.viewportWidth,
 			Height: 1,
 		})
 
-	// sudoMode := m.Components.SudoMode(m, ComponentArgs{
+	// sudoMode := SudoMode(m, ComponentArgs{
 	// 	Height: 1,
 	// })
 
@@ -48,32 +48,32 @@ func (m Model) View() tea.View {
 	// 	leftStatusBarItem = append([]string{sudoMode}, leftStatusBarItem...)
 	// }
 
-	fileInfoViewportView := m.Components.FileInfo(
+	fileInfoViewportView := FileInfo(
 		m, FileInfoComponentArgs{
 			Width:  m.viewportWidth,
 			Height: m.viewportHeight + 1,
 		})
 
-	leftCurrentDir := m.Components.CurrentDir(m, CurrentDirComponentArgs{
+	leftCurrentDir := CurrentDir(m, CurrentDirComponentArgs{
 		Height:     1,
 		CurrentDir: m.GetLeftPaneCurrentDir(),
 	})
 
-	filePane1StatusBar := m.Components.StatusBar(
+	filePane1StatusBar := StatusBar(
 		m, StatusBarComponentArgs{
 			Height: 1,
 		},
 		leftCurrentDir,
 	)
 
-	fileListView1 := m.Components.FileListView(
+	fileListView1 := FileList(
 		m, FileListComponentArgs{
 			Width:         m.viewportWidth,
 			Height:        m.viewportHeight,
 			SplitPaneType: LeftViewportType,
 		})
 
-	fileListView2 := m.Components.FileListView(
+	fileListView2 := FileList(
 		m, FileListComponentArgs{
 			Width:         m.viewportWidth,
 			Height:        m.viewportHeight,
@@ -81,10 +81,10 @@ func (m Model) View() tea.View {
 		})
 
 	placeholder := lipgloss.NewStyle().Render("")
-	leftPaneHeader := m.Components.SearchText(m, LeftViewportType)
+	leftPaneHeader := SearchText(m, LeftViewportType)
 	rightPaneHeader := placeholder
 
-	if isLeftViewportActivce {
+	if isLeftViewportActive {
 		if ActiveTuiMode == ModeFilter {
 			leftPaneHeader = searchBar
 		}
@@ -101,6 +101,17 @@ func (m Model) View() tea.View {
 		filePane1StatusBar,
 	}
 
+	if ActiveFileListMode == FileListModeComputer {
+		leftPaneItems = []string{
+			leftPaneHeader,
+			ComputerList(m, ComputerListComponentArgs{
+				Width:  m.viewportWidth,
+				Height: m.viewportHeight,
+			}),
+			"",
+		}
+	}
+
 	rightPaneItems := []string{}
 
 	if m.showRightPane {
@@ -114,14 +125,14 @@ func (m Model) View() tea.View {
 			}
 
 		case FileListSplitPaneType:
-			rightCurrentDir := m.Components.CurrentDir(m, CurrentDirComponentArgs{
+			rightCurrentDir := CurrentDir(m, CurrentDirComponentArgs{
 				Height:     1,
 				CurrentDir: m.GetRightPaneCurrentDir(),
 			})
 
-			rightPaneHeader = m.Components.SearchText(m, RightViewportType)
+			rightPaneHeader = SearchText(m, RightViewportType)
 
-			if !isLeftViewportActivce {
+			if !isLeftViewportActive {
 				if ActiveTuiMode == ModeGoto {
 					rightPaneHeader = "Jump to row: " + m.jumpTo
 				}
@@ -149,8 +160,15 @@ func (m Model) View() tea.View {
 		leftPaneItems...,
 	)
 
+	sidePanel := ""
+
+	if m.isSidePanelOpen {
+		sidePanel = SidePanel(m)
+	}
+
 	viewports := lipgloss.JoinHorizontal(
 		lipgloss.Top,
+		sidePanel,
 		leftPane,
 		rightPane,
 	)
@@ -170,84 +188,81 @@ func (m Model) View() tea.View {
 	switch ActiveTuiMode {
 
 	case ModeAddFile:
-		commandLayer := m.Windows.Command(m, CommandWindowArgs{
+		commandLayer := CommandWindow(m, CommandWindowArgs{
 			Title:       "Add New File",
 			Placeholder: "Enter file name...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case ModeCd:
-		commandLayer := m.Windows.Command(m, CommandWindowArgs{
+		commandLayer := CommandWindow(m, CommandWindowArgs{
 			Title:       "Change Directory",
 			Placeholder: "Enter directory...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case ModeColumnVisibility:
-		windowLayer := m.Windows.Column(m, ColumnWindowArgs{
+		windowLayer := ColumnWindow(m, ColumnWindowArgs{
 			Title: "Column Visibility",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, windowLayer)
 
 	case ModeCommand:
-		commandLayer := m.Windows.Command(m, CommandWindowArgs{
+		commandLayer := CommandWindow(m, CommandWindowArgs{
 			Title:       "Command",
 			Placeholder: "Enter command..",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case ModeCopy:
-		commandLayer := m.Windows.Command(m, CommandWindowArgs{
+		commandLayer := CommandWindow(m, CommandWindowArgs{
 			Title:       "Copy",
 			Placeholder: "Enter destination...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case ModeHelp:
-		windowLayer := m.Windows.Help(m)
+		windowLayer := HelpWindow(m)
 		canvas = lipgloss.NewCanvas(baseLayer, windowLayer)
 
 	case ModeMkdir:
-		commandLayer := m.Windows.Command(m, CommandWindowArgs{
+		commandLayer := CommandWindow(m, CommandWindowArgs{
 			Title:       "Add Directory",
 			Placeholder: "Enter directory name...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case ModeMove:
-		commandLayer := m.Windows.Command(m, CommandWindowArgs{
+		commandLayer := CommandWindow(m, CommandWindowArgs{
 			Title:       "Move",
 			Placeholder: "Enter destination...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case ModeQuit:
-		windowLayer := m.Windows.Dialog(m, DialogWindowArgs{
-			Title:   "Quit",
-			Content: "Press q to quit\n\nor\n\n press ESC to cancel",
-		})
+		windowLayer := QuitWindow(m)
 		canvas = lipgloss.NewCanvas(baseLayer, windowLayer)
 
 	case ModeRemove:
-		windowLayer := m.Windows.Dialog(m, DialogWindowArgs{
+		windowLayer := DialogWindow(m, DialogWindowArgs{
 			Title:   "Remove",
 			Content: "Are you sure you want to remove\n\nYes (y) No (n)",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, windowLayer)
 
 	case ModeRename:
-		commandLayer := m.Windows.Command(m, CommandWindowArgs{
+		commandLayer := CommandWindow(m, CommandWindowArgs{
 			Title:       "Rename",
 			Placeholder: "New name...",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, commandLayer)
 
 	case ModeSettings:
-		windowLayer := m.Windows.Settings(m)
+		windowLayer := SettingsWindow(m)
 		canvas = lipgloss.NewCanvas(baseLayer, windowLayer)
 
 	case ModeSort:
-		windowLayer := m.Windows.Column(m, ColumnWindowArgs{
+		windowLayer := ColumnWindow(m, ColumnWindowArgs{
 			Title: "Sort Columns",
 		})
 		canvas = lipgloss.NewCanvas(baseLayer, windowLayer)
@@ -258,5 +273,6 @@ func (m Model) View() tea.View {
 
 	v := tea.NewView(canvas)
 	v.AltScreen = true
+	v.MouseMode = tea.MouseModeAllMotion // Enable mouse support
 	return v
 }

@@ -59,11 +59,13 @@ type Keybindings struct {
 	AutoComplete     Keybinding
 	Cancel           Keybinding
 	Cd               Keybinding
-	Command          Keybinding
 	ColumnVisibility Keybinding
+	Command          Keybinding
+	Computer         Keybinding
 	Copy             Keybinding
+	CursorDown       Keybinding
+	CursorUp         Keybinding
 	Directories      Keybinding
-	Down             Keybinding
 	Enter            Keybinding
 	FileInfoPane     Keybinding
 	Files            Keybinding
@@ -81,6 +83,7 @@ type Keybindings struct {
 	PageDown         Keybinding
 	PageUp           Keybinding
 	Parent           Keybinding
+	Partitions       Keybinding
 	Paste            Keybinding
 	PreviewPane      Keybinding
 	PreviousDir      Keybinding
@@ -91,13 +94,13 @@ type Keybindings struct {
 	Select           Keybinding
 	SelectAll        Keybinding
 	Settings         Keybinding
+	ShiftTab         Keybinding
+	SidePanel        Keybinding
 	Sort             Keybinding
 	Sudo             Keybinding
 	Tab              Keybinding
-	ShiftTab         Keybinding
 	ToggleRightPane  Keybinding
 	Undo             Keybinding
-	Up               Keybinding
 }
 
 func GetKeyBindings() Keybindings {
@@ -127,6 +130,11 @@ func GetKeyBindings() Keybindings {
 			Description: "Enter Commands.",
 			Category:    KeybindingCategories.Command.Name,
 		},
+		Computer: Keybinding{
+			On:          []string{"ctrl+c"},
+			Description: "Close window.",
+			Category:    KeybindingCategories.General.Name,
+		},
 		ColumnVisibility: Keybinding{
 			On:          []string{"["},
 			Description: "Show and hide columns",
@@ -137,15 +145,20 @@ func GetKeyBindings() Keybindings {
 			Description: "Copy file or directory.",
 			Category:    KeybindingCategories.Editing.Name,
 		},
+		CursorDown: Keybinding{
+			On:          []string{"down", "j"},
+			Description: "Move selection down.",
+			Category:    KeybindingCategories.Navigation.Name,
+		},
+		CursorUp: Keybinding{
+			On:          []string{"up", "k"},
+			Description: "Move selection up.",
+			Category:    KeybindingCategories.Navigation.Name,
+		},
 		Directories: Keybinding{
 			On:          []string{"ctrl+d"},
 			Description: "List directories only.",
 			Category:    KeybindingCategories.Views.Name,
-		},
-		Down: Keybinding{
-			On:          []string{"down", "j"},
-			Description: "Move selection down.",
-			Category:    KeybindingCategories.Navigation.Name,
 		},
 		Enter: Keybinding{
 			On:          []string{"enter"},
@@ -232,6 +245,11 @@ func GetKeyBindings() Keybindings {
 			Description: "Change directory to parent directory.",
 			Category:    KeybindingCategories.Navigation.Name,
 		},
+		Partitions: Keybinding{
+			On:          []string{"ctrl+p"},
+			Description: "Change directory to parent directory.",
+			Category:    KeybindingCategories.Navigation.Name,
+		},
 		// leave for slipt view
 		// Paste: Keybinding{
 		// 	On:          []string{"v"},
@@ -283,6 +301,11 @@ func GetKeyBindings() Keybindings {
 			Description: "Settings",
 			Category:    KeybindingCategories.General.Name,
 		},
+		SidePanel: Keybinding{
+			On:          []string{"ctrl+/"},
+			Description: "Toggle side panel",
+			Category:    KeybindingCategories.General.Name,
+		},
 		Sort: Keybinding{
 			On:          []string{"]"},
 			Description: "Enter sudo mode",
@@ -295,7 +318,7 @@ func GetKeyBindings() Keybindings {
 		},
 		ShiftTab: Keybinding{
 			On:          []string{"shift+tab"},
-			Description: "Tab to prevous tab",
+			Description: "Tab to previous tab",
 			Category:    KeybindingCategories.Views.Name,
 		},
 		Tab: Keybinding{
@@ -312,11 +335,6 @@ func GetKeyBindings() Keybindings {
 			On:          []string{"z"},
 			Description: "Undo last action.",
 			Category:    KeybindingCategories.General.Name,
-		},
-		Up: Keybinding{
-			On:          []string{"up", "k"},
-			Description: "Move selection up.",
-			Category:    KeybindingCategories.Navigation.Name,
 		},
 	}
 

@@ -5,6 +5,13 @@ func (m *Model) CalcLayout() {
 		return
 	}
 
+	sidePanelWidth := 20
+
+	width := m.width
+	if m.isSidePanelOpen {
+		width -= sidePanelWidth
+	}
+
 	const (
 		headerRow = 4
 		statusRow = 3
@@ -27,9 +34,9 @@ func (m *Model) CalcLayout() {
 	// Calculate viewport width. When the right pane is hidden, the left
 	// viewport should take the full terminal width; otherwise, split evenly.
 	if m.showRightPane {
-		m.viewportWidth = m.width / 2
+		m.viewportWidth = width / 2
 	} else {
-		m.viewportWidth = m.width
+		m.viewportWidth = width
 	}
 
 	// Content width for the list (subtract borders).

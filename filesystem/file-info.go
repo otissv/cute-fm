@@ -12,52 +12,53 @@ import (
 	"time"
 )
 
-// FileInfo represents file or directory information
 type FileInfo struct {
-	Permissions  string // File permissions (e.g., "drwxr-xr-x", ".rw-r--r--")
-	Size         string // File size (e.g., "1.3k", "5.7M"); for directories this is a byte total of direct children
-	User         string // Owner username
-	Group        string // Group name
-	DateModified string // Date modified (e.g., "19 Nov 18:41")
-	Name         string // File or directory name
-	IsDir        bool   // Whether this is a directory
-	Path         string // Full path to the file/directory
-	// Type is a high-level classification used for coloring, e.g.:
-	// "directory", "symlink", "socket", "pipe", "device", "executable", "regular".
-	Type string
-	// MimeType is the best-effort MIME type for the entry, such as
-	// "text/plain" or "image/png". Directories are reported as
-	// "inode/directory".
-	MimeType string
+	Permissions  string
+	Size         string
+	User         string
+	Group        string
+	DateModified string
+	Name         string
+	IsDir        bool
+	Path         string
+	Type         string
+	MimeType     string
 }
 
-// FileInfoColumn is an identifier for a column that can be shown for a FileInfo.
-// Using a dedicated type avoids sprinkling raw strings like "Permissions" or
-// "Size" throughout the codebase.
 type FileInfoColumn string
 
-const (
-	ColumnPermissions  FileInfoColumn = "Permissions"
-	ColumnSize         FileInfoColumn = "Size"
-	ColumnMimeType     FileInfoColumn = "Type"
-	ColumnUser         FileInfoColumn = "User"
-	ColumnGroup        FileInfoColumn = "Group"
-	ColumnDateModified FileInfoColumn = "DateModified"
-	ColumnName         FileInfoColumn = "Name"
-)
-
-var ColumnNames = []FileInfoColumn{
-	ColumnPermissions,
-	ColumnSize,
-	ColumnMimeType,
-	ColumnUser,
-	ColumnGroup,
-	ColumnDateModified,
-	ColumnName,
+type FileInfoColumnHeadings struct {
+	Permissions FileInfoColumn
+	Size        FileInfoColumn
+	MimeType    FileInfoColumn
+	User        FileInfoColumn
+	Group       FileInfoColumn
+	Modified    FileInfoColumn
+	Name        FileInfoColumn
 }
 
-// ListDirectory lists the contents of a directory and returns file information
-// Returns a slice of FileInfo structs sorted by name (directories first)
+var (
+	FileInfoColumns = FileInfoColumnHeadings{
+		Permissions: "Permissions",
+		Size:        "Size",
+		MimeType:    "Type",
+		User:        "User",
+		Group:       "Group",
+		Modified:    "DateModified",
+		Name:        "Name",
+	}
+
+	FileInfoColumnNames = []FileInfoColumn{
+		FileInfoColumns.Permissions,
+		FileInfoColumns.Size,
+		FileInfoColumns.MimeType,
+		FileInfoColumns.User,
+		FileInfoColumns.Group,
+		FileInfoColumns.Modified,
+		FileInfoColumns.Name,
+	}
+)
+
 func ListDirectory(dirPath string) ([]FileInfo, error) {
 	// Read directory contents
 	entries, err := os.ReadDir(dirPath)

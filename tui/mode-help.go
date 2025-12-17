@@ -29,14 +29,14 @@ func (m Model) HelpMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	// Scroll help content up
-	case bindings.Up.Matches(keyMsg.String()):
+	case bindings.CursorUp.Matches(keyMsg.String()):
 		if m.helpScrollOffset > 0 {
 			m.helpScrollOffset--
 		}
 		return m, nil
 
 	// Scroll help content down
-	case bindings.Down.Matches(keyMsg.String()):
+	case bindings.CursorDown.Matches(keyMsg.String()):
 		m.helpScrollOffset++
 		return m, nil
 	}
