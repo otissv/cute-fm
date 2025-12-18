@@ -424,7 +424,7 @@ func (m *Model) applySorting(pane *filePane) {
 		return
 	}
 
-	sortBy := m.sortColumnBy
+	sortBy := m.sortFileListColumnBy
 	if sortBy.column == "" {
 		return
 	}

@@ -2,6 +2,7 @@ package tui
 
 import (
 	"cute/filesystem"
+	"cute/utils"
 
 	tea "charm.land/bubbletea/v2"
 )
@@ -13,6 +14,19 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	keyMsg, ok := msg.(tea.KeyMsg)
 	if !ok {
 		return m, nil
+	}
+
+	var columnNames []string
+	var columns []string
+
+	pane := m.GetActivePane()
+
+	if ActiveFileListMode == FileListModeComputer {
+		columnNames = utils.ToStringSlice(filesystem.DeviceInfoColumnNames)
+		columns = utils.ToStringSlice(m.deviceColumns)
+	} else {
+		columnNames = utils.ToStringSlice(filesystem.FileInfoColumnNames)
+		columns = utils.ToStringSlice(pane.columns)
 	}
 
 	switch {
@@ -30,7 +44,7 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Move cursor down within the column list.
 	case bindings.CursorDown.Matches(keyMsg.String()):
-		maxIdx := len(filesystem.FileInfoColumnNames) - 1
+		maxIdx := len(columnNames) - 1
 		if m.menuCursorIndex < maxIdx {
 			m.menuCursorIndex++
 		}
@@ -38,7 +52,7 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Toggle the currently focused column and stay in this mode.
 	case bindings.Select.Matches(keyMsg.String()):
-		if len(filesystem.FileInfoColumnNames) == 0 {
+		if len(columnNames) == 0 {
 			return m, nil
 		}
 
@@ -46,19 +60,16 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if cur < 0 {
 			cur = 0
 		}
-		if cur >= len(filesystem.FileInfoColumnNames) {
-			cur = len(filesystem.FileInfoColumnNames) - 1
+		if cur >= len(columnNames) {
+			cur = len(columnNames) - 1
 		}
 
-		col := filesystem.FileInfoColumnNames[cur]
-
-		// Work on the active pane's column visibility.
-		pane := m.GetActivePane()
+		col := columnNames[cur]
 
 		// Toggle presence of col in the columnVisibility set, but always rebuild
-		visible := make(map[filesystem.FileInfoColumn]bool, len(filesystem.FileInfoColumnNames))
-		for _, c := range pane.columns {
-			visible[c] = true
+		visible := make(map[string]bool, len(columnNames))
+		for _, c := range columns {
+			visible[string(c)] = true
 		}
 
 		if visible[col] {
@@ -68,29 +79,37 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Rebuild in canonical order.
-		newCols := make([]filesystem.FileInfoColumn, 0, len(visible))
-		for _, c := range filesystem.FileInfoColumnNames {
-			if visible[c] {
-				newCols = append(newCols, c)
+		if ActiveFileListMode == FileListModeComputer {
+			newCols := make([]filesystem.DeviceInfoColumn, 0, len(visible))
+			for _, c := range columnNames {
+				if visible[c] {
+					newCols = append(newCols, filesystem.DeviceInfoColumn(c))
+				}
 			}
-		}
-		pane.columns = newCols
+			m.deviceColumns = newCols
+		} else {
+			newCols := make([]filesystem.FileInfoColumn, 0, len(visible))
+			for _, c := range columnNames {
+				if visible[c] {
+					newCols = append(newCols, filesystem.FileInfoColumn(c))
+				}
+			}
+			pane.columns = newCols
 
-		// Rebuild the file list delegate so the visible columns update
-		// immediately to reflect the new selection.
-		listContentWidth := m.viewportWidth - 2
-		if listContentWidth < 1 {
-			listContentWidth = 1
+			// Rebuild the file list delegate so the visible columns update
+			listContentWidth := m.viewportWidth - 2
+			if listContentWidth < 1 {
+				listContentWidth = 1
+			}
+			m.UpdateFileListDelegate(listContentWidth)
 		}
-		m.UpdateFileListDelegate(listContentWidth)
 
 		return m, nil
 
 	// Enter normal mode
-	case bindings.Select.Matches(keyMsg.String()) ||
-		bindings.Cancel.Matches(keyMsg.String()):
+	case bindings.Cancel.Matches(keyMsg.String()) || bindings.Select.Matches(keyMsg.String()):
 		pane := m.GetActivePane()
-		m.settings.ColumnVisibility = pane.columns
+		m.settings.ColumnVisibilityFileList = pane.columns
 
 		if err := SaveSettings(m); err != nil {
 			_ = err

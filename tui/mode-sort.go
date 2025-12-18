@@ -53,15 +53,15 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		col := filesystem.FileInfoColumnNames[cur]
 
 		// Toggle sort direction when selecting the same column
-		if m.sortColumnBy.column == col {
-			if m.sortColumnBy.direction == SortingAsc {
-				m.sortColumnBy.direction = SortingDesc
+		if m.sortFileListColumnBy.column == col {
+			if m.sortFileListColumnBy.direction == SortingAsc {
+				m.sortFileListColumnBy.direction = SortingDesc
 			} else {
-				m.sortColumnBy.direction = SortingAsc
+				m.sortFileListColumnBy.direction = SortingAsc
 			}
 		} else {
-			m.sortColumnBy.column = col
-			m.sortColumnBy.direction = SortingAsc
+			m.sortFileListColumnBy.column = col
+			m.sortFileListColumnBy.direction = SortingAsc
 		}
 
 		m.ApplyFilter()
@@ -70,8 +70,8 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case bindings.Cancel.Matches(keyMsg.String()):
-		m.settings.SortColumnBy = m.sortColumnBy.column
-		m.settings.SortColumnDirection = m.sortColumnBy.direction
+		m.settings.SortFileListColumnBy = m.sortFileListColumnBy.column
+		m.settings.SortFileListColumnDirection = m.sortFileListColumnBy.direction
 
 		if err := SaveSettings(m); err != nil {
 			_ = err
@@ -81,7 +81,7 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.menuCursorIndex = 0
 		return m, nil
 
-	case bindings.ColumnVisibility.Matches(keyMsg.String()):
+	case bindings.ColumnVisibilityFileList.Matches(keyMsg.String()):
 		ActiveTuiMode = ModeColumnVisibility
 		return m, nil
 	}

@@ -11,6 +11,7 @@ import (
 
 	"cute/filesystem"
 	"cute/theming"
+	"cute/utils"
 )
 
 const (
@@ -129,14 +130,14 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 	}
 
 	permTextRaw := renderPermissions(theme, fi, bgColor)
-	permText := truncateAndPadCell(permTextRaw, colPermsWidth, bgColor)
+	permText := utils.TruncateAndPadCell(permTextRaw, colPermsWidth, bgColor)
 
-	indexText := truncateAndPadCell(indexStyle.Render(fmt.Sprintf("%d", index)), colIndexWidth, bgColor)
-	userText := truncateAndPadCell(userStyle.Render(user), colUserWidth, bgColor)
-	groupText := truncateAndPadCell(groupStyle.Render(group), colGroupWidth, bgColor)
-	sizeText := truncateAndPadCell(sizeStyle.Render(size), colSizeWidth, bgColor)
-	typeText := truncateAndPadCell(typeStyle.Render(mime), colTypeWidth, bgColor)
-	timeText := truncateAndPadCell(timeStyle.Render(date), colDateWidth, bgColor)
+	indexText := utils.TruncateAndPadCell(indexStyle.Render(fmt.Sprintf("%d", index)), colIndexWidth, bgColor)
+	userText := utils.TruncateAndPadCell(userStyle.Render(user), colUserWidth, bgColor)
+	groupText := utils.TruncateAndPadCell(groupStyle.Render(group), colGroupWidth, bgColor)
+	sizeText := utils.TruncateAndPadCell(sizeStyle.Render(size), colSizeWidth, bgColor)
+	typeText := utils.TruncateAndPadCell(typeStyle.Render(mime), colTypeWidth, bgColor)
+	timeText := utils.TruncateAndPadCell(timeStyle.Render(date), colDateWidth, bgColor)
 
 	nameColorSpec := theme.FileTypeColors[fi.Type]
 	nameStyle := theming.StyleFromSpec(nameColorSpec)
@@ -144,7 +145,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 		nameStyle = nameStyle.Background(lipgloss.Color(bgColor))
 	}
 
-	nameText := truncateAndPadCell(nameStyle.Render(name), colNameWidth, bgColor)
+	nameText := utils.TruncateAndPadCell(nameStyle.Render(name), colNameWidth, bgColor)
 
 	lineCols := []string{}
 
@@ -161,7 +162,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 			markerStyle = markerStyle.Background(lipgloss.Color(bgColor))
 		}
 
-		markerText := truncateAndPadCell(markerStyle.Render(markerContent), colMarkerWidth, bgColor)
+		markerText := utils.TruncateAndPadCell(markerStyle.Render(markerContent), colMarkerWidth, bgColor)
 		lineCols = append(lineCols, markerText)
 	}
 
@@ -201,7 +202,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 		lineWidth := lipgloss.Width(line)
 		if lineWidth > d.totalWidth {
 			// Truncate the entire line to fit
-			line = truncateString(line, d.totalWidth)
+			line = utils.TruncateString(line, d.totalWidth)
 		}
 
 		// Pad the end of the line so that the row's background extends to the edge.
@@ -283,10 +284,10 @@ func FileInfosToItems(files []filesystem.FileInfo, marked map[string]bool) []lis
 }
 
 type FileHeaderRowArgs struct {
-	Theme        theming.Theme
-	TotalWidth   int
-	Columns      []filesystem.FileInfoColumn
-	SortColumnBy SortColumnBy
+	Theme                theming.Theme
+	TotalWidth           int
+	Columns              []filesystem.FileInfoColumn
+	SortFileListColumnBy SortFileListColumnBy
 }
 
 func RenderFileHeaderRow(args FileHeaderRowArgs) string {
@@ -306,11 +307,11 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 
 	sortByDirection := "↓ "
 
-	if args.SortColumnBy.direction == "desc" {
+	if args.SortFileListColumnBy.direction == "desc" {
 		sortByDirection = "↑ "
 	}
 
-	switch args.SortColumnBy.column {
+	switch args.SortFileListColumnBy.column {
 	case filesystem.FileInfoColumns.Permissions:
 		permsHeading = sortByDirection + permsHeading
 	case filesystem.FileInfoColumns.Size:
@@ -327,14 +328,14 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 		nameHeading = sortByDirection + nameHeading
 	}
 
-	indexText := truncateAndPadCell(baseStyle.Render(" "), colIndexWidth, bgColor)
-	permsText := truncateAndPadCell(baseStyle.Render(permsHeading), colPermsWidth, bgColor)
-	sizeText := truncateAndPadCell(baseStyle.Render(sizeHeading), colSizeWidth, bgColor)
-	typeText := truncateAndPadCell(baseStyle.Render(typeHeading), colTypeWidth, bgColor)
-	userText := truncateAndPadCell(baseStyle.Render(userHeading), colUserWidth, bgColor)
-	groupText := truncateAndPadCell(baseStyle.Render(groupHeading), colGroupWidth, bgColor)
-	dateText := truncateAndPadCell(baseStyle.Render(dateHeading), colDateWidth, bgColor)
-	nameText := truncateAndPadCell(baseStyle.Render(nameHeading), colNameWidth, bgColor) // Now also truncated and padded
+	indexText := utils.TruncateAndPadCell(baseStyle.Render(" "), colIndexWidth, bgColor)
+	permsText := utils.TruncateAndPadCell(baseStyle.Render(permsHeading), colPermsWidth, bgColor)
+	sizeText := utils.TruncateAndPadCell(baseStyle.Render(sizeHeading), colSizeWidth, bgColor)
+	typeText := utils.TruncateAndPadCell(baseStyle.Render(typeHeading), colTypeWidth, bgColor)
+	userText := utils.TruncateAndPadCell(baseStyle.Render(userHeading), colUserWidth, bgColor)
+	groupText := utils.TruncateAndPadCell(baseStyle.Render(groupHeading), colGroupWidth, bgColor)
+	dateText := utils.TruncateAndPadCell(baseStyle.Render(dateHeading), colDateWidth, bgColor)
+	nameText := utils.TruncateAndPadCell(baseStyle.Render(nameHeading), colNameWidth, bgColor) // Now also truncated and padded
 
 	lineCols := []string{}
 
@@ -342,7 +343,7 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 	if ActiveTuiMode == ModeSelect {
 		markerStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color(args.Theme.FileList.Foreground))
-		markerText := truncateAndPadCell(markerStyle.Render("[   ]"), colMarkerWidth, bgColor)
+		markerText := utils.TruncateAndPadCell(markerStyle.Render("[   ]"), colMarkerWidth, bgColor)
 		lineCols = append(lineCols, markerText)
 	}
 
@@ -379,7 +380,7 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 	if args.TotalWidth > 0 {
 		lineWidth := lipgloss.Width(line)
 		if lineWidth > args.TotalWidth {
-			line = truncateString(line, args.TotalWidth)
+			line = utils.TruncateString(line, args.TotalWidth)
 		}
 
 		// Pad out to totalWidth so the background fills the entire content area.

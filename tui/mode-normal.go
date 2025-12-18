@@ -117,7 +117,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 		// Open column visibility window
-	case bindings.ColumnVisibility.Matches(key):
+	case bindings.ColumnVisibilityFileList.Matches(key):
 		if ActiveTuiMode != ModeColumnVisibility {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeColumnVisibility

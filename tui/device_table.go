@@ -11,6 +11,7 @@ import (
 
 	"cute/filesystem"
 	"cute/theming"
+	"cute/utils"
 )
 
 // Device-specific column width constants
@@ -129,16 +130,16 @@ func (d DeviceItemDelegate) renderDeviceRow(di filesystem.DeviceInfo, isCursor b
 		freePercentStyle = freePercentStyle.Background(bg)
 	}
 
-	indexText := truncateAndPadCell(indexStyle.Render(fmt.Sprintf("%d", index)), colDeviceIndexWidth, bgColor)
-	nameText := truncateAndPadCell(nameStyle.Render(di.Name), colDeviceNameWidth, bgColor)
-	devicePathText := truncateAndPadCell(pathStyle.Render(di.Device), colDevicePathWidth, bgColor)
-	mountText := truncateAndPadCell(mountStyle.Render(di.MountPoint), colDeviceMountWidth, bgColor)
-	typeText := truncateAndPadCell(typeStyle.Render(di.FSType), colDeviceFSTypeWidth, bgColor)
-	sizeText := truncateAndPadCell(sizeStyle.Render(di.Size), colDeviceSizeWidth, bgColor)
-	usedText := truncateAndPadCell(usedStyle.Render(di.Used), colDeviceUsedWidth, bgColor)
-	availText := truncateAndPadCell(availStyle.Render(di.Avail), colDeviceAvailWidth, bgColor)
-	usePercentText := truncateAndPadCell(usePercentStyle.Render(di.UsePercent), colDeviceUsePercentWidth, bgColor)
-	freePercentText := truncateAndPadCell(freePercentStyle.Render(di.FreePercent), colDeviceFreePercentWidth, bgColor)
+	indexText := utils.TruncateAndPadCell(indexStyle.Render(fmt.Sprintf("%d", index)), colDeviceIndexWidth, bgColor)
+	nameText := utils.TruncateAndPadCell(nameStyle.Render(di.Name), colDeviceNameWidth, bgColor)
+	devicePathText := utils.TruncateAndPadCell(pathStyle.Render(di.Device), colDevicePathWidth, bgColor)
+	mountText := utils.TruncateAndPadCell(mountStyle.Render(di.MountPoint), colDeviceMountWidth, bgColor)
+	typeText := utils.TruncateAndPadCell(typeStyle.Render(di.FSType), colDeviceFSTypeWidth, bgColor)
+	sizeText := utils.TruncateAndPadCell(sizeStyle.Render(di.Size), colDeviceSizeWidth, bgColor)
+	usedText := utils.TruncateAndPadCell(usedStyle.Render(di.Used), colDeviceUsedWidth, bgColor)
+	availText := utils.TruncateAndPadCell(availStyle.Render(di.Avail), colDeviceAvailWidth, bgColor)
+	usePercentText := utils.TruncateAndPadCell(usePercentStyle.Render(di.UsePercent), colDeviceUsePercentWidth, bgColor)
+	freePercentText := utils.TruncateAndPadCell(freePercentStyle.Render(di.FreePercent), colDeviceFreePercentWidth, bgColor)
 
 	lineCols := []string{
 		indexText,
@@ -190,7 +191,7 @@ func (d DeviceItemDelegate) renderDeviceRow(di filesystem.DeviceInfo, isCursor b
 	if d.totalWidth > 0 {
 		lineWidth := lipgloss.Width(line)
 		if lineWidth > d.totalWidth {
-			line = truncateString(line, d.totalWidth)
+			line = utils.TruncateString(line, d.totalWidth)
 		}
 
 		// Pad the end of the line so that the row's background extends to the edge.
@@ -234,16 +235,16 @@ func RenderDeviceHeaderRow(args DeviceHeaderRowArgs) string {
 	baseStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color(theming.GetTheme().Foreground))
 
-	indexText := truncateAndPadCell(baseStyle.Render(" "), colDeviceIndexWidth, bgColor)
-	nameText := truncateAndPadCell(baseStyle.Render("Name"), colDeviceNameWidth, bgColor)
-	pathText := truncateAndPadCell(baseStyle.Render("Device"), colDevicePathWidth, bgColor)
-	mountText := truncateAndPadCell(baseStyle.Render("Mount Point"), colDeviceMountWidth, bgColor)
-	typeText := truncateAndPadCell(baseStyle.Render("FS Type"), colDeviceFSTypeWidth, bgColor)
-	sizeText := truncateAndPadCell(baseStyle.Render("Size"), colDeviceSizeWidth, bgColor)
-	usedText := truncateAndPadCell(baseStyle.Render("Used"), colDeviceUsedWidth, bgColor)
-	availText := truncateAndPadCell(baseStyle.Render("Avail"), colDeviceAvailWidth, bgColor)
-	usePercentText := truncateAndPadCell(baseStyle.Render("Use%"), colDeviceUsePercentWidth, bgColor)
-	freePercentText := truncateAndPadCell(baseStyle.Render("Free%"), colDeviceFreePercentWidth, bgColor)
+	indexText := utils.TruncateAndPadCell(baseStyle.Render(" "), colDeviceIndexWidth, bgColor)
+	nameText := utils.TruncateAndPadCell(baseStyle.Render("Name"), colDeviceNameWidth, bgColor)
+	pathText := utils.TruncateAndPadCell(baseStyle.Render("Device"), colDevicePathWidth, bgColor)
+	mountText := utils.TruncateAndPadCell(baseStyle.Render("Mount Point"), colDeviceMountWidth, bgColor)
+	typeText := utils.TruncateAndPadCell(baseStyle.Render("FS Type"), colDeviceFSTypeWidth, bgColor)
+	sizeText := utils.TruncateAndPadCell(baseStyle.Render("Size"), colDeviceSizeWidth, bgColor)
+	usedText := utils.TruncateAndPadCell(baseStyle.Render("Used"), colDeviceUsedWidth, bgColor)
+	availText := utils.TruncateAndPadCell(baseStyle.Render("Avail"), colDeviceAvailWidth, bgColor)
+	usePercentText := utils.TruncateAndPadCell(baseStyle.Render("Use%"), colDeviceUsePercentWidth, bgColor)
+	freePercentText := utils.TruncateAndPadCell(baseStyle.Render("Free%"), colDeviceFreePercentWidth, bgColor)
 
 	lineCols := []string{
 		indexText,
@@ -265,7 +266,7 @@ func RenderDeviceHeaderRow(args DeviceHeaderRowArgs) string {
 	if args.TotalWidth > 0 {
 		lineWidth := lipgloss.Width(line)
 		if lineWidth > args.TotalWidth {
-			line = truncateString(line, args.TotalWidth)
+			line = utils.TruncateString(line, args.TotalWidth)
 		}
 
 		// Pad out to totalWidth so the background fills the entire content area.

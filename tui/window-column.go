@@ -2,6 +2,7 @@ package tui
 
 import (
 	"cute/filesystem"
+	"cute/utils"
 
 	"charm.land/lipgloss/v2"
 )
@@ -26,7 +27,14 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 		windowWidth = 30
 	}
 
-	columnNames := filesystem.FileInfoColumnNames
+	var columnNames []string
+
+	if ActiveFileListMode == FileListModeComputer {
+		columnNames = utils.ToStringSlice(filesystem.DeviceInfoColumnNames)
+	} else {
+		columnNames = utils.ToStringSlice(filesystem.FileInfoColumnNames)
+	}
+
 	menuChoices := make([]MenuChoice, len(columnNames))
 	for i, col := range columnNames {
 		menuChoices[i] = MenuChoice{
@@ -43,18 +51,24 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 		menuCursorIndex = len(menuChoices) - 1
 	}
 
-	var selectedColumns []filesystem.FileInfoColumn
+	var selectedColumns []string
+
+	// var selectedColumns []filesystem.FileInfoColumn
 
 	if ActiveTuiMode == ModeSort {
 		sortBy := m.GetSortColumnBy()
 		if sortByColumn := sortBy.Column(); sortByColumn != "" {
-			selectedColumns = []filesystem.FileInfoColumn{sortByColumn}
-		} else if m.settings.SortColumnBy != "" {
+			selectedColumns = []string{string(sortByColumn)}
+		} else if m.settings.SortFileListColumnBy != "" {
 			// Fall back to settings if current sort column is not set
-			selectedColumns = []filesystem.FileInfoColumn{m.settings.SortColumnBy}
+			selectedColumns = []string{string(m.settings.SortFileListColumnBy)}
 		}
 	} else {
-		selectedColumns = m.GetColumnVisibility()
+		if ActiveFileListMode == FileListModeComputer {
+			selectedColumns = utils.ToStringSlice(m.deviceColumns)
+		} else {
+			selectedColumns = utils.ToStringSlice(m.GetFileListColumnVisibility())
+		}
 	}
 
 	selectedMap := make(map[string]string, len(selectedColumns))
@@ -75,11 +89,17 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 		Theme:    m.theme,
 	})
 
+	style := DefaultFloatingStyle(theme)
+
+	if ActiveTuiMode == ModeColumnVisibility || ActiveTuiMode == ModeSort {
+		style = style.BorderForeground(lipgloss.Color(theme.ActiveBorderColor))
+	}
+
 	fw := FloatingWindow{
 		Content: menu,
 		Width:   windowWidth,
 		Height:  10,
-		Style:   DefaultFloatingStyle(theme),
+		Style:   style,
 		Title:   args.Title,
 	}
 

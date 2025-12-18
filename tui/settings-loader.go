@@ -16,7 +16,7 @@ type SettingsTOML struct {
 	SplitPane string   `toml:"splitPane"`
 	FileMode  string   `toml:"fileMode"`
 	Sorting   Sorting  `toml:"sorting"`
-	Columns   []string `toml:"ColumnVisibility"`
+	Columns   []string `toml:"ColumnVisibilityFileList"`
 }
 
 type Sorting struct {
@@ -132,25 +132,25 @@ func MergeSettings(defaultSettings Settings, tomlSettings *SettingsTOML) Setting
 			}
 		}
 		if len(columns) > 0 {
-			merged.ColumnVisibility = columns
+			merged.ColumnVisibilityFileList = columns
 		}
 	}
 
 	if tomlSettings.Sorting.Column != "" {
 		col := parseName(tomlSettings.Sorting.Column)
 		if col != "" {
-			merged.SortColumnBy = col
+			merged.SortFileListColumnBy = col
 		}
 	}
 
 	if tomlSettings.Sorting.Direction != "" {
 		switch strings.ToLower(tomlSettings.Sorting.Direction) {
 		case "asc", "ascending":
-			merged.SortColumnDirection = SortingAsc
+			merged.SortFileListColumnDirection = SortingAsc
 		case "desc", "descending":
-			merged.SortColumnDirection = SortingDesc
+			merged.SortFileListColumnDirection = SortingDesc
 		default:
-			merged.SortColumnDirection = SortingAsc
+			merged.SortFileListColumnDirection = SortingAsc
 		}
 	}
 
@@ -230,16 +230,16 @@ func SettingsToTOML(m Model) SettingsTOML {
 		fileMode = "all"
 	}
 
-	columns := make([]string, 0, len(settings.ColumnVisibility))
-	for _, col := range settings.ColumnVisibility {
+	columns := make([]string, 0, len(settings.ColumnVisibilityFileList))
+	for _, col := range settings.ColumnVisibilityFileList {
 		columns = append(columns, string(col))
 	}
 
 	sortColumn := ""
 	if sortBy.Column() != "" {
 		sortColumn = string(sortBy.Column())
-	} else if settings.SortColumnBy != "" {
-		sortColumn = string(settings.SortColumnBy)
+	} else if settings.SortFileListColumnBy != "" {
+		sortColumn = string(settings.SortFileListColumnBy)
 	} else {
 		sortColumn = "Name"
 	}
@@ -254,8 +254,8 @@ func SettingsToTOML(m Model) SettingsTOML {
 		default:
 			sortDirection = "asc"
 		}
-	} else if settings.SortColumnDirection != "" {
-		switch settings.SortColumnDirection {
+	} else if settings.SortFileListColumnDirection != "" {
+		switch settings.SortFileListColumnDirection {
 		case SortingAsc:
 			sortDirection = "asc"
 		case SortingDesc:

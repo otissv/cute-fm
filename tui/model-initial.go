@@ -105,11 +105,14 @@ func InitialModel(startDir string) Model {
 			marked:      make(map[string]bool),
 		},
 		showRightPane: true,
-		sortColumnBy: SortColumnBy{
+		sortFileDeviceColumnBy: SortFileListColumnBy{
 			column:    filesystem.FileInfoColumns.Name,
 			direction: SortingAsc,
 		},
-		terminalType:   string(detectTerminalType()),
+		sortFileListColumnBy: SortFileListColumnBy{
+			column:    filesystem.FileInfoColumns.Name,
+			direction: SortingAsc,
+		},
 		theme:          theme,
 		titleText:      "Cute File Manager",
 		viewportHeight: 0,
@@ -119,12 +122,12 @@ func InitialModel(startDir string) Model {
 
 	// Initialize default settings
 	defaultSettings := Settings{
-		StartDir:            leftCurrentDir,
-		SortColumnBy:        filesystem.FileInfoColumns.Name,
-		SortColumnDirection: SortingAsc,
-		ColumnVisibility:    m.leftPane.columns,
-		SplitPane:           FileInfoSplitPaneType,
-		FileListMode:        FileListModeList,
+		StartDir:                    leftCurrentDir,
+		SortFileListColumnBy:        filesystem.FileInfoColumns.Name,
+		SortFileListColumnDirection: SortingAsc,
+		ColumnVisibilityFileList:    m.leftPane.columns,
+		SplitPane:                   FileInfoSplitPaneType,
+		FileListMode:                FileListModeList,
 	}
 
 	m.settings = MergeSettings(defaultSettings, tomlSettings)
@@ -139,16 +142,23 @@ func InitialModel(startDir string) Model {
 		ActiveFileListMode = m.settings.FileListMode
 	}
 
-	if len(m.settings.ColumnVisibility) > 0 {
-		m.leftPane.columns = m.settings.ColumnVisibility
-		m.rightPane.columns = m.settings.ColumnVisibility
+	if len(m.settings.ColumnVisibilityFileList) > 0 {
+		m.leftPane.columns = m.settings.ColumnVisibilityFileList
+		m.rightPane.columns = m.settings.ColumnVisibilityFileList
 	}
 
-	if m.settings.SortColumnBy != "" {
-		m.sortColumnBy.column = m.settings.SortColumnBy
+	if m.settings.SortFileListColumnBy != "" {
+		m.sortFileListColumnBy.column = m.settings.SortFileListColumnBy
 	}
-	if m.settings.SortColumnDirection != "" {
-		m.sortColumnBy.direction = m.settings.SortColumnDirection
+	if m.settings.SortFileListColumnDirection != "" {
+		m.sortFileListColumnBy.direction = m.settings.SortFileListColumnDirection
+	}
+
+	if m.settings.SortDeviceColumnBy != "" {
+		m.sortFileListColumnBy.column = m.settings.SortDeviceColumnBy
+	}
+	if m.settings.SortDeviceColumnDirection != "" {
+		m.sortFileListColumnBy.direction = m.settings.SortDeviceColumnDirection
 	}
 
 	m.searchInput = m.SearchInput("> ", "Filter...")

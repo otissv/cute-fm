@@ -71,6 +71,16 @@ func (m Model) ComputerMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	// Open column visibility window
+	case bindings.ColumnVisibilityFileList.Matches(key):
+		if ActiveTuiMode != ModeColumnVisibility {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = ModeColumnVisibility
+		} else {
+			ActiveTuiMode = PreviousTuiMode
+		}
+		return m, nil
+
 	// Enter command mode
 	case bindings.Command.Matches(key):
 		if ActiveTuiMode != ModeCommand {
