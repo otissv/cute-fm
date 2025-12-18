@@ -276,10 +276,10 @@ func FileInfosToItems(files []filesystem.FileInfo, marked map[string]bool) []lis
 }
 
 type FileHeaderRowArgs struct {
-	Theme                theming.Theme
-	TotalWidth           int
-	Columns              []filesystem.FileInfoColumn
-	SortFileListColumnBy SortFileListColumnBy
+	Theme        theming.Theme
+	TotalWidth   int
+	Columns      []filesystem.FileInfoColumn
+	SortColumnBy SortFileListColumnBy
 }
 
 func RenderFileHeaderRow(args FileHeaderRowArgs) string {
@@ -299,11 +299,11 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 
 	sortByDirection := "↓ "
 
-	if args.SortFileListColumnBy.direction == "desc" {
+	if args.SortColumnBy.direction == "desc" {
 		sortByDirection = "↑ "
 	}
 
-	switch args.SortFileListColumnBy.column {
+	switch args.SortColumnBy.column {
 	case filesystem.FileInfoColumns.Permissions:
 		permsHeading = sortByDirection + permsHeading
 	case filesystem.FileInfoColumns.Size:

@@ -105,8 +105,8 @@ func InitialModel(startDir string) Model {
 			marked:      make(map[string]bool),
 		},
 		showRightPane: true,
-		sortFileDeviceColumnBy: SortFileListColumnBy{
-			column:    filesystem.FileInfoColumns.Name,
+		sortDeviceColumnBy: SortDeviceColumnBy{
+			column:    filesystem.DeviceInfoColumns.Name,
 			direction: SortingAsc,
 		},
 		sortFileListColumnBy: SortFileListColumnBy{
@@ -117,10 +117,9 @@ func InitialModel(startDir string) Model {
 		titleText:      "Cute File Manager",
 		viewportHeight: 0,
 		viewportWidth:  0,
-		lastDevices:    []filesystem.DeviceInfo{}, // Initialize empty device list
+		lastDevices:    []filesystem.DeviceInfo{},
 	}
 
-	// Initialize default settings
 	defaultSettings := Settings{
 		StartDir:                    leftCurrentDir,
 		SortFileListColumnBy:        filesystem.FileInfoColumns.Name,
@@ -155,38 +154,38 @@ func InitialModel(startDir string) Model {
 	}
 
 	if m.settings.SortDeviceColumnBy != "" {
-		m.sortFileListColumnBy.column = m.settings.SortDeviceColumnBy
+		m.sortDeviceColumnBy.column = filesystem.DeviceInfoColumn(m.settings.SortDeviceColumnBy)
 	}
 	if m.settings.SortDeviceColumnDirection != "" {
-		m.sortFileListColumnBy.direction = m.settings.SortDeviceColumnDirection
+		m.sortDeviceColumnBy.direction = m.settings.SortDeviceColumnDirection
 	}
 
 	m.searchInput = m.SearchInput("> ", "Filter...")
 	m.commandInput = m.CommandInput("", "")
 	m.commandHistory = m.LoadCommandHistory()
 
-	// Initialize device list for monitoring
 	devices, _ := filesystem.ListDevices()
 	m.lastDevices = devices
 
 	m.deviceColumns = filesystem.DeviceInfoColumnNames
 
-	// Initialize computer list
-	filesystem.CleanDeviceNames(devices)
-	deviceItems := DeviceInfosToItems(devices)
+	// Initialize device list
+	m.applyDeviceSorting()
+	deviceItems := DeviceInfosToItems(m.lastDevices)
 	deviceDelegate := NewDeviceItemDelegate(theme, 0, m.deviceColumns)
-	computerList := list.New(deviceItems, deviceDelegate, 0, 0)
-	computerList.SetShowTitle(false)
-	computerList.SetShowStatusBar(false)
-	computerList.SetShowFilter(false)
-	computerList.SetShowHelp(false)
-	computerList.SetShowPagination(false)
-	computerList.DisableQuitKeybindings()
-	computerList.Styles.NoItems = computerList.Styles.NoItems.Foreground(nil)
+	deviceList := list.New(deviceItems, deviceDelegate, 0, 0)
+	deviceList.SetShowTitle(false)
+	deviceList.SetShowStatusBar(false)
+	deviceList.SetShowFilter(false)
+	deviceList.SetShowHelp(false)
+	deviceList.SetShowPagination(false)
+	deviceList.DisableQuitKeybindings()
+	deviceList.Styles.NoItems = deviceList.Styles.NoItems.Foreground(nil)
 	if len(deviceItems) > 0 {
-		computerList.Select(0)
+		deviceList.Select(0)
 	}
-	m.computerList = computerList
+	m.deviceList = deviceList
+	m.updateDeviceListItems()
 
 	m.CalcLayout()
 

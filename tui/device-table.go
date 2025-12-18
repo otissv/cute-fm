@@ -203,27 +203,65 @@ func DeviceInfosToItems(devices []filesystem.DeviceInfo) []list.Item {
 }
 
 type DeviceHeaderRowArgs struct {
-	Theme      theming.Theme
-	TotalWidth int
-	columns    []filesystem.DeviceInfoColumn
+	Theme        theming.Theme
+	TotalWidth   int
+	columns      []filesystem.DeviceInfoColumn
+	SortColumnBy SortDeviceColumnBy
 }
 
 func RenderDeviceHeaderRow(args DeviceHeaderRowArgs) string {
 	bgColor := args.Theme.FileList.Background
 	bg := lipgloss.Color(bgColor)
 
+	nameHeading := "Name"
+	devicePathHeading := "Device"
+	mountHeading := "Mount Point"
+	typeHeading := "FS Type"
+	sizeHeading := "Size"
+	usedHeading := "Used"
+	availHeading := "Avail"
+	usePercentHeading := "Use%"
+	freePercentHeading := "Free%"
+
+	sortByDirection := "↓ "
+
+	if args.SortColumnBy.direction == "desc" {
+		sortByDirection = "↑ "
+	}
+
+	switch args.SortColumnBy.column {
+	case filesystem.DeviceInfoColumns.Name:
+		nameHeading = sortByDirection + nameHeading
+	case filesystem.DeviceInfoColumns.Device:
+		devicePathHeading = sortByDirection + devicePathHeading
+	case filesystem.DeviceInfoColumns.MountPoint:
+		mountHeading = sortByDirection + mountHeading
+	case filesystem.DeviceInfoColumns.FsType:
+		typeHeading = sortByDirection + typeHeading
+	case filesystem.DeviceInfoColumns.Size:
+		sizeHeading = sortByDirection + sizeHeading
+	case filesystem.DeviceInfoColumns.Used:
+		usedHeading = sortByDirection + usedHeading
+	case filesystem.DeviceInfoColumns.Avail:
+		availHeading = sortByDirection + availHeading
+	case filesystem.DeviceInfoColumns.UsePercent:
+		usePercentHeading = sortByDirection + usePercentHeading
+	case filesystem.DeviceInfoColumns.FreePercent:
+		freePercentHeading = sortByDirection + freePercentHeading
+	}
+
 	baseStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color(theming.GetTheme().Foreground))
 	indexText := utils.TruncateAndPadCell(baseStyle.Render(" "), colDeviceIndexWidth, bgColor)
-	nameText := utils.TruncateAndPadCell(baseStyle.Render("Name"), colDeviceNameWidth, bgColor)
-	devicePathText := utils.TruncateAndPadCell(baseStyle.Render("Device"), colDevicePathWidth, bgColor)
-	mountText := utils.TruncateAndPadCell(baseStyle.Render("Mount Point"), colDeviceMountWidth, bgColor)
-	typeText := utils.TruncateAndPadCell(baseStyle.Render("FS Type"), colDeviceFSTypeWidth, bgColor)
-	sizeText := utils.TruncateAndPadCell(baseStyle.Render("Size"), colDeviceSizeWidth, bgColor)
-	usedText := utils.TruncateAndPadCell(baseStyle.Render("Used"), colDeviceUsedWidth, bgColor)
-	availText := utils.TruncateAndPadCell(baseStyle.Render("Avail"), colDeviceAvailWidth, bgColor)
-	usePercentText := utils.TruncateAndPadCell(baseStyle.Render("Use%"), colDeviceUsePercentWidth, bgColor)
-	freePercentText := utils.TruncateAndPadCell(baseStyle.Render("Free%"), colDeviceFreePercentWidth, bgColor)
+	nameText := utils.TruncateAndPadCell(baseStyle.Render(nameHeading), colDeviceNameWidth, bgColor)
+	devicePathText := utils.TruncateAndPadCell(baseStyle.Render(devicePathHeading), colDevicePathWidth, bgColor)
+	mountText := utils.TruncateAndPadCell(baseStyle.Render(mountHeading), colDeviceMountWidth, bgColor)
+	typeText := utils.TruncateAndPadCell(baseStyle.Render(typeHeading), colDeviceFSTypeWidth, bgColor)
+	sizeText := utils.TruncateAndPadCell(baseStyle.Render(sizeHeading), colDeviceSizeWidth, bgColor)
+	usedText := utils.TruncateAndPadCell(baseStyle.Render(usedHeading), colDeviceUsedWidth, bgColor)
+	availText := utils.TruncateAndPadCell(baseStyle.Render(availHeading), colDeviceAvailWidth, bgColor)
+	usePercentText := utils.TruncateAndPadCell(baseStyle.Render(usePercentHeading), colDeviceUsePercentWidth, bgColor)
+	freePercentText := utils.TruncateAndPadCell(baseStyle.Render(freePercentHeading), colDeviceFreePercentWidth, bgColor)
 
 	lineCols := []string{indexText}
 
@@ -278,6 +316,9 @@ func getDeviceInfoFilteredColumns(columns []filesystem.DeviceInfoColumn, info fi
 
 	for _, col := range columns {
 		switch col {
+		case filesystem.DeviceInfoColumns.Name:
+			lineCols = append(lineCols, info.Name)
+
 		case filesystem.DeviceInfoColumns.Device:
 			lineCols = append(lineCols, info.Device)
 

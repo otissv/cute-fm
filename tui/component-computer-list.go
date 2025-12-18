@@ -4,12 +4,12 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-type ComputerListComponentArgs struct {
+type DeviceListComponentArgs struct {
 	Width  int
 	Height int
 }
 
-func ComputerList(m Model, args ComputerListComponentArgs) string {
+func DeviceList(m Model, args DeviceListComponentArgs) string {
 	theme := m.GetTheme()
 
 	// Calculate content dimensions (subtract borders)
@@ -20,9 +20,9 @@ func ComputerList(m Model, args ComputerListComponentArgs) string {
 
 	// Update delegate with current width
 	delegate := NewDeviceItemDelegate(theme, contentWidth, m.deviceColumns)
-	m.computerList.SetDelegate(delegate)
-	m.computerList.SetWidth(contentWidth)
-	m.computerList.SetHeight(args.Height - 3) // -3 for header and borders
+	m.deviceList.SetDelegate(delegate)
+	m.deviceList.SetWidth(contentWidth)
+	m.deviceList.SetHeight(args.Height - 3) // -3 for header and borders
 
 	// Render header
 	header := RenderDeviceHeaderRow(DeviceHeaderRowArgs{
@@ -31,7 +31,7 @@ func ComputerList(m Model, args ComputerListComponentArgs) string {
 		columns:    m.deviceColumns,
 	})
 
-	body := m.computerList.View()
+	body := m.deviceList.View()
 
 	inner := lipgloss.JoinVertical(
 		lipgloss.Left,

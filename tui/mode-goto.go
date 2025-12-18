@@ -38,8 +38,8 @@ func (m Model) GotoMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.Enter.Matches(keyMsg.String()):
 		inputValue := strings.TrimSpace(m.commandInput.Value())
 
-		if PreviousTuiMode == ModeComputer {
-			m.applyRelativeGotoComputerList(inputValue)
+		if PreviousTuiMode == ModeDevice {
+			m.applyRelativeGotoDeviceList(inputValue)
 		} else {
 			m.applyRelativeGoto(inputValue)
 		}
@@ -126,9 +126,9 @@ func (m *Model) applyRelativeGoto(inputValue string) bool {
 	return true
 }
 
-func (m *Model) applyRelativeGotoComputerList(inputValue string) bool {
+func (m *Model) applyRelativeGotoDeviceList(inputValue string) bool {
 	inputValue = strings.TrimSpace(inputValue)
-	items := m.computerList.Items()
+	items := m.deviceList.Items()
 
 	if inputValue == "" || len(items) == 0 {
 		return false
@@ -160,7 +160,7 @@ func (m *Model) applyRelativeGotoComputerList(inputValue string) bool {
 		return false
 	}
 
-	current := m.computerList.Index()
+	current := m.deviceList.Index()
 	if current < 0 {
 		current = 0
 	}
@@ -183,7 +183,7 @@ func (m *Model) applyRelativeGotoComputerList(inputValue string) bool {
 		return false
 	}
 
-	m.computerList.Select(target)
+	m.deviceList.Select(target)
 
 	return true
 }

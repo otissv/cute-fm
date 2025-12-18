@@ -20,10 +20,10 @@ func FileList(m Model, args FileListComponentArgs) string {
 	}
 
 	header := RenderFileHeaderRow(FileHeaderRowArgs{
-		Theme:                theme,
-		TotalWidth:           contentWidth,
-		Columns:              m.GetColumnVisibilityForViewport(args.SplitPaneType),
-		SortFileListColumnBy: m.GetSortFileListColumnBy(),
+		Theme:        theme,
+		TotalWidth:   contentWidth,
+		Columns:      m.GetColumnVisibilityForViewport(args.SplitPaneType),
+		SortColumnBy: m.GetSortFileListColumnBy(),
 	})
 	body := fileList.View()
 

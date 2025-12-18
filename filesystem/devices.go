@@ -28,8 +28,8 @@ type DeviceInfo struct {
 type DeviceInfoColumn string
 
 type DeviceInfoColumnHeadings struct {
-	Device      DeviceInfoColumn
 	Name        DeviceInfoColumn
+	Device      DeviceInfoColumn
 	MountPoint  DeviceInfoColumn
 	FsType      DeviceInfoColumn
 	Size        DeviceInfoColumn
@@ -41,8 +41,8 @@ type DeviceInfoColumnHeadings struct {
 
 var (
 	DeviceInfoColumns = DeviceInfoColumnHeadings{
-		Device:      "Device",
 		Name:        "Name",
+		Device:      "Device",
 		MountPoint:  "Mount",
 		Size:        "Size",
 		Used:        "Used",
@@ -53,8 +53,8 @@ var (
 	}
 
 	DeviceInfoColumnNames = []DeviceInfoColumn{
-		DeviceInfoColumns.Device,
 		DeviceInfoColumns.Name,
+		DeviceInfoColumns.Device,
 		DeviceInfoColumns.MountPoint,
 		DeviceInfoColumns.Size,
 		DeviceInfoColumns.Used,

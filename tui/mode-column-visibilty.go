@@ -21,7 +21,7 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	pane := m.GetActivePane()
 
-	if ActiveFileListMode == FileListModeComputer {
+	if ActiveFileListMode == FileListModeDevice {
 		columnNames = utils.ToStringSlice(filesystem.DeviceInfoColumnNames)
 		columns = utils.ToStringSlice(m.deviceColumns)
 	} else {
@@ -83,7 +83,7 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Rebuild in canonical order.
-		if ActiveFileListMode == FileListModeComputer {
+		if ActiveFileListMode == FileListModeDevice {
 			newCols := make([]filesystem.DeviceInfoColumn, 0, len(visible))
 			for _, c := range columnNames {
 				if visible[c] {
@@ -119,7 +119,7 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			_ = err
 		}
 
-		ActiveTuiMode = ModeNormal
+		ActiveTuiMode = PreviousTuiMode
 		m.menuCursorIndex = 0
 		return m, nil
 

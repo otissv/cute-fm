@@ -27,7 +27,7 @@ func (m Model) FilterMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	pane.filterQuery = m.searchInput.Value()
 
 	if pane.filterQuery != before {
-		m.ApplyFilter()
+		m.ApplyFileListFilter()
 	}
 
 	switch {

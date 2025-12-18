@@ -101,10 +101,10 @@ func (m Model) View() tea.View {
 		filePane1StatusBar,
 	}
 
-	if ActiveFileListMode == FileListModeComputer {
+	if ActiveFileListMode == FileListModeDevice {
 		leftPaneItems = []string{
 			leftPaneHeader,
-			ComputerList(m, ComputerListComponentArgs{
+			DeviceList(m, DeviceListComponentArgs{
 				Width:  m.viewportWidth,
 				Height: m.viewportHeight,
 			}),

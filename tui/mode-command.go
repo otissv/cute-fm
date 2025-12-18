@@ -95,7 +95,7 @@ func (m Model) CommandMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// etc. are executed.
 			if res.ViewMode != "" {
 				ActiveFileListMode = FileListMode(res.ViewMode)
-				m.ApplyFilter()
+				m.ApplyFileListFilter()
 			}
 
 			if res.OpenHelp {

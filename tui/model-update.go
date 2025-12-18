@@ -27,15 +27,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case filesystem.DeviceChangeMsg:
 		deviceMsg := msg
 		m.lastDevices = deviceMsg.Devices
-		filesystem.CleanDeviceNames(deviceMsg.Devices)
-		deviceItems := DeviceInfosToItems(deviceMsg.Devices)
-		m.computerList.SetItems(deviceItems)
-		currentIdx := m.computerList.Index()
-		if currentIdx < 0 || currentIdx >= len(deviceItems) {
-			if len(deviceItems) > 0 {
-				m.computerList.Select(0)
-			}
-		}
+		m.applyDeviceSorting()
+		m.updateDeviceListItems()
 
 		// Handle added devices (newly mounted)
 		if len(deviceMsg.Added) > 0 {
@@ -114,8 +107,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.CommandMode(msg)
 		}
 
-		if ActiveTuiMode == ModeComputer {
-			return m.ComputerMode(msg)
+		if ActiveTuiMode == ModeDevice {
+			return m.DeviceMode(msg)
 		}
 
 		if ActiveTuiMode == ModeCopy {
@@ -222,7 +215,7 @@ func (m *Model) GetCommandEnvironment() command.Environment {
 	}
 }
 
-func (m *Model) ApplyFilter() {
+func (m *Model) ApplyFileListFilter() {
 	pane := m.GetActivePane()
 	query := strings.TrimSpace(pane.filterQuery)
 
@@ -282,7 +275,7 @@ func (m *Model) changeDirectoryInternal(dir string, trackHistory bool) {
 		pane.fileList.Select(0)
 	}
 
-	m.ApplyFilter()
+	m.ApplyFileListFilter()
 
 	m.UpdateFileInfoPane()
 }
@@ -465,4 +458,84 @@ func (m *Model) applySorting(pane *filePane) {
 		}
 		return less
 	})
+}
+
+func (m *Model) applyDeviceSorting() {
+	if len(m.lastDevices) == 0 {
+		return
+	}
+
+	sortBy := m.sortDeviceColumnBy
+	if sortBy.column == "" {
+		return
+	}
+
+	sort.SliceStable(m.lastDevices, func(i, j int) bool {
+		a := m.lastDevices[i]
+		b := m.lastDevices[j]
+
+		var less bool
+
+		switch sortBy.column {
+		case filesystem.DeviceInfoColumns.Name:
+			less = strings.ToLower(a.Name) < strings.ToLower(b.Name)
+		case filesystem.DeviceInfoColumns.Device:
+			less = strings.ToLower(a.Device) < strings.ToLower(b.Device)
+		case filesystem.DeviceInfoColumns.MountPoint:
+			less = strings.ToLower(a.MountPoint) < strings.ToLower(b.MountPoint)
+		case filesystem.DeviceInfoColumns.FsType:
+			less = strings.ToLower(a.FSType) < strings.ToLower(b.FSType)
+		case filesystem.DeviceInfoColumns.Size:
+			less = parseHumanSize(a.Size) < parseHumanSize(b.Size)
+		case filesystem.DeviceInfoColumns.Used:
+			less = parseHumanSize(a.Used) < parseHumanSize(b.Used)
+		case filesystem.DeviceInfoColumns.Avail:
+			less = parseHumanSize(a.Avail) < parseHumanSize(b.Avail)
+		case filesystem.DeviceInfoColumns.UsePercent:
+			less = parseDevicePercent(a.UsePercent) < parseDevicePercent(b.UsePercent)
+		case filesystem.DeviceInfoColumns.FreePercent:
+			less = parseDevicePercent(a.FreePercent) < parseDevicePercent(b.FreePercent)
+		default:
+			less = strings.ToLower(a.Name) < strings.ToLower(b.Name)
+		}
+
+		if sortBy.direction == SortingDesc {
+			return !less
+		}
+		return less
+	})
+
+	filesystem.CleanDeviceNames(m.lastDevices)
+}
+
+func (m *Model) updateDeviceListItems() {
+	if len(m.lastDevices) == 0 {
+		return
+	}
+
+	deviceItems := DeviceInfosToItems(m.lastDevices)
+	m.deviceList.SetItems(deviceItems)
+
+	// Preserve cursor position if possible
+	currentIdx := m.deviceList.Index()
+	if currentIdx < 0 || currentIdx >= len(deviceItems) {
+		if len(deviceItems) > 0 {
+			m.deviceList.Select(0)
+		}
+	}
+}
+
+func parseDevicePercent(s string) float64 {
+	s = strings.TrimSpace(s)
+	s = strings.TrimSuffix(s, "%")
+	val, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0
+	}
+	return val
+}
+
+func (m *Model) ApplyDeviceSorting() {
+	m.applyDeviceSorting()
+	m.updateDeviceListItems()
 }

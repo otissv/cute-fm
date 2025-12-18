@@ -22,7 +22,7 @@ func DefaultFloatingStyle(theme theming.Theme) lipgloss.Style {
 		Background(lipgloss.Color(theme.Dialog.Background)).
 		Foreground(lipgloss.Color(theme.Dialog.Foreground)).
 		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color(theme.Dialog.Border)).
+		BorderForeground(lipgloss.Color(theme.ActiveBorderColor)).
 		BorderBackground(lipgloss.Color(theme.Dialog.Background)).
 		PaddingTop(theme.Dialog.PaddingTop).
 		PaddingBottom(theme.Dialog.PaddingBottom).

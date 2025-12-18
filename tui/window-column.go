@@ -18,7 +18,8 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()
 
-	isComputerMode := ActiveFileListMode == FileListModeComputer
+	isDeviceMode := ActiveFileListMode == FileListModeDevice
+	isSortMode := ActiveTuiMode == ModeSort
 
 	// Dialog-sized window
 	windowWidth := width / 2
@@ -31,7 +32,7 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 
 	var columnNames []string
 
-	if isComputerMode {
+	if isDeviceMode {
 		columnNames = utils.ToStringSlice(filesystem.DeviceInfoColumnNames)
 	} else {
 		columnNames = utils.ToStringSlice(filesystem.FileInfoColumnNames)
@@ -55,33 +56,28 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 
 	var selectedColumns []string
 
-	if isComputerMode {
+	switch {
+	case isDeviceMode && isSortMode:
+		sortBy := m.GetSortDeviceColumnBy()
+		if sortByColumn := sortBy.column; sortByColumn != "" {
+			selectedColumns = []string{string(sortByColumn)}
+		} else if m.settings.SortDeviceColumnBy != "" {
+			// Fall back to settings if current sort column is not set
+			selectedColumns = []string{string(m.settings.SortDeviceColumnBy)}
+		}
+	case isDeviceMode:
 		selectedColumns = utils.ToStringSlice(m.deviceColumns)
-	} else if ActiveTuiMode == ModeSort {
+	case isSortMode:
 		sortBy := m.GetSortFileListColumnBy()
-		if sortByColumn := sortBy.Column(); sortByColumn != "" {
+		if sortByColumn := sortBy.column; sortByColumn != "" {
 			selectedColumns = []string{string(sortByColumn)}
 		} else if m.settings.SortFileListColumnBy != "" {
 			// Fall back to settings if current sort column is not set
 			selectedColumns = []string{string(m.settings.SortFileListColumnBy)}
 		}
-	} else {
+	default:
 		selectedColumns = utils.ToStringSlice(m.GetFileListColumnVisibility())
 	}
-
-	// if ActiveTuiMode == ModeSort {
-	// 	sortBy := m.GetSortFileListColumnBy()
-	// 	if sortByColumn := sortBy.Column(); sortByColumn != "" {
-	// 		selectedColumns = []string{string(sortByColumn)}
-	// 	} else if m.settings.SortFileListColumnBy != "" {
-	// 		// Fall back to settings if current sort column is not set
-	// 		selectedColumns = []string{string(m.settings.SortFileListColumnBy)}
-	// 	}
-	// } else if isComputerMode {
-	// 	selectedColumns = utils.ToStringSlice(m.deviceColumns)
-	// } else {
-	// 	selectedColumns = utils.ToStringSlice(m.GetFileListColumnVisibility())
-	// }
 
 	selectedMap := make(map[string]string, len(selectedColumns))
 
@@ -101,17 +97,11 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 		Theme:    m.theme,
 	})
 
-	style := DefaultFloatingStyle(theme)
-
-	if ActiveTuiMode == ModeColumnVisibility || ActiveTuiMode == ModeSort {
-		style = style.BorderForeground(lipgloss.Color(theme.ActiveBorderColor))
-	}
-
 	fw := FloatingWindow{
 		Content: menu,
 		Width:   windowWidth,
 		Height:  10,
-		Style:   style,
+		Style:   DefaultFloatingStyle(theme),
 		Title:   args.Title,
 	}
 

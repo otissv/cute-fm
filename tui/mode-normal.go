@@ -90,25 +90,19 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
-		// Switch to computer view
-	case bindings.Computer.Matches(key):
-		if ActiveTuiMode != ModeComputer {
+		// Switch to device view
+	case bindings.Device.Matches(key):
+		if ActiveTuiMode != ModeDevice {
 			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = ModeComputer
-			ActiveFileListMode = FileListModeComputer
+			ActiveTuiMode = ModeDevice
+			ActiveFileListMode = FileListModeDevice
 
-			// Refresh computer list when entering computer mode
+			// Refresh device list when entering device mode
 			devices, err := filesystem.ListDevices()
 			if err == nil {
-				filesystem.CleanDeviceNames(devices)
-				deviceItems := DeviceInfosToItems(devices)
-				m.computerList.SetItems(deviceItems)
-				if len(deviceItems) > 0 {
-					currentIdx := m.computerList.Index()
-					if currentIdx < 0 || currentIdx >= len(deviceItems) {
-						m.computerList.Select(0)
-					}
-				}
+				m.lastDevices = devices
+				m.applyDeviceSorting()
+				m.updateDeviceListItems()
 			}
 		} else {
 			ActiveTuiMode = PreviousTuiMode
@@ -156,7 +150,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Change file list to directories-only view
 	case bindings.Directories.Matches(key):
 		ActiveFileListMode = "ld"
-		m.ApplyFilter()
+		m.ApplyFileListFilter()
 		return m, nil
 
 	// Navigate into the selected directory.
@@ -181,7 +175,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Change file list to files-only view
 	case bindings.Files.Matches(key):
 		ActiveFileListMode = "lf"
-		m.ApplyFilter()
+		m.ApplyFileListFilter()
 		return m, nil
 
 	// Enter filter mode
@@ -272,7 +266,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Change file list to list-all-items view
 	case bindings.List.Matches(key):
 		ActiveFileListMode = "ll"
-		m.ApplyFilter()
+		m.ApplyFileListFilter()
 		return m, nil
 
 	// Navigate to the parent directory.
@@ -357,6 +351,27 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if ActiveTuiMode != ModeSort {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeSort
+			if ActiveFileListMode == FileListModeDevice {
+				sortBy := m.GetSortDeviceColumnBy()
+				if sortBy.column != "" {
+					for i, col := range filesystem.DeviceInfoColumnNames {
+						if col == sortBy.column {
+							m.menuCursorIndex = i
+							break
+						}
+					}
+				}
+			} else {
+				sortBy := m.GetSortFileListColumnBy()
+				if sortBy.column != "" {
+					for i, col := range filesystem.FileInfoColumnNames {
+						if col == sortBy.column {
+							m.menuCursorIndex = i
+							break
+						}
+					}
+				}
+			}
 		} else {
 			ActiveTuiMode = PreviousTuiMode
 		}

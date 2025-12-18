@@ -119,7 +119,6 @@ type DialogStyle struct {
 	PaddingBottom int
 	PaddingLeft   int
 	PaddingRight  int
-	Border        string
 	Title         string
 }
 
@@ -210,7 +209,6 @@ func GetTheme() Theme {
 
 		Dialog: DialogStyle{
 			Background:    background,
-			Border:        borderColor,
 			Foreground:    foreground,
 			PaddingBottom: 1,
 			PaddingLeft:   1,
@@ -488,9 +486,6 @@ func mergeDialogStyle(defaultStyle, customStyle DialogStyle) DialogStyle {
 	}
 	if customStyle.Foreground != "" {
 		merged.Foreground = customStyle.Foreground
-	}
-	if customStyle.Border != "" {
-		merged.Border = customStyle.Border
 	}
 	if customStyle.Title != "" {
 		merged.Title = customStyle.Title

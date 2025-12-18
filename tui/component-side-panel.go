@@ -10,7 +10,7 @@ func SidePanel(m Model) string {
 	alignLeft := lipgloss.Left
 
 	content := lipgloss.JoinVertical(lipgloss.Left, NewButton(m, ButtonArgs{
-		label: "Computer",
+		label: "Device",
 		width: 20,
 		align: &alignLeft,
 	}).View())

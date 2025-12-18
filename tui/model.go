@@ -87,17 +87,14 @@ type Settings struct {
 
 type SortColumnByDirection string
 
-type SortFileListColumnBy struct {
-	column    filesystem.FileInfoColumn
+type SortDeviceColumnBy struct {
+	column    filesystem.DeviceInfoColumn
 	direction SortColumnByDirection
 }
 
-func (s SortFileListColumnBy) Column() filesystem.FileInfoColumn {
-	return s.column
-}
-
-func (s SortFileListColumnBy) Direction() SortColumnByDirection {
-	return s.direction
+type SortFileListColumnBy struct {
+	column    filesystem.FileInfoColumn
+	direction SortColumnByDirection
 }
 
 const (
@@ -105,7 +102,7 @@ const (
 	ModeCd                TUIMode = "CD"
 	ModeColumnVisibility  TUIMode = "COLUMN VISIBILITY"
 	ModeCommand           TUIMode = "COMMAND"
-	ModeComputer          TUIMode = "COMPUTER"
+	ModeDevice            TUIMode = "COMPUTER"
 	ModeCopy              TUIMode = "COPY"
 	ModeFilter            TUIMode = "FILTER"
 	ModeGoto              TUIMode = "GOTO"
@@ -132,10 +129,10 @@ const (
 	LeftViewportType  ActiveViewportType = "LEFT"
 	RightViewportType ActiveViewportType = "RIGHT"
 
-	FileListModeList     FileListMode = "ll"
-	FileListModeFile     FileListMode = "lf"
-	FileListModeDir      FileListMode = "ld"
-	FileListModeComputer FileListMode = "computer"
+	FileListModeList   FileListMode = "ll"
+	FileListModeFile   FileListMode = "lf"
+	FileListModeDir    FileListMode = "ld"
+	FileListModeDevice FileListMode = "device"
 
 	SETTING_START                 ActiveSetting = "SETTING_START"
 	SETTING_SPLIT_PANE            ActiveSetting = "SETTING_SPLIT_PANE"
@@ -171,41 +168,41 @@ var (
 )
 
 type Model struct {
-	activeWindow           WindowKind
-	activeSplitPane        SplitPaneType
-	activeViewport         ActiveViewportType
-	commandHistory         []string // Command history for auto-complete
-	commandInput           textinput.Model
-	computerList           list.Model // Computer/device list for navigation
-	configDir              string
-	countPrefix            int            // countPrefix stores a pending numeric prefix for Vim-style navigation (e.g. "10j" / "3↓" in the file list). A value of 0 means "no active prefix".
-	fileInfoViewport       viewport.Model // Independent state for each file-list pane.
-	height                 int
-	helpScrollOffset       int      // Help window scroll state
-	historyIndex           int      // Current index in historyMatches for navigation
-	historyMatches         []string // Filtered matches based on current input
-	isActionInProgress     bool
-	isSidePanelOpen        bool
-	isSplitPaneOpen        bool
-	isSudo                 bool
-	jumpTo                 string
-	lastDevices            []filesystem.DeviceInfo // Track last known devices for change detection
-	layout                 string
-	layoutRows             []string
-	leftPane               filePane
-	menuCursorIndex        int
-	rightPane              filePane
-	searchInput            textinput.Model
-	settings               Settings
-	showRightPane          bool
-	sortFileDeviceColumnBy SortFileListColumnBy
-	sortFileListColumnBy   SortFileListColumnBy
-	theme                  theming.Theme
-	titleText              string
-	viewportHeight         int
-	viewportWidth          int
-	width                  int
-	deviceColumns          []filesystem.DeviceInfoColumn
+	activeWindow         WindowKind
+	activeSplitPane      SplitPaneType
+	activeViewport       ActiveViewportType
+	commandHistory       []string // Command history for auto-complete
+	commandInput         textinput.Model
+	deviceList           list.Model // Device/device list for navigation
+	configDir            string
+	countPrefix          int            // countPrefix stores a pending numeric prefix for Vim-style navigation (e.g. "10j" / "3↓" in the file list). A value of 0 means "no active prefix".
+	fileInfoViewport     viewport.Model // Independent state for each file-list pane.
+	height               int
+	helpScrollOffset     int      // Help window scroll state
+	historyIndex         int      // Current index in historyMatches for navigation
+	historyMatches       []string // Filtered matches based on current input
+	isActionInProgress   bool
+	isSidePanelOpen      bool
+	isSplitPaneOpen      bool
+	isSudo               bool
+	jumpTo               string
+	lastDevices          []filesystem.DeviceInfo // Track last known devices for change detection
+	layout               string
+	layoutRows           []string
+	leftPane             filePane
+	menuCursorIndex      int
+	rightPane            filePane
+	searchInput          textinput.Model
+	settings             Settings
+	showRightPane        bool
+	sortDeviceColumnBy   SortDeviceColumnBy
+	sortFileListColumnBy SortFileListColumnBy
+	theme                theming.Theme
+	titleText            string
+	viewportHeight       int
+	viewportWidth        int
+	width                int
+	deviceColumns        []filesystem.DeviceInfoColumn
 }
 
 func (m Model) Init() tea.Cmd {
@@ -319,6 +316,10 @@ func (m Model) GetSearchInputTextForViewport(view ActiveViewportType) string {
 
 func (m Model) GetSize() (width, height int) {
 	return m.width, m.height
+}
+
+func (m Model) GetSortDeviceColumnBy() SortDeviceColumnBy {
+	return m.sortDeviceColumnBy
 }
 
 func (m Model) GetSortFileListColumnBy() SortFileListColumnBy {

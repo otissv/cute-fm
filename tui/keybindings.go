@@ -61,7 +61,7 @@ type Keybindings struct {
 	Cd                       Keybinding
 	ColumnVisibilityFileList Keybinding
 	Command                  Keybinding
-	Computer                 Keybinding
+	Device                   Keybinding
 	Copy                     Keybinding
 	CursorDown               Keybinding
 	CursorUp                 Keybinding
@@ -130,7 +130,7 @@ func GetKeyBindings() Keybindings {
 			Description: "Enter Commands.",
 			Category:    KeybindingCategories.Command.Name,
 		},
-		Computer: Keybinding{
+		Device: Keybinding{
 			On:          []string{"ctrl+c"},
 			Description: "Close window.",
 			Category:    KeybindingCategories.General.Name,

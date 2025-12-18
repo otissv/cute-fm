@@ -25,7 +25,12 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Move cursor down within the column list.
 	case bindings.CursorDown.Matches(keyMsg.String()):
-		maxIdx := len(filesystem.FileInfoColumnNames) - 1
+		var maxIdx int
+		if ActiveFileListMode == FileListModeDevice {
+			maxIdx = len(filesystem.DeviceInfoColumnNames) - 1
+		} else {
+			maxIdx = len(filesystem.FileInfoColumnNames) - 1
+		}
 		if m.menuCursorIndex < maxIdx {
 			m.menuCursorIndex++
 		}
@@ -37,47 +42,82 @@ func (m Model) SortMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	// Apply sorting based on the currently focused column.
-	case bindings.Select.Matches(keyMsg.String()):
-		if len(filesystem.FileInfoColumnNames) == 0 {
-			return m, nil
-		}
+	case bindings.Select.Matches(keyMsg.String()) || bindings.Enter.Matches(keyMsg.String()):
 
-		cur := m.menuCursorIndex
-		if cur < 0 {
-			cur = 0
-		}
-		if cur >= len(filesystem.FileInfoColumnNames) {
-			cur = len(filesystem.FileInfoColumnNames) - 1
-		}
+		if ActiveFileListMode == FileListModeDevice {
+			if len(filesystem.DeviceInfoColumnNames) == 0 {
+				return m, nil
+			}
 
-		col := filesystem.FileInfoColumnNames[cur]
+			cur := m.menuCursorIndex
+			if cur < 0 {
+				cur = 0
+			}
+			if cur >= len(filesystem.DeviceInfoColumnNames) {
+				cur = len(filesystem.DeviceInfoColumnNames) - 1
+			}
 
-		// Toggle sort direction when selecting the same column
-		if m.sortFileListColumnBy.column == col {
-			if m.sortFileListColumnBy.direction == SortingAsc {
-				m.sortFileListColumnBy.direction = SortingDesc
+			col := filesystem.DeviceInfoColumnNames[cur]
+
+			// Toggle sort direction when selecting the same column
+			if m.sortDeviceColumnBy.column == col {
+				if m.sortDeviceColumnBy.direction == SortingAsc {
+					m.sortDeviceColumnBy.direction = SortingDesc
+				} else {
+					m.sortDeviceColumnBy.direction = SortingAsc
+				}
 			} else {
+				m.sortDeviceColumnBy.column = col
+				m.sortDeviceColumnBy.direction = SortingAsc
+			}
+
+			m.ApplyDeviceSorting()
+		} else {
+			if len(filesystem.FileInfoColumnNames) == 0 {
+				return m, nil
+			}
+
+			cur := m.menuCursorIndex
+			if cur < 0 {
+				cur = 0
+			}
+			if cur >= len(filesystem.FileInfoColumnNames) {
+				cur = len(filesystem.FileInfoColumnNames) - 1
+			}
+
+			col := filesystem.FileInfoColumnNames[cur]
+
+			// Toggle sort direction when selecting the same column
+			if m.sortFileListColumnBy.column == col {
+				if m.sortFileListColumnBy.direction == SortingAsc {
+					m.sortFileListColumnBy.direction = SortingDesc
+				} else {
+					m.sortFileListColumnBy.direction = SortingAsc
+				}
+			} else {
+				m.sortFileListColumnBy.column = col
 				m.sortFileListColumnBy.direction = SortingAsc
 			}
-		} else {
-			m.sortFileListColumnBy.column = col
-			m.sortFileListColumnBy.direction = SortingAsc
-		}
 
-		m.ApplyFilter()
-		m.menuCursorIndex = 0
+			m.ApplyFileListFilter()
+		}
 
 		return m, nil
 
 	case bindings.Cancel.Matches(keyMsg.String()):
-		m.settings.SortFileListColumnBy = m.sortFileListColumnBy.column
-		m.settings.SortFileListColumnDirection = m.sortFileListColumnBy.direction
+		if ActiveFileListMode == FileListModeDevice {
+			m.settings.SortDeviceColumnBy = filesystem.FileInfoColumn(m.sortDeviceColumnBy.column)
+			m.settings.SortDeviceColumnDirection = m.sortDeviceColumnBy.direction
+		} else {
+			m.settings.SortFileListColumnBy = m.sortFileListColumnBy.column
+			m.settings.SortFileListColumnDirection = m.sortFileListColumnBy.direction
+		}
 
 		if err := SaveSettings(m); err != nil {
 			_ = err
 		}
 
-		ActiveTuiMode = ModeNormal
+		ActiveTuiMode = PreviousTuiMode
 		m.menuCursorIndex = 0
 		return m, nil
 

@@ -236,8 +236,8 @@ func SettingsToTOML(m Model) SettingsTOML {
 	}
 
 	sortColumn := ""
-	if sortBy.Column() != "" {
-		sortColumn = string(sortBy.Column())
+	if sortBy.column != "" {
+		sortColumn = string(sortBy.column)
 	} else if settings.SortFileListColumnBy != "" {
 		sortColumn = string(settings.SortFileListColumnBy)
 	} else {
@@ -245,8 +245,8 @@ func SettingsToTOML(m Model) SettingsTOML {
 	}
 
 	sortDirection := ""
-	if sortBy.Direction() != "" {
-		switch sortBy.Direction() {
+	if sortBy.direction != "" {
+		switch sortBy.direction {
 		case SortingAsc:
 			sortDirection = "asc"
 		case SortingDesc:
