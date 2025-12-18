@@ -28,6 +28,7 @@ func ComputerList(m Model, args ComputerListComponentArgs) string {
 	header := RenderDeviceHeaderRow(DeviceHeaderRowArgs{
 		Theme:      theme,
 		TotalWidth: contentWidth,
+		columns:    m.deviceColumns,
 	})
 
 	body := m.computerList.View()

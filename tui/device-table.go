@@ -141,44 +141,23 @@ func (d DeviceItemDelegate) renderDeviceRow(di filesystem.DeviceInfo, isCursor b
 	usePercentText := utils.TruncateAndPadCell(usePercentStyle.Render(di.UsePercent), colDeviceUsePercentWidth, bgColor)
 	freePercentText := utils.TruncateAndPadCell(freePercentStyle.Render(di.FreePercent), colDeviceFreePercentWidth, bgColor)
 
-	lineCols := []string{
-		indexText,
-		nameText,
-	}
+	lineCols := []string{indexText}
 
-	for _, col := range d.columns {
-		// Skip name column since it's already added above
-		if col == filesystem.DeviceInfoColumns.Name {
-			continue
-		}
+	filteredColumns := getDeviceInfoFilteredColumns(
+		d.columns,
+		filesystem.DeviceInfo{
+			Device:      devicePathText,
+			Name:        nameText,
+			MountPoint:  mountText,
+			FSType:      typeText,
+			Size:        sizeText,
+			Used:        usedText,
+			Avail:       availText,
+			UsePercent:  usePercentText,
+			FreePercent: freePercentText,
+		})
 
-		switch col {
-		case filesystem.DeviceInfoColumns.Device:
-			lineCols = append(lineCols, devicePathText)
-
-		case filesystem.DeviceInfoColumns.MountPoint:
-			lineCols = append(lineCols, mountText)
-
-		case filesystem.DeviceInfoColumns.FsType:
-			lineCols = append(lineCols, typeText)
-
-		case filesystem.DeviceInfoColumns.Size:
-			lineCols = append(lineCols, sizeText)
-
-		case filesystem.DeviceInfoColumns.Used:
-			lineCols = append(lineCols, usedText)
-
-		case filesystem.DeviceInfoColumns.Avail:
-			lineCols = append(lineCols, availText)
-
-		case filesystem.DeviceInfoColumns.UsePercent:
-			lineCols = append(lineCols, usePercentText)
-
-		case filesystem.DeviceInfoColumns.FreePercent:
-			lineCols = append(lineCols, freePercentText)
-		}
-
-	}
+	lineCols = append(lineCols, filteredColumns...)
 
 	sep := " "
 	if bgColor != "" {
@@ -226,6 +205,7 @@ func DeviceInfosToItems(devices []filesystem.DeviceInfo) []list.Item {
 type DeviceHeaderRowArgs struct {
 	Theme      theming.Theme
 	TotalWidth int
+	columns    []filesystem.DeviceInfoColumn
 }
 
 func RenderDeviceHeaderRow(args DeviceHeaderRowArgs) string {
@@ -234,10 +214,9 @@ func RenderDeviceHeaderRow(args DeviceHeaderRowArgs) string {
 
 	baseStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color(theming.GetTheme().Foreground))
-
 	indexText := utils.TruncateAndPadCell(baseStyle.Render(" "), colDeviceIndexWidth, bgColor)
 	nameText := utils.TruncateAndPadCell(baseStyle.Render("Name"), colDeviceNameWidth, bgColor)
-	pathText := utils.TruncateAndPadCell(baseStyle.Render("Device"), colDevicePathWidth, bgColor)
+	devicePathText := utils.TruncateAndPadCell(baseStyle.Render("Device"), colDevicePathWidth, bgColor)
 	mountText := utils.TruncateAndPadCell(baseStyle.Render("Mount Point"), colDeviceMountWidth, bgColor)
 	typeText := utils.TruncateAndPadCell(baseStyle.Render("FS Type"), colDeviceFSTypeWidth, bgColor)
 	sizeText := utils.TruncateAndPadCell(baseStyle.Render("Size"), colDeviceSizeWidth, bgColor)
@@ -246,18 +225,23 @@ func RenderDeviceHeaderRow(args DeviceHeaderRowArgs) string {
 	usePercentText := utils.TruncateAndPadCell(baseStyle.Render("Use%"), colDeviceUsePercentWidth, bgColor)
 	freePercentText := utils.TruncateAndPadCell(baseStyle.Render("Free%"), colDeviceFreePercentWidth, bgColor)
 
-	lineCols := []string{
-		indexText,
-		nameText,
-		pathText,
-		mountText,
-		typeText,
-		sizeText,
-		usedText,
-		availText,
-		usePercentText,
-		freePercentText,
-	}
+	lineCols := []string{indexText}
+
+	filteredColumns := getDeviceInfoFilteredColumns(
+		args.columns,
+		filesystem.DeviceInfo{
+			Device:      devicePathText,
+			Name:        nameText,
+			MountPoint:  mountText,
+			FSType:      typeText,
+			Size:        sizeText,
+			Used:        usedText,
+			Avail:       availText,
+			UsePercent:  usePercentText,
+			FreePercent: freePercentText,
+		})
+
+	lineCols = append(lineCols, filteredColumns...)
 
 	sep := lipgloss.NewStyle().Background(bg).Render(" ")
 	line := strings.Join(lineCols, sep)
@@ -287,4 +271,38 @@ func RenderDeviceHeaderRow(args DeviceHeaderRowArgs) string {
 	}
 
 	return line
+}
+
+func getDeviceInfoFilteredColumns(columns []filesystem.DeviceInfoColumn, info filesystem.DeviceInfo) []string {
+	lineCols := []string{}
+
+	for _, col := range columns {
+		switch col {
+		case filesystem.DeviceInfoColumns.Device:
+			lineCols = append(lineCols, info.Device)
+
+		case filesystem.DeviceInfoColumns.MountPoint:
+			lineCols = append(lineCols, info.MountPoint)
+
+		case filesystem.DeviceInfoColumns.FsType:
+			lineCols = append(lineCols, info.FSType)
+
+		case filesystem.DeviceInfoColumns.Size:
+			lineCols = append(lineCols, info.Size)
+
+		case filesystem.DeviceInfoColumns.Used:
+			lineCols = append(lineCols, info.Used)
+
+		case filesystem.DeviceInfoColumns.Avail:
+			lineCols = append(lineCols, info.Avail)
+
+		case filesystem.DeviceInfoColumns.UsePercent:
+			lineCols = append(lineCols, info.UsePercent)
+
+		case filesystem.DeviceInfoColumns.FreePercent:
+			lineCols = append(lineCols, info.FreePercent)
+		}
+	}
+
+	return lineCols
 }

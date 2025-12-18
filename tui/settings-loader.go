@@ -197,7 +197,7 @@ func SaveSettings(m Model) error {
 
 func SettingsToTOML(m Model) SettingsTOML {
 	settings := m.settings
-	sortBy := m.GetSortColumnBy()
+	sortBy := m.GetSortFileListColumnBy()
 	startDir := settings.StartDir
 
 	if startDir != "" {

@@ -130,14 +130,13 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 	}
 
 	permTextRaw := renderPermissions(theme, fi, bgColor)
-	permText := utils.TruncateAndPadCell(permTextRaw, colPermsWidth, bgColor)
-
+	permsText := utils.TruncateAndPadCell(permTextRaw, colPermsWidth, bgColor)
 	indexText := utils.TruncateAndPadCell(indexStyle.Render(fmt.Sprintf("%d", index)), colIndexWidth, bgColor)
 	userText := utils.TruncateAndPadCell(userStyle.Render(user), colUserWidth, bgColor)
 	groupText := utils.TruncateAndPadCell(groupStyle.Render(group), colGroupWidth, bgColor)
 	sizeText := utils.TruncateAndPadCell(sizeStyle.Render(size), colSizeWidth, bgColor)
 	typeText := utils.TruncateAndPadCell(typeStyle.Render(mime), colTypeWidth, bgColor)
-	timeText := utils.TruncateAndPadCell(timeStyle.Render(date), colDateWidth, bgColor)
+	dateText := utils.TruncateAndPadCell(timeStyle.Render(date), colDateWidth, bgColor)
 
 	nameColorSpec := theme.FileTypeColors[fi.Type]
 	nameStyle := theming.StyleFromSpec(nameColorSpec)
@@ -167,28 +166,21 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 	}
 
 	lineCols = append(lineCols, indexText)
-	lineCols = append(lineCols, nameText)
 
-	for _, col := range d.columns {
-		// Skip name column since it's already added above
-		if col == filesystem.FileInfoColumns.Name {
-			continue
-		}
-		switch col {
-		case filesystem.FileInfoColumns.Permissions:
-			lineCols = append(lineCols, permText)
-		case filesystem.FileInfoColumns.Size:
-			lineCols = append(lineCols, sizeText)
-		case filesystem.FileInfoColumns.MimeType:
-			lineCols = append(lineCols, typeText)
-		case filesystem.FileInfoColumns.User:
-			lineCols = append(lineCols, userText)
-		case filesystem.FileInfoColumns.Group:
-			lineCols = append(lineCols, groupText)
-		case filesystem.FileInfoColumns.Modified:
-			lineCols = append(lineCols, timeText)
-		}
-	}
+	filteredColumns := getFileInfoFilteredColumns(
+		d.columns,
+		filesystem.FileInfo{
+			Name:         nameText,
+			Permissions:  permsText,
+			Size:         sizeText,
+			MimeType:     typeText,
+			User:         userText,
+			Group:        groupText,
+			DateModified: dateText,
+		},
+	)
+
+	lineCols = append(lineCols, filteredColumns...)
 
 	sep := " "
 	if bgColor != "" {
@@ -349,29 +341,20 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 
 	lineCols = append(lineCols, indexText)
 
-	// Name column is always first (column 1) after index
-	lineCols = append(lineCols, nameText)
+	filteredColumns := getFileInfoFilteredColumns(
+		args.Columns,
+		filesystem.FileInfo{
+			Name:         nameText,
+			Permissions:  permsText,
+			Size:         sizeText,
+			MimeType:     typeText,
+			User:         userText,
+			Group:        groupText,
+			DateModified: dateText,
+		},
+	)
 
-	for _, col := range args.Columns {
-		// Skip name column since it's already added above
-		if col == filesystem.FileInfoColumns.Name {
-			continue
-		}
-		switch col {
-		case filesystem.FileInfoColumns.Permissions:
-			lineCols = append(lineCols, permsText)
-		case filesystem.FileInfoColumns.Size:
-			lineCols = append(lineCols, sizeText)
-		case filesystem.FileInfoColumns.MimeType:
-			lineCols = append(lineCols, typeText)
-		case filesystem.FileInfoColumns.User:
-			lineCols = append(lineCols, userText)
-		case filesystem.FileInfoColumns.Group:
-			lineCols = append(lineCols, groupText)
-		case filesystem.FileInfoColumns.Modified:
-			lineCols = append(lineCols, dateText)
-		}
-	}
+	lineCols = append(lineCols, filteredColumns...)
 
 	sep := lipgloss.NewStyle().Background(bg).Render(" ")
 	line := strings.Join(lineCols, sep)
@@ -401,4 +384,28 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 	}
 
 	return line
+}
+
+func getFileInfoFilteredColumns(columns []filesystem.FileInfoColumn, info filesystem.FileInfo) []string {
+	lineCols := []string{}
+	for _, col := range columns {
+		switch col {
+		case filesystem.FileInfoColumns.Name:
+			lineCols = append(lineCols, info.Name)
+		case filesystem.FileInfoColumns.Permissions:
+			lineCols = append(lineCols, info.Permissions)
+		case filesystem.FileInfoColumns.Size:
+			lineCols = append(lineCols, info.Size)
+		case filesystem.FileInfoColumns.MimeType:
+			lineCols = append(lineCols, info.MimeType)
+		case filesystem.FileInfoColumns.User:
+			lineCols = append(lineCols, info.User)
+		case filesystem.FileInfoColumns.Group:
+			lineCols = append(lineCols, info.Group)
+		case filesystem.FileInfoColumns.Modified:
+			lineCols = append(lineCols, info.DateModified)
+		}
+	}
+
+	return lineCols
 }

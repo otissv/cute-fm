@@ -78,6 +78,10 @@ func (m Model) ColumnVisibilityMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			visible[col] = true
 		}
 
+		if len(visible) == 0 {
+			return m, nil
+		}
+
 		// Rebuild in canonical order.
 		if ActiveFileListMode == FileListModeComputer {
 			newCols := make([]filesystem.DeviceInfoColumn, 0, len(visible))

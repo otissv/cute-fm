@@ -321,7 +321,7 @@ func (m Model) GetSize() (width, height int) {
 	return m.width, m.height
 }
 
-func (m Model) GetSortColumnBy() SortFileListColumnBy {
+func (m Model) GetSortFileListColumnBy() SortFileListColumnBy {
 	return m.sortFileListColumnBy
 }
 

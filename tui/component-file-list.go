@@ -23,7 +23,7 @@ func FileList(m Model, args FileListComponentArgs) string {
 		Theme:                theme,
 		TotalWidth:           contentWidth,
 		Columns:              m.GetColumnVisibilityForViewport(args.SplitPaneType),
-		SortFileListColumnBy: m.GetSortColumnBy(),
+		SortFileListColumnBy: m.GetSortFileListColumnBy(),
 	})
 	body := fileList.View()
 

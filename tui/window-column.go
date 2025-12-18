@@ -18,6 +18,8 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 	theme := m.GetTheme()
 	width, height := m.GetSize()
 
+	isComputerMode := ActiveFileListMode == FileListModeComputer
+
 	// Dialog-sized window
 	windowWidth := width / 2
 	if windowWidth > 60 {
@@ -29,7 +31,7 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 
 	var columnNames []string
 
-	if ActiveFileListMode == FileListModeComputer {
+	if isComputerMode {
 		columnNames = utils.ToStringSlice(filesystem.DeviceInfoColumnNames)
 	} else {
 		columnNames = utils.ToStringSlice(filesystem.FileInfoColumnNames)
@@ -53,10 +55,10 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 
 	var selectedColumns []string
 
-	// var selectedColumns []filesystem.FileInfoColumn
-
-	if ActiveTuiMode == ModeSort {
-		sortBy := m.GetSortColumnBy()
+	if isComputerMode {
+		selectedColumns = utils.ToStringSlice(m.deviceColumns)
+	} else if ActiveTuiMode == ModeSort {
+		sortBy := m.GetSortFileListColumnBy()
 		if sortByColumn := sortBy.Column(); sortByColumn != "" {
 			selectedColumns = []string{string(sortByColumn)}
 		} else if m.settings.SortFileListColumnBy != "" {
@@ -64,12 +66,22 @@ func ColumnWindow(m Model, args ColumnWindowArgs) *lipgloss.Layer {
 			selectedColumns = []string{string(m.settings.SortFileListColumnBy)}
 		}
 	} else {
-		if ActiveFileListMode == FileListModeComputer {
-			selectedColumns = utils.ToStringSlice(m.deviceColumns)
-		} else {
-			selectedColumns = utils.ToStringSlice(m.GetFileListColumnVisibility())
-		}
+		selectedColumns = utils.ToStringSlice(m.GetFileListColumnVisibility())
 	}
+
+	// if ActiveTuiMode == ModeSort {
+	// 	sortBy := m.GetSortFileListColumnBy()
+	// 	if sortByColumn := sortBy.Column(); sortByColumn != "" {
+	// 		selectedColumns = []string{string(sortByColumn)}
+	// 	} else if m.settings.SortFileListColumnBy != "" {
+	// 		// Fall back to settings if current sort column is not set
+	// 		selectedColumns = []string{string(m.settings.SortFileListColumnBy)}
+	// 	}
+	// } else if isComputerMode {
+	// 	selectedColumns = utils.ToStringSlice(m.deviceColumns)
+	// } else {
+	// 	selectedColumns = utils.ToStringSlice(m.GetFileListColumnVisibility())
+	// }
 
 	selectedMap := make(map[string]string, len(selectedColumns))
 
