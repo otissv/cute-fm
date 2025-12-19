@@ -20,6 +20,9 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.deviceList, cmd = m.deviceList.Update(msg)
 	cmds = append(cmds, cmd)
 
+	// Update device info pane when device list changes
+	m.UpdateDeviceInfoPane()
+
 	// Only handle key messages here; ignore everything else.
 	keyMsg, ok := msg.(tea.KeyMsg)
 	if !ok {
@@ -101,6 +104,7 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for i := 0; i < count; i++ {
 			m.deviceList.CursorDown()
 		}
+		m.UpdateDeviceInfoPane()
 		return m, tea.Batch(cmds...)
 
 	// Move cursor up in device list (with optional count)
@@ -108,6 +112,7 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for i := 0; i < count; i++ {
 			m.deviceList.CursorUp()
 		}
+		m.UpdateDeviceInfoPane()
 		return m, tea.Batch(cmds...)
 
 	// Change file list to directories-only view
@@ -146,6 +151,7 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Move cursor to start of device list
 	case bindings.GoToStart.Matches(key):
 		m.deviceList.Select(0)
+		m.UpdateDeviceInfoPane()
 		return m, tea.Batch(cmds...)
 
 	// Move cursor to end of device list
@@ -154,6 +160,7 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if len(items) > 0 {
 			m.deviceList.Select(len(items) - 1)
 		}
+		m.UpdateDeviceInfoPane()
 		return m, tea.Batch(cmds...)
 
 	// Enter Goto mode

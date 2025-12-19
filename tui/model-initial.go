@@ -16,7 +16,6 @@ func InitialModel(startDir string) Model {
 	fileInfoViewport.SetContent("Right Pane\n\nThis is the right viewport.\nIt will display file previews.")
 
 	deviceInfoViewport := viewport.New()
-	deviceInfoViewport.SetContent("Device Info")
 
 	configDir := config.GetConfigDir()
 

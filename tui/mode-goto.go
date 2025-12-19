@@ -184,6 +184,7 @@ func (m *Model) applyRelativeGotoDeviceList(inputValue string) bool {
 	}
 
 	m.deviceList.Select(target)
+	m.UpdateDeviceInfoPane()
 
 	return true
 }

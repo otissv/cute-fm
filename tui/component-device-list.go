@@ -42,7 +42,7 @@ func DeviceList(m Model, args DeviceListComponentArgs) string {
 	baseStyle := lipgloss.NewStyle().
 		Background(lipgloss.Color(theme.Background)).
 		BorderBackground(lipgloss.Color(theme.Background)).
-		BorderForeground(lipgloss.Color(theme.BorderColor)).
+		BorderForeground(lipgloss.Color(theme.ActiveBorderColor)).
 		BorderStyle(lipgloss.RoundedBorder()).
 		Foreground(lipgloss.Color(theme.Foreground)).
 		Height(args.Height).

@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"unicode"
 
+	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
 
 	"cute/filesystem"
@@ -92,24 +93,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Switch to device view
 	case bindings.Device.Matches(key):
-		if ActiveTuiMode != ModeDevice {
-			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = ModeDevice
-			ActiveFileListMode = FileListModeDevice
-			m.previousSplitPane = m.activeSplitPane
-			m.activeSplitPane = DeviceInfoSplitPaneType
-
-			// Refresh device list when entering device mode
-			devices, err := filesystem.ListDevices()
-			if err == nil {
-				m.lastDevices = devices
-				m.applyDeviceSorting()
-				m.updateDeviceListItems()
-			}
-		} else {
-			ActiveTuiMode = PreviousTuiMode
-			ActiveFileListMode = PreviousFileListMode
-		}
+		switchToDeviceMode(&m)
 		return m, nil
 
 		// Open column visibility window
@@ -277,11 +261,24 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.Parent.Matches(key):
 		pane := m.GetActivePane()
 		parent := filepath.Dir(pane.currentDir)
-		if parent != "" && parent != pane.currentDir {
+
+		mountPoints := MountPoints{deviceList: m.deviceList}
+		switch {
+
+		case mountPoints.Match(parent):
+			switchToDeviceMode(&m)
+		case parent != "" && parent != pane.currentDir:
 			m.ChangeDirectory(parent)
-		} else {
+		default:
 			m.ReloadDirectory()
+
 		}
+
+		// if parent != "" && parent != pane.currentDir {
+		// 	m.ChangeDirectory(parent)
+		// } else {
+		// 	m.ReloadDirectory()
+		// }
 		return m, nil
 
 	// Navigate backwards/forwards through directory history.
@@ -436,4 +433,45 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
+}
+
+// MountPoints wraps a device list and provides a Match method to check if a path matches any mount point.
+type MountPoints struct {
+	deviceList list.Model
+}
+
+// Match checks if the given path matches any mount point in the device list.
+func (mp MountPoints) Match(path string) bool {
+	for _, item := range mp.deviceList.Items() {
+		deviceItem, ok := item.(DeviceItem)
+		if !ok {
+			continue
+		}
+		if deviceItem.Info.MountPoint == path {
+			return true
+		}
+	}
+	return false
+}
+
+func switchToDeviceMode(m *Model) {
+	if ActiveTuiMode != ModeDevice {
+		PreviousTuiMode = ActiveTuiMode
+		ActiveTuiMode = ModeDevice
+		ActiveFileListMode = FileListModeDevice
+		m.previousSplitPane = m.activeSplitPane
+		m.activeSplitPane = DeviceInfoSplitPaneType
+
+		// Refresh device list when entering device mode
+		devices, err := filesystem.ListDevices()
+		if err == nil {
+			m.lastDevices = devices
+			m.applyDeviceSorting()
+			m.updateDeviceListItems()
+			m.UpdateDeviceInfoPane()
+		}
+	} else {
+		ActiveTuiMode = PreviousTuiMode
+		ActiveFileListMode = PreviousFileListMode
+	}
 }

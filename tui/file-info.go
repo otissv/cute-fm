@@ -29,7 +29,7 @@ func (m *Model) UpdateFileInfoPane() {
 func renderFileInfoPane(fi filesystem.FileInfo) string {
 	var b strings.Builder
 
-	fmt.Fprintf(&b, "File info\n\n")
+	fmt.Fprintf(&b, "File Info\n\n")
 	fmt.Fprintf(&b, "Name: %s\n", fi.Name)
 
 	if fi.Path != "" {

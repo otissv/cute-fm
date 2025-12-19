@@ -29,6 +29,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.lastDevices = deviceMsg.Devices
 		m.applyDeviceSorting()
 		m.updateDeviceListItems()
+		m.UpdateDeviceInfoPane()
 
 		// Handle added devices (newly mounted)
 		if len(deviceMsg.Added) > 0 {
@@ -539,6 +540,8 @@ func (m *Model) updateDeviceListItems() {
 			m.deviceList.Select(0)
 		}
 	}
+
+	m.UpdateDeviceInfoPane()
 }
 
 func parseDevicePercent(s string) float64 {
