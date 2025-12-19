@@ -113,7 +113,7 @@ func (d DeviceItemDelegate) renderDeviceRow(di filesystem.DeviceInfo, isCursor b
 
 	bgColor := theme.Background
 	if isCursor {
-		bgColor = theme.Background
+		bgColor = theme.Hovered
 	}
 
 	if bgColor != "" {

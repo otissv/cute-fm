@@ -42,7 +42,7 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Capture the current count before we reset it. A zero prefix means
 	// "no explicit count", which we treat as 1.
-	count := 1
+	count := 0
 	if m.countPrefix > 0 {
 		count = m.countPrefix
 	}
@@ -114,6 +114,7 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.Directories.Matches(key):
 		ActiveFileListMode = "ld"
 		ActiveTuiMode = ModeNormal
+		m.activeSplitPane = m.previousSplitPane
 		m.ApplyFileListFilter()
 		return m, nil
 
@@ -137,9 +138,35 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.Files.Matches(key):
 		ActiveFileListMode = "lf"
 		ActiveTuiMode = ModeNormal
+		m.activeSplitPane = m.previousSplitPane
 		m.ApplyFileListFilter()
 
 		return m, nil
+
+		// Move cursor to start of device list
+	case bindings.GoToStart.Matches(key):
+		m.deviceList.Select(0)
+		return m, tea.Batch(cmds...)
+
+	// Move cursor to end of device list
+	case bindings.GoToEnd.Matches(key):
+		items := m.deviceList.Items()
+		if len(items) > 0 {
+			m.deviceList.Select(len(items) - 1)
+		}
+		return m, tea.Batch(cmds...)
+
+	// Enter Goto mode
+	case bindings.Goto.Matches(key):
+		if ActiveTuiMode != ModeGoto {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = ModeGoto
+
+			m.jumpTo = key
+			m.commandInput.SetValue(key)
+			m.commandInput.Focus()
+		}
+		return m, tea.Batch(cmds...)
 
 	// Goto home directory
 	case bindings.Home.Matches(keyMsg.String()):
@@ -167,6 +194,8 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bindings.List.Matches(key):
 		ActiveFileListMode = "ll"
 		ActiveTuiMode = ModeNormal
+		m.isSplitPaneOpen = false
+		m.activeSplitPane = m.previousSplitPane
 		m.ApplyFileListFilter()
 		return m, nil
 
@@ -179,31 +208,6 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			ActiveTuiMode = PreviousTuiMode
 		}
 		return m, nil
-
-	// Move cursor to start of device list
-	case bindings.GoToStart.Matches(key):
-		m.deviceList.Select(0)
-		return m, tea.Batch(cmds...)
-
-	// Move cursor to end of device list
-	case bindings.GoToEnd.Matches(key):
-		items := m.deviceList.Items()
-		if len(items) > 0 {
-			m.deviceList.Select(len(items) - 1)
-		}
-		return m, tea.Batch(cmds...)
-
-	// Enter Goto mode
-	case bindings.Goto.Matches(key):
-		if ActiveTuiMode != ModeGoto {
-			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = ModeGoto
-
-			m.jumpTo = key
-			m.commandInput.SetValue(key)
-			m.commandInput.Focus()
-		}
-		return m, tea.Batch(cmds...)
 
 	case bindings.Sort.Matches(keyMsg.String()):
 		ActiveTuiMode = ModeSort
@@ -220,15 +224,13 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	// Open file list split pane
-	case bindings.Tab.Matches(key) && !m.isSplitPaneOpen:
-		if ActiveTuiMode != ModeFileListSplitPane {
-			PreviousTuiMode = ActiveTuiMode
-			ActiveTuiMode = ModeFileListSplitPane
+	case bindings.Tab.Matches(key):
+		ActiveTuiMode = ModeNormal
+		ActiveFileListMode = PreviousFileListMode
 
-			m.activeSplitPane = FileListSplitPaneType
-			m.isSplitPaneOpen = true
-
-		}
+		m.previousSplitPane = m.activeSplitPane
+		m.activeSplitPane = FileListSplitPaneType
+		m.isSplitPaneOpen = true
 
 		return m, nil
 	}

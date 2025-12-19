@@ -171,6 +171,7 @@ var (
 type Model struct {
 	activeWindow         WindowKind
 	activeSplitPane      SplitPaneType
+	previousSplitPane    SplitPaneType
 	activeViewport       ActiveViewportType
 	commandHistory       []string // Command history for auto-complete
 	commandInput         textinput.Model

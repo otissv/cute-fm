@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"cute/console"
-
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
@@ -125,9 +123,6 @@ func (m Model) View() tea.View {
 	rightPaneItems := []string{}
 
 	if m.showRightPane {
-
-		console.Log("%s View", m.activeSplitPane)
-
 		switch m.activeSplitPane {
 
 		case DeviceInfoSplitPaneType:

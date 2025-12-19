@@ -77,6 +77,7 @@ func InitialModel(startDir string) Model {
 
 	m := Model{
 		activeSplitPane:    FileInfoSplitPaneType,
+		previousSplitPane:  FileInfoSplitPaneType,
 		activeViewport:     LeftViewportType,
 		configDir:          configDir,
 		fileInfoViewport:   fileInfoViewport,
@@ -136,6 +137,7 @@ func InitialModel(startDir string) Model {
 	m.settings = MergeSettings(defaultSettings, tomlSettings)
 	m.settings.StartDir = leftCurrentDir
 
+	m.previousSplitPane = m.activeSplitPane
 	m.activeSplitPane = m.settings.SplitPane
 	if m.settings.SplitPane != "" {
 		m.isSplitPaneOpen = m.settings.SplitPane != ""

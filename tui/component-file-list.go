@@ -12,7 +12,6 @@ func FileList(m Model, args FileListComponentArgs) string {
 	theme := m.GetTheme()
 	fileList := m.GetLeftPaneFileListForViewport(args.SplitPaneType)
 	activeViewport := m.GetActiveViewport()
-	isSplitPaneOpen := m.GetIsSplitPaneOpen()
 
 	contentWidth := args.Width - 2
 	if contentWidth < 1 {
@@ -36,7 +35,7 @@ func FileList(m Model, args FileListComponentArgs) string {
 	baseStyle := lipgloss.NewStyle().
 		Background(lipgloss.Color(theme.Background)).
 		BorderBackground(lipgloss.Color(theme.Background)).
-		BorderForeground(lipgloss.Color("#1E1E1E")).
+		BorderForeground(lipgloss.Color(theme.BorderColor)).
 		BorderStyle(lipgloss.RoundedBorder()).
 		Foreground(lipgloss.Color(theme.Foreground)).
 		Height(args.Height).
@@ -46,7 +45,7 @@ func FileList(m Model, args FileListComponentArgs) string {
 		BorderLeft(true).
 		BorderRight(true)
 
-	if activeViewport == args.SplitPaneType && isSplitPaneOpen {
+	if activeViewport == args.SplitPaneType {
 		baseStyle = baseStyle.
 			BorderForeground(lipgloss.Color(theme.ActiveBorderColor)).
 			BorderTop(true).

@@ -6,7 +6,6 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"cute/console"
 	"cute/filesystem"
 )
 
@@ -97,6 +96,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeDevice
 			ActiveFileListMode = FileListModeDevice
+			m.previousSplitPane = m.activeSplitPane
 			m.activeSplitPane = DeviceInfoSplitPaneType
 
 			// Refresh device list when entering device mode
@@ -169,9 +169,11 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Open file info split pane;
 	case bindings.FileInfoPane.Matches(key):
+		ActiveTuiMode = ModeNormal
+		m.previousSplitPane = m.activeSplitPane
 		m.activeSplitPane = FileInfoSplitPaneType
 		m.isSplitPaneOpen = false
-		ActiveTuiMode = ModeNormal
+		m.activeViewport = LeftViewportType
 		return m, nil
 
 	// Change file list to files-only view
@@ -293,6 +295,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Open preview split pane
 	case bindings.PreviewPane.Matches(key):
+		m.previousSplitPane = m.activeSplitPane
 		m.activeSplitPane = PreviewPaneType
 		m.isSplitPaneOpen = false
 		return m, nil
@@ -382,22 +385,23 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Open file list split pane
 	case bindings.Tab.Matches(key) && !m.isSplitPaneOpen:
 		if ActiveTuiMode != ModeFileListSplitPane {
-			console.Log("%s ", "here")
 
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeFileListSplitPane
 
+			m.previousSplitPane = m.activeSplitPane
 			m.activeSplitPane = FileListSplitPaneType
 			m.isSplitPaneOpen = true
-
-			console.Log("%s Normal %s", m.activeSplitPane, FileListSplitPaneType)
-
 		}
 
 		return m, nil
 
 		// Switch panes in file list slipt mode
 	case bindings.Tab.Matches(key):
+		m.previousSplitPane = m.activeSplitPane
+		m.activeSplitPane = FileListSplitPaneType
+		m.isSplitPaneOpen = true
+
 		if m.isSplitPaneOpen {
 			if m.activeViewport == LeftViewportType {
 				m.activeViewport = RightViewportType
