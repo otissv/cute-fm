@@ -184,7 +184,7 @@ func (m *Model) ExecuteCommand(line string) (command.Result, error) {
 	return res, err
 }
 
-func (m *Model) GetSelectedEntry() *command.SelectedEntry {
+func (m *Model) GetSelectedFileListEntry() *command.SelectedEntry {
 	pane := m.GetActivePane()
 
 	selectedIdx := pane.fileList.Index()
@@ -206,12 +206,28 @@ func (m *Model) GetSelectedEntry() *command.SelectedEntry {
 	}
 }
 
+func (m *Model) GetSelectedDeviceEntry() *command.SelectedEntry {
+	selectedIdx := m.deviceList.Index()
+	if selectedIdx < 0 || selectedIdx >= len(m.lastDevices) {
+		return nil
+	}
+
+	device := m.lastDevices[selectedIdx]
+
+	return &command.SelectedEntry{
+		Name:  device.Name,
+		Path:  device.MountPoint,
+		IsDir: true,
+		Type:  "directory",
+	}
+}
+
 func (m *Model) GetCommandEnvironment() command.Environment {
 	pane := m.GetActivePane()
 
 	return command.Environment{
 		Cwd:      pane.currentDir,
-		Selected: m.GetSelectedEntry(),
+		Selected: m.GetSelectedFileListEntry(),
 	}
 }
 

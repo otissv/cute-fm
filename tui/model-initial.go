@@ -15,6 +15,9 @@ func InitialModel(startDir string) Model {
 	fileInfoViewport := viewport.New()
 	fileInfoViewport.SetContent("Right Pane\n\nThis is the right viewport.\nIt will display file previews.")
 
+	deviceInfoViewport := viewport.New()
+	deviceInfoViewport.SetContent("Device Info")
+
 	configDir := config.GetConfigDir()
 
 	if err := SaveDefaultSettings(configDir); err != nil {
@@ -73,18 +76,19 @@ func InitialModel(startDir string) Model {
 	rightList := newList()
 
 	m := Model{
-		activeSplitPane:  FileInfoSplitPaneType,
-		activeViewport:   LeftViewportType,
-		configDir:        configDir,
-		fileInfoViewport: fileInfoViewport,
-		historyIndex:     -1,
-		historyMatches:   []string{},
-		isSplitPaneOpen:  false,
-		isSidePanelOpen:  false,
-		isSudo:           false,
-		jumpTo:           "",
-		layout:           "",
-		layoutRows:       []string{""},
+		activeSplitPane:    FileInfoSplitPaneType,
+		activeViewport:     LeftViewportType,
+		configDir:          configDir,
+		fileInfoViewport:   fileInfoViewport,
+		deviceInfoViewport: deviceInfoViewport,
+		historyIndex:       -1,
+		historyMatches:     []string{},
+		isSplitPaneOpen:    false,
+		isSidePanelOpen:    false,
+		isSudo:             false,
+		jumpTo:             "",
+		layout:             "",
+		layoutRows:         []string{""},
 		leftPane: filePane{
 			currentDir:  leftCurrentDir,
 			allFiles:    files,

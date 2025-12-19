@@ -101,7 +101,7 @@ func (d DeviceItemDelegate) renderDeviceRow(di filesystem.DeviceInfo, isCursor b
 
 	// Field colors
 	indexStyle := theming.StyleFromSpec(theme.FieldColors["nlink"])
-	nameStyle := theming.StyleFromSpec(theme.FileList.Foreground)
+	nameStyle := theming.StyleFromSpec(theme.FieldColors["name"])
 	pathStyle := theming.StyleFromSpec(theme.FieldColors["user"])
 	mountStyle := theming.StyleFromSpec(theme.FieldColors["group"])
 	typeStyle := theming.StyleFromSpec(theme.FieldColors["type"])
@@ -111,9 +111,9 @@ func (d DeviceItemDelegate) renderDeviceRow(di filesystem.DeviceInfo, isCursor b
 	usePercentStyle := theming.StyleFromSpec(theme.FieldColors["size"])
 	freePercentStyle := theming.StyleFromSpec(theme.FieldColors["size"])
 
-	bgColor := theme.FileList.Background
+	bgColor := theme.Background
 	if isCursor {
-		bgColor = theme.Selection.Background
+		bgColor = theme.Background
 	}
 
 	if bgColor != "" {
@@ -210,7 +210,7 @@ type DeviceHeaderRowArgs struct {
 }
 
 func RenderDeviceHeaderRow(args DeviceHeaderRowArgs) string {
-	bgColor := args.Theme.FileList.Background
+	bgColor := args.Theme.Background
 	bg := lipgloss.Color(bgColor)
 
 	nameHeading := "Name"

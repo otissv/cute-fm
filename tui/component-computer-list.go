@@ -40,11 +40,11 @@ func DeviceList(m Model, args DeviceListComponentArgs) string {
 	)
 
 	baseStyle := lipgloss.NewStyle().
-		Background(lipgloss.Color(theme.FileList.Background)).
-		BorderBackground(lipgloss.Color(theme.FileList.Background)).
-		BorderForeground(lipgloss.Color("#1E1E1E")).
+		Background(lipgloss.Color(theme.Background)).
+		BorderBackground(lipgloss.Color(theme.Background)).
+		BorderForeground(lipgloss.Color(theme.BorderColor)).
 		BorderStyle(lipgloss.RoundedBorder()).
-		Foreground(lipgloss.Color(theme.FileList.Foreground)).
+		Foreground(lipgloss.Color(theme.Foreground)).
 		Height(args.Height).
 		Width(args.Width).
 		BorderTop(true).

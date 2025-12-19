@@ -13,8 +13,8 @@ func CurrentDir(m Model, args CurrentDirComponentArgs) string {
 
 	return lipgloss.NewStyle().
 		AlignHorizontal(lipgloss.Center).
-		Background(lipgloss.Color(theme.CurrentDir.Background)).
-		Foreground(lipgloss.Color(theme.CurrentDir.Foreground)).
+		Background(lipgloss.Color(theme.Background)).
+		Foreground(lipgloss.Color(theme.Foreground)).
 		PaddingBottom(0).
 		PaddingLeft(1).
 		PaddingRight(1).

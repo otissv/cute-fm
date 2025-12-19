@@ -19,15 +19,12 @@ type FloatingWindow struct {
 
 func DefaultFloatingStyle(theme theming.Theme) lipgloss.Style {
 	return lipgloss.NewStyle().
-		Background(lipgloss.Color(theme.Dialog.Background)).
-		Foreground(lipgloss.Color(theme.Dialog.Foreground)).
+		Background(lipgloss.Color(theme.Background)).
+		Foreground(lipgloss.Color(theme.Foreground)).
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(theme.ActiveBorderColor)).
-		BorderBackground(lipgloss.Color(theme.Dialog.Background)).
-		PaddingTop(theme.Dialog.PaddingTop).
-		PaddingBottom(theme.Dialog.PaddingBottom).
-		PaddingLeft(theme.Dialog.PaddingLeft).
-		PaddingRight(theme.Dialog.PaddingRight)
+		BorderBackground(lipgloss.Color(theme.Background)).
+		Padding(1, 1)
 }
 
 func (fw FloatingWindow) View(outerWidth, outerHeight int) string {

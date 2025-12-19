@@ -16,7 +16,7 @@ func Header(m Model, args HeaderComponentArgs) string {
 
 	return lipgloss.NewStyle().
 		AlignHorizontal(lipgloss.Right).
-		Background(lipgloss.Color(theme.Header.Background)).
+		Background(lipgloss.Color(theme.Background)).
 		Height(args.Height).
 		PaddingBottom(0).
 		PaddingRight(1).
@@ -24,7 +24,7 @@ func Header(m Model, args HeaderComponentArgs) string {
 		Width(args.Width).
 		Render(theming.RainbowText(
 			lipgloss.NewStyle().
-				Background(lipgloss.Color(theme.Header.Background)),
+				Background(lipgloss.Color(theme.Background)),
 			m.GetTitleText(),
 			theming.Blends(theme.Primary, theme.Secondary),
 		))

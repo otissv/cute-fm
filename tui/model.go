@@ -122,9 +122,10 @@ const (
 	SortingAsc  SortColumnByDirection = "ASC"
 	SortingDesc SortColumnByDirection = "DESC"
 
-	PreviewPaneType       SplitPaneType = "PREVIEW"
-	FileInfoSplitPaneType SplitPaneType = "FILE_INFO"
-	FileListSplitPaneType SplitPaneType = "FILE_LIST"
+	DeviceInfoSplitPaneType SplitPaneType = "DEVICE_INFO"
+	FileInfoSplitPaneType   SplitPaneType = "FILE_INFO"
+	FileListSplitPaneType   SplitPaneType = "FILE_LIST"
+	PreviewPaneType         SplitPaneType = "PREVIEW"
 
 	LeftViewportType  ActiveViewportType = "LEFT"
 	RightViewportType ActiveViewportType = "RIGHT"
@@ -177,6 +178,7 @@ type Model struct {
 	configDir            string
 	countPrefix          int            // countPrefix stores a pending numeric prefix for Vim-style navigation (e.g. "10j" / "3↓" in the file list). A value of 0 means "no active prefix".
 	fileInfoViewport     viewport.Model // Independent state for each file-list pane.
+	deviceInfoViewport   viewport.Model
 	height               int
 	helpScrollOffset     int      // Help window scroll state
 	historyIndex         int      // Current index in historyMatches for navigation
@@ -283,8 +285,12 @@ func (m Model) GetMenuCursorIndex() int {
 	return m.menuCursorIndex
 }
 
-func (m Model) GetPreviewViewport() viewport.Model {
+func (m Model) GetFileInfoViewport() viewport.Model {
 	return m.fileInfoViewport
+}
+
+func (m Model) GetDeviceInfoViewport() viewport.Model {
+	return m.deviceInfoViewport
 }
 
 func (m Model) GetRightCurrentDir() string {

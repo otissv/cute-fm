@@ -14,11 +14,11 @@ func (m Model) SearchInput(prompt string, placeholder string) textinput.Model {
 	searchInput.Blur()
 
 	searchBaseStyle := lipgloss.NewStyle().
-		Background(lipgloss.Color(m.theme.CommandBar.Background)).
-		Foreground(lipgloss.Color(m.theme.CommandBar.Foreground))
+		Background(lipgloss.Color(m.theme.Background)).
+		Foreground(lipgloss.Color(m.theme.Foreground))
 
 	searchPlaceholderStyle := searchBaseStyle.
-		Foreground(lipgloss.Color(m.theme.CommandBar.Placeholder))
+		Foreground(lipgloss.Color(m.theme.Placeholder))
 
 	searchStyles := searchInput.Styles()
 	searchStyles.Focused.Text = searchBaseStyle
@@ -29,7 +29,7 @@ func (m Model) SearchInput(prompt string, placeholder string) textinput.Model {
 	searchStyles.Blurred.Placeholder = searchPlaceholderStyle
 	searchStyles.Blurred.Prompt = searchBaseStyle
 
-	searchStyles.Cursor.Color = lipgloss.Color(m.theme.CommandBar.Foreground)
+	searchStyles.Cursor.Color = lipgloss.Color(m.theme.Foreground)
 
 	searchInput.SetStyles(searchStyles)
 

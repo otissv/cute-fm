@@ -14,10 +14,10 @@ func SearchBar(m Model, args SearchBarComponentArgs) string {
 	view := m.GetSearchInputView()
 
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color(theme.SearchBar.Foreground)).
-		Background(lipgloss.Color(theme.SearchBar.Background)).
-		BorderBackground(lipgloss.Color(theme.SearchBar.Background)).
-		BorderForeground(lipgloss.Color(theme.SearchBar.Border)).
+		Foreground(lipgloss.Color(theme.Foreground)).
+		Background(lipgloss.Color(theme.Background)).
+		BorderBackground(lipgloss.Color(theme.Background)).
+		BorderForeground(lipgloss.Color(theme.BorderColor)).
 		BorderTop(false).
 		BorderBottom(false).
 		BorderLeft(false).

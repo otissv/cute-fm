@@ -117,6 +117,22 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ApplyFileListFilter()
 		return m, nil
 
+	case bindings.Enter.Matches(key):
+		ActiveFileListMode = PreviousFileListMode
+		ActiveTuiMode = ModeNormal
+
+		selectedEntry := m.GetSelectedDeviceEntry()
+		if selectedEntry != nil && selectedEntry.Path != "" {
+			res, _ := m.ExecuteCommand("cd " + selectedEntry.Path)
+			if res.Cwd != "" {
+				m.ChangeDirectory(res.Cwd)
+			} else if res.Refresh {
+				m.ReloadDirectory()
+			}
+		}
+
+		return m, nil
+
 		// Change file list to files-only view
 	case bindings.Files.Matches(key):
 		ActiveFileListMode = "lf"
@@ -201,6 +217,19 @@ func (m Model) DeviceMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+		return m, nil
+
+	// Open file list split pane
+	case bindings.Tab.Matches(key) && !m.isSplitPaneOpen:
+		if ActiveTuiMode != ModeFileListSplitPane {
+			PreviousTuiMode = ActiveTuiMode
+			ActiveTuiMode = ModeFileListSplitPane
+
+			m.activeSplitPane = FileListSplitPaneType
+			m.isSplitPaneOpen = true
+
+		}
+
 		return m, nil
 	}
 

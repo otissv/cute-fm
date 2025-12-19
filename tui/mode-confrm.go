@@ -22,7 +22,7 @@ func (m Model) ConfirmMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case keyMsg.String() == "y":
-		selected := m.GetSelectedEntry().Path
+		selected := m.GetSelectedFileListEntry().Path
 
 		res, _ := m.ExecuteCommand(command + " " + selected)
 

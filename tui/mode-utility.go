@@ -38,7 +38,7 @@ func (m Model) UtilityMode(msg tea.Msg, command string) (tea.Model, tea.Cmd) {
 
 		if inputValue != "" {
 			line := command + " " + inputValue
-			selectedEntry := m.GetSelectedEntry()
+			selectedEntry := m.GetSelectedFileListEntry()
 
 			if (command == "cp" || command == "mv") && selectedEntry != nil {
 				line = command + " " + selectedEntry.Path + " " + inputValue

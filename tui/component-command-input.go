@@ -14,11 +14,11 @@ func (m Model) CommandInput(prompt string, placeholder string) textinput.Model {
 	commandInput.Blur()
 
 	baseStyle := lipgloss.NewStyle().
-		Background(lipgloss.Color(m.theme.CommandBar.Background)).
-		Foreground(lipgloss.Color(m.theme.CommandBar.Foreground))
+		Background(lipgloss.Color(m.theme.Background)).
+		Foreground(lipgloss.Color(m.theme.Foreground))
 
 	placeholderStyle := baseStyle.
-		Foreground(lipgloss.Color(m.theme.CommandBar.Placeholder))
+		Foreground(lipgloss.Color(m.theme.Placeholder))
 
 	styles := commandInput.Styles()
 	styles.Focused.Text = baseStyle
@@ -29,7 +29,7 @@ func (m Model) CommandInput(prompt string, placeholder string) textinput.Model {
 	styles.Blurred.Placeholder = placeholderStyle
 	styles.Blurred.Prompt = baseStyle
 
-	styles.Cursor.Color = lipgloss.Color(m.theme.CommandBar.Foreground)
+	styles.Cursor.Color = lipgloss.Color(m.theme.Foreground)
 
 	commandInput.SetStyles(styles)
 

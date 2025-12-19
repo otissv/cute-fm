@@ -12,12 +12,9 @@ func StatusBar(m Model, args StatusBarComponentArgs, items ...string) string {
 
 	statusStyle := lipgloss.NewStyle().
 		AlignVertical(lipgloss.Center).
-		Background(lipgloss.Color(theme.StatusBar.Background)).
+		Background(lipgloss.Color(theme.Background)).
+		Foreground(lipgloss.Color(theme.Foreground)).
 		Height(args.Height).
-		PaddingBottom(theme.StatusBar.PaddingBottom).
-		PaddingLeft(theme.StatusBar.PaddingLeft).
-		PaddingRight(theme.StatusBar.PaddingRight).
-		PaddingTop(theme.StatusBar.PaddingTop).
 		Width(args.Width)
 
 	var flatItems []string

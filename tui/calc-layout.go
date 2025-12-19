@@ -55,4 +55,6 @@ func (m *Model) CalcLayout() {
 	// Update right viewport dimensions (height is the content height).
 	m.fileInfoViewport.SetWidth(m.viewportWidth)
 	m.fileInfoViewport.SetHeight(viewportContentHeight)
+	m.deviceInfoViewport.SetWidth(m.viewportWidth)
+	m.deviceInfoViewport.SetHeight(viewportContentHeight)
 }

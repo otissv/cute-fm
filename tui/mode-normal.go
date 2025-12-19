@@ -6,6 +6,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
+	"cute/console"
 	"cute/filesystem"
 )
 
@@ -96,6 +97,7 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeDevice
 			ActiveFileListMode = FileListModeDevice
+			m.activeSplitPane = DeviceInfoSplitPaneType
 
 			// Refresh device list when entering device mode
 			devices, err := filesystem.ListDevices()
@@ -380,11 +382,16 @@ func (m Model) NormalMode(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Open file list split pane
 	case bindings.Tab.Matches(key) && !m.isSplitPaneOpen:
 		if ActiveTuiMode != ModeFileListSplitPane {
+			console.Log("%s ", "here")
+
 			PreviousTuiMode = ActiveTuiMode
 			ActiveTuiMode = ModeFileListSplitPane
 
 			m.activeSplitPane = FileListSplitPaneType
 			m.isSplitPaneOpen = true
+
+			console.Log("%s Normal %s", m.activeSplitPane, FileListSplitPaneType)
+
 		}
 
 		return m, nil

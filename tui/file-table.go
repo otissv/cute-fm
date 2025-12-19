@@ -110,13 +110,13 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 	typeStyle := theming.StyleFromSpec(theme.FieldColors["type"])
 	timeStyle := theming.StyleFromSpec(theme.FieldColors["time"])
 
-	bgColor := theme.FileList.Background
+	bgColor := theme.Background
 
 	if isMarked {
-		bgColor = theme.FileList.Marked
+		bgColor = theme.Marked
 	}
 	if isCursor {
-		bgColor = theme.Selection.Background
+		bgColor = theme.Hovered
 	}
 
 	if bgColor != "" {
@@ -155,7 +155,7 @@ func (d FileItemDelegate) renderFileRow(fi filesystem.FileInfo, isCursor bool, i
 		}
 
 		markerStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color(theme.FileList.Foreground))
+			Foreground(lipgloss.Color(theme.Foreground))
 
 		if bgColor != "" {
 			markerStyle = markerStyle.Background(lipgloss.Color(bgColor))
@@ -283,7 +283,7 @@ type FileHeaderRowArgs struct {
 }
 
 func RenderFileHeaderRow(args FileHeaderRowArgs) string {
-	bgColor := args.Theme.FileList.Background
+	bgColor := args.Theme.Background
 	bg := lipgloss.Color(bgColor)
 
 	baseStyle := lipgloss.NewStyle().
@@ -334,7 +334,7 @@ func RenderFileHeaderRow(args FileHeaderRowArgs) string {
 	// Optional selection marker header column in select mode.
 	if ActiveTuiMode == ModeSelect {
 		markerStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color(args.Theme.FileList.Foreground))
+			Foreground(lipgloss.Color(args.Theme.Foreground))
 		markerText := utils.TruncateAndPadCell(markerStyle.Render("[   ]"), colMarkerWidth, bgColor)
 		lineCols = append(lineCols, markerText)
 	}

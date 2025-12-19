@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"cute/console"
+
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
@@ -48,10 +50,18 @@ func (m Model) View() tea.View {
 	// 	leftStatusBarItem = append([]string{sudoMode}, leftStatusBarItem...)
 	// }
 
-	fileInfoViewportView := FileInfo(
-		m, FileInfoComponentArgs{
-			Width:  m.viewportWidth,
-			Height: m.viewportHeight + 1,
+	fileInfoViewportView := ViewPort(
+		m, ViewportComponentArgs{
+			Width:    m.viewportWidth,
+			Height:   m.viewportHeight + 1,
+			Viewport: m.GetFileInfoViewport(),
+		})
+
+	deviceInfoViewportView := ViewPort(
+		m, ViewportComponentArgs{
+			Width:    m.viewportWidth,
+			Height:   m.viewportHeight + 1,
+			Viewport: m.GetDeviceInfoViewport(),
 		})
 
 	leftCurrentDir := CurrentDir(m, CurrentDirComponentArgs{
@@ -115,16 +125,25 @@ func (m Model) View() tea.View {
 	rightPaneItems := []string{}
 
 	if m.showRightPane {
+
+		console.Log("%s View", m.activeSplitPane)
+
 		switch m.activeSplitPane {
 
-		case FileInfoSplitPaneType:
+		case DeviceInfoSplitPaneType:
+			rightPaneItems = []string{
+				rightPaneHeader,
+				deviceInfoViewportView,
+			}
 
+		case FileInfoSplitPaneType:
 			rightPaneItems = []string{
 				rightPaneHeader,
 				fileInfoViewportView,
 			}
 
 		case FileListSplitPaneType:
+
 			rightCurrentDir := CurrentDir(m, CurrentDirComponentArgs{
 				Height:     1,
 				CurrentDir: m.GetRightPaneCurrentDir(),

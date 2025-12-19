@@ -22,8 +22,8 @@ var (
 	color7  = "#E37CFF"
 	color8  = "#A8D2FF"
 	color9  = "#2072D5"
-	color10 = "#F00F00"
-	color11 = "#A8A7A7"
+	color10 = "#3B3B3B"
+	color11 = "#33282E"
 
 	background               = ""
 	foreground               = color1
@@ -32,23 +32,17 @@ var (
 	primary                  = color2
 	muted                    = color11
 	secondary                = color3
-	placeholder              = "#33282E"
+	placeholder              = color11
 	viewModBackground        = background
 	viewModForeground        = foreground
-	commandBarBackground     = background
-	commandBarBorder         = borderColor
-	commandBarForeground     = foreground
-	commandBarPlaceholder    = color11
 	leftCurrentDirBackground = background
 	leftCurrentDirForeground = foreground
+	fieldName                = foreground
 	fieldGroup               = color3
 	fieldNlink               = foreground
 	fieldSize                = color4
 	fieldTime                = foreground
 	fieldUser                = color3
-	fileListBackground       = background
-	fileListForeGround       = foreground
-	fileListBorder           = background
 	fileTypeDevice           = color5
 	fileTypeDirectory        = color8
 	fileTypeExecutable       = color4
@@ -56,19 +50,12 @@ var (
 	fileTypeRegular          = foreground
 	fileTypeSocket           = color3
 	fileTypeSymlink          = color5
-	fileListMarked           = color9
+	marked                   = color9
+	hovered                  = color10
 	permExec                 = color4
 	permNone                 = foreground
 	permRead                 = color6
 	permWrite                = color5
-	searchBackground         = background
-	searchBorder             = background
-	searchForeground         = foreground
-	headerBackground         = background
-	previewBackground        = background
-	previewBorderBackground  = ""
-	previewForeground        = foreground
-	previewBorder            = borderColor
 	normalModeBackground     = ""
 	normalModeForeground     = color4
 	commandModeBackground    = ""
@@ -79,9 +66,6 @@ var (
 	helpModeForeground       = color6
 	quitModeBackground       = "#000000"
 	quitModeForeground       = "#F0EDED"
-	dialogTitle              = color9
-	sudoBackground           = color10
-	sudoForeground           = color1
 )
 
 type Style struct {
@@ -167,21 +151,15 @@ type Theme struct {
 	Primary           string
 	Secondary         string
 	Muted             string
+	Placeholder       string
 	BorderColor       string
 	ActiveBorderColor string
-	CommandBar        BarStyle
+	Hovered           string
+	Marked            string
 	CurrentDir        StyleColor
-	Dialog            DialogStyle
 	FieldColors       map[string]string
-	FileList          FileListStyle
 	FileTypeColors    map[string]string
-	Header            StyleColor
 	Permissions       PermissionsStyle
-	FileInfo          Style
-	SearchBar         BarStyle
-	Selection         StyleColor
-	StatusBar         Style
-	SudoMode          StyleColor
 	TuiMode           TuiMode
 	ViewMode          StyleColor
 }
@@ -195,42 +173,13 @@ func GetTheme() Theme {
 		Secondary:         secondary,
 		Muted:             muted,
 		ActiveBorderColor: activeBorderColor,
-
-		CommandBar: BarStyle{
-			Background:    commandBarBackground,
-			Border:        commandBarBorder,
-			Foreground:    commandBarForeground,
-			PaddingBottom: 0,
-			PaddingLeft:   1,
-			PaddingRight:  1,
-			PaddingTop:    0,
-			Placeholder:   commandBarPlaceholder,
-		},
-
-		Dialog: DialogStyle{
-			Background:    background,
-			Foreground:    foreground,
-			PaddingBottom: 1,
-			PaddingLeft:   1,
-			PaddingRight:  1,
-			PaddingTop:    1,
-			Title:         dialogTitle,
-		},
+		Placeholder:       placeholder,
+		Marked:            marked,
+		Hovered:           hovered,
 
 		CurrentDir: StyleColor{
 			Background: leftCurrentDirBackground,
 			Foreground: leftCurrentDirForeground,
-		},
-
-		FileList: FileListStyle{
-			Background:    fileListBackground,
-			Foreground:    fileListForeGround,
-			PaddingBottom: 1,
-			Border:        fileListBorder,
-			PaddingLeft:   1,
-			PaddingRight:  1,
-			PaddingTop:    0,
-			Marked:        fileListMarked,
 		},
 
 		FileTypeColors: map[string]string{
@@ -244,6 +193,7 @@ func GetTheme() Theme {
 		},
 
 		FieldColors: map[string]string{
+			"name":  fieldName,
 			"group": fieldGroup,
 			"nlink": fieldNlink,
 			"size":  fieldSize,
@@ -251,57 +201,11 @@ func GetTheme() Theme {
 			"user":  fieldUser,
 		},
 
-		Header: StyleColor{
-			Background: headerBackground,
-		},
-
 		Permissions: PermissionsStyle{
 			Exec:  permExec,
 			Read:  permRead,
 			Write: permWrite,
 			None:  permNone,
-		},
-
-		FileInfo: Style{
-			Background:       previewBackground,
-			BorderBackground: previewBorderBackground,
-			Foreground:       previewForeground,
-			Border:           previewBorder,
-			PaddingBottom:    1,
-			PaddingLeft:      1,
-			PaddingRight:     1,
-			PaddingTop:       0,
-		},
-
-		SearchBar: BarStyle{
-			Background:    background,
-			Border:        borderColor,
-			Foreground:    foreground,
-			PaddingBottom: 0,
-			PaddingLeft:   1,
-			PaddingRight:  1,
-			PaddingTop:    0,
-			Placeholder:   placeholder,
-		},
-
-		StatusBar: Style{
-			Background:    searchBackground,
-			Foreground:    searchForeground,
-			Border:        searchBorder,
-			PaddingBottom: 0,
-			PaddingLeft:   0,
-			PaddingRight:  0,
-			PaddingTop:    0,
-		},
-
-		Selection: StyleColor{
-			Background: "#3B3B3B",
-			Foreground: background,
-		},
-
-		SudoMode: StyleColor{
-			Background: sudoBackground,
-			Foreground: sudoForeground,
 		},
 
 		TuiMode: TuiMode{
@@ -379,17 +283,7 @@ func mergeTheme(defaultTheme, customTheme Theme) Theme {
 	}
 
 	// Merge nested structs
-	merged.CommandBar = mergeBarStyle(defaultTheme.CommandBar, customTheme.CommandBar)
-	merged.CurrentDir = mergeStyleColor(defaultTheme.CurrentDir, customTheme.CurrentDir)
-	merged.Dialog = mergeDialogStyle(defaultTheme.Dialog, customTheme.Dialog)
-	merged.FileList = mergeFileListStyle(defaultTheme.FileList, customTheme.FileList)
-	merged.Header = mergeStyleColor(defaultTheme.Header, customTheme.Header)
 	merged.Permissions = mergePermissionsStyle(defaultTheme.Permissions, customTheme.Permissions)
-	merged.FileInfo = mergeStyle(defaultTheme.FileInfo, customTheme.FileInfo)
-	merged.SearchBar = mergeBarStyle(defaultTheme.SearchBar, customTheme.SearchBar)
-	merged.Selection = mergeStyleColor(defaultTheme.Selection, customTheme.Selection)
-	merged.StatusBar = mergeStyle(defaultTheme.StatusBar, customTheme.StatusBar)
-	merged.SudoMode = mergeStyleColor(defaultTheme.SudoMode, customTheme.SudoMode)
 	merged.TuiMode = mergeTuiMode(defaultTheme.TuiMode, customTheme.TuiMode)
 	merged.ViewMode = mergeStyleColor(defaultTheme.ViewMode, customTheme.ViewMode)
 
@@ -427,102 +321,6 @@ func mergeStyleColor(defaultStyle, customStyle StyleColor) StyleColor {
 	}
 	if customStyle.Foreground != "" {
 		merged.Foreground = customStyle.Foreground
-	}
-	return merged
-}
-
-func mergeBarStyle(defaultStyle, customStyle BarStyle) BarStyle {
-	merged := defaultStyle
-	if customStyle.Background != "" {
-		merged.Background = customStyle.Background
-	}
-	if customStyle.Foreground != "" {
-		merged.Foreground = customStyle.Foreground
-	}
-	if customStyle.Placeholder != "" {
-		merged.Placeholder = customStyle.Placeholder
-	}
-	if customStyle.Border != "" {
-		merged.Border = customStyle.Border
-	}
-	// Only override padding if explicitly set (non-zero)
-	if customStyle.PaddingTop != 0 || customStyle.PaddingBottom != 0 || customStyle.PaddingLeft != 0 || customStyle.PaddingRight != 0 {
-		merged.PaddingTop = customStyle.PaddingTop
-		merged.PaddingBottom = customStyle.PaddingBottom
-		merged.PaddingLeft = customStyle.PaddingLeft
-		merged.PaddingRight = customStyle.PaddingRight
-	}
-	return merged
-}
-
-func mergeStyle(defaultStyle, customStyle Style) Style {
-	merged := defaultStyle
-	if customStyle.Background != "" {
-		merged.Background = customStyle.Background
-	}
-	if customStyle.BorderBackground != "" {
-		merged.BorderBackground = customStyle.BorderBackground
-	}
-	if customStyle.Foreground != "" {
-		merged.Foreground = customStyle.Foreground
-	}
-	if customStyle.Border != "" {
-		merged.Border = customStyle.Border
-	}
-	// Only override padding if explicitly set (non-zero)
-	if customStyle.PaddingTop != 0 || customStyle.PaddingBottom != 0 || customStyle.PaddingLeft != 0 || customStyle.PaddingRight != 0 {
-		merged.PaddingTop = customStyle.PaddingTop
-		merged.PaddingBottom = customStyle.PaddingBottom
-		merged.PaddingLeft = customStyle.PaddingLeft
-		merged.PaddingRight = customStyle.PaddingRight
-	}
-	return merged
-}
-
-func mergeDialogStyle(defaultStyle, customStyle DialogStyle) DialogStyle {
-	merged := defaultStyle
-	if customStyle.Background != "" {
-		merged.Background = customStyle.Background
-	}
-	if customStyle.Foreground != "" {
-		merged.Foreground = customStyle.Foreground
-	}
-	if customStyle.Title != "" {
-		merged.Title = customStyle.Title
-	}
-	// Only override padding if explicitly set (non-zero)
-	if customStyle.PaddingTop != 0 || customStyle.PaddingBottom != 0 || customStyle.PaddingLeft != 0 || customStyle.PaddingRight != 0 {
-		merged.PaddingTop = customStyle.PaddingTop
-		merged.PaddingBottom = customStyle.PaddingBottom
-		merged.PaddingLeft = customStyle.PaddingLeft
-		merged.PaddingRight = customStyle.PaddingRight
-	}
-	return merged
-}
-
-func mergeFileListStyle(defaultStyle, customStyle FileListStyle) FileListStyle {
-	merged := defaultStyle
-	if customStyle.Background != "" {
-		merged.Background = customStyle.Background
-	}
-	if customStyle.BorderBackground != "" {
-		merged.BorderBackground = customStyle.BorderBackground
-	}
-	if customStyle.Foreground != "" {
-		merged.Foreground = customStyle.Foreground
-	}
-	if customStyle.Border != "" {
-		merged.Border = customStyle.Border
-	}
-	if customStyle.Marked != "" {
-		merged.Marked = customStyle.Marked
-	}
-	// Only override padding if explicitly set (non-zero)
-	if customStyle.PaddingTop != 0 || customStyle.PaddingBottom != 0 || customStyle.PaddingLeft != 0 || customStyle.PaddingRight != 0 {
-		merged.PaddingTop = customStyle.PaddingTop
-		merged.PaddingBottom = customStyle.PaddingBottom
-		merged.PaddingLeft = customStyle.PaddingLeft
-		merged.PaddingRight = customStyle.PaddingRight
 	}
 	return merged
 }

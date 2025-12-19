@@ -12,8 +12,8 @@ func SudoMode(m Model, args SudoModeComponentArgs) string {
 
 	return lipgloss.NewStyle().
 		AlignHorizontal(lipgloss.Center).
-		Background(lipgloss.Color(theme.SudoMode.Background)).
-		Foreground(lipgloss.Color(theme.SudoMode.Foreground)).
+		Background(lipgloss.Color(theme.Background)).
+		Foreground(lipgloss.Color(theme.Foreground)).
 		PaddingBottom(0).
 		PaddingLeft(1).
 		PaddingRight(1).
